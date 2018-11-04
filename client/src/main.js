@@ -8,9 +8,12 @@ Vue.config.productionTip = false
 import api from './api/index.js'
 Vue.prototype.$api = api
 /* eslint-disable no-new */
+
+import store from './store/index.js';
 new Vue({
   el: '#app',
   router,
+  store,
   components: { App },
   template: '<App/>'
 })

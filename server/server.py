@@ -15,9 +15,9 @@ import numpy as np
 from pymongo import  MongoClient
 
 # import frq_path_stat
-define("port", default=22068, type=int, help = "run on the given port")
+define("port", default=22333, type=int, help = "run on the given port")
 
-client = MongoClient('192.168.10.9',27066)
+# client = MongoClient('192.168.10.9',27066)
 
 client_file_root_path = os.path.join(os.path.split(__file__)[0],'../client')
 client_file_root_path = os.path.abspath(client_file_root_path)
@@ -25,23 +25,23 @@ client_file_root_path = os.path.abspath(client_file_root_path)
 
 
 
-class addressHandler(tornado.web.RequestHandler):
+class demoMysqlHandler(tornado.web.RequestHandler):
     def post(self):
       self.set_header('Access-Control-Allow-Origin','*')  # 添加响应头，允许指定域名的跨域请求
       self.set_header("Access-Control-Allow-Headers", "X-Requested-With");  
       self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS"); 
       constraint=self.get_argument('constraint')
       constraint = json.loads(constraint)
-      print('data', constraint)
-      self.write({'suc':'success'})
+      self.write({'suc':'post success'})
 
     def get(self):
       self.set_header('Access-Control-Allow-Origin','*')  # 添加响应头，允许指定域名的跨域请求
       self.set_header("Access-Control-Allow-Headers", "X-Requested-With");  
       self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS"); 
-      print('...............checkClassNameHandler')
+      constraint=self.get_argument('constraint')
+      constraint = json.loads(constraint)
       
-      self.write({'suc':'success'})
+      self.write({'suc':'get success'})
 
 # json encode for numpy ndarray and so on
 class MyEncoder(json.JSONEncoder):
@@ -61,7 +61,7 @@ if __name__ == "__main__":
     print(client_file_root_path)
     app = tornado.web.Application(
         handlers=[
-                  (r'/searchAddress', addressHandler),
+                  (r'/demo-mysql', demoMysqlHandler),
                   # (r'/checkClassName', checkClassNameHandler),
                   # (r'/queryCarList', queryCarListHandler),
                   (r'/(.*)', tornado.web.StaticFileHandler, {'path': client_file_root_path,

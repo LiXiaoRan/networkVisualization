@@ -1,0 +1,89 @@
+#filter-panel {
+  height: 33%;
+  width: 34%;
+  top: 66%;
+  left: 65%;
+  position: absolute;
+  background: #303243;
+  .filter {
+    top: 5%;
+    width: 64%;
+    height: 20%;
+    position: relative;
+    margin-left: 30px;
+    border-bottom: 1px #ccc dashed;
+  }
+  .fcheckbox {
+    margin-top: 3.8%;
+    color: grey;
+    vertical-align: middle;
+    font-size: 0.75em;
+    margin-left: 5%;
+    margin-right: 20px;
+  }
+  .fcheckbox input {
+    position: absolute;
+    visibility: hidden;
+  }
+  .fcheckbox input + label {
+    cursor: pointer;
+    position: absolute;
+    width: 2.8%;
+    height: 15%;
+    border: 1px solid #5a5e75;
+    background: #5a5e75;
+  }
+  .fcheckbox label {
+    margin-left: 20px;
+  }
+  .fcheckbox span {
+    margin-left: 12.5%;
+    margin-bottom: 20px;
+  }
+  .fcheckbox input:checked + label::after {
+    content: close-quote;
+    position: absolute;
+    bottom: 40%;
+    width: 80%;
+    height: 30%;
+    border: 1px solid whitesmoke;
+    border-top-color: transparent;
+    border-right-color: transparent;
+    -ms-transform: rotate(-60deg);
+    -moz-transform: rotate(-60deg);
+    -webkit-transform: rotate(-60deg);
+    transform: rotate(-45deg);
+  }
+  .filtermsg {
+    width: 100%;
+    color: #696b72;
+    vertical-align: middle;
+    font-size: 0.8em;
+  }
+  .filtergraph {
+    position: relative;
+    top: 8.5%;
+    height: 35%;
+    width: 64%;
+    margin-left: 30px;
+  }
+  .filtermsg-1 {
+    position: absolute;
+    left: 72%;
+    top: 5%;
+    color: #696b72;
+    font-size: 0.7em;
+  }
+  .filtermsg-2 {
+    font-family: "微软雅黑";
+    color: grey;
+    border-radius: 15px;
+    position: absolute;
+    left: 78%;
+    top: 3%;
+    width: 20%;
+    background-color: #303243;
+    margin: 0 30px 0 10px;
+    outline: none;
+  }
+}

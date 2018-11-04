@@ -1,0 +1,26 @@
+@circle-color: #303243;
+
+.view-svg {
+  .node {
+    fill: @circle-color;
+    .simpleCircle {
+      stroke: #eee;
+    }
+  }
+  .node.drag-active {
+    fill: #8c8c8c;
+  }
+  .node.hover-active {
+    fill: #8c8c8c;
+  }
+  .node:hover {
+    cursor: pointer;
+  }
+  .link {
+    stroke: #888;
+    fill: none;
+  }
+  .linkH {
+    stroke: #cacacc;
+  }
+}

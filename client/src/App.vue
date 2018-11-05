@@ -92,8 +92,8 @@ export default {
       this.paramsMsg = {
         where: {
           start_time: {
-            $gte: res[0],
-            $lt: res[1]
+            start: res[0],
+            end: res[1]
           }
         },
         limit: 5000

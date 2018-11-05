@@ -2,7 +2,7 @@
  * @Author: wakouboy
  * @Date:   2018-11-04 23:57:26
  * @Last Modified by:   wakouboy
- * @Last Modified time: 2018-11-04 23:58:07
+ * @Last Modified time: 2018-11-05 18:46:58
  */
 import AppNodeTree from '../AppNodeTree.vue'
 const d3 = require('d3')
@@ -252,7 +252,7 @@ export default class NodeLinkGraph {
     let newLinks = links.enter().append('g').attr('class', function(d, i) {
       return 'link ' + d.id + ' s-' + d.source + ' t-' + d.target
     })
-    newLinks.append('path').attr('class', 'centerPath').attr('stroke-width', '1px')
+    newLinks.append('path').attr('class', 'centerPath').attr('stroke-width', '1px').attr('stroke', '#888')
     if (simpleFlag === false) {
       let linkH = newLinks.append('g').attr('class', 'linkH')
       linkH.append('path').attr('class', 'topH').attr('stroke-width', '1px').attr('d', 'M -2, 1.5 L 2, 1.5')

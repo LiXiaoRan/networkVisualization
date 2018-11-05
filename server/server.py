@@ -9,19 +9,18 @@ import tornado.httpserver
 import tornado.options
 import os
 import sys
+import database
 from tornado.options import define, options
 import tornado.websocket
-import numpy as np
-from pymongo import  MongoClient
+import datetime
 
 # import frq_path_stat
 define("port", default=22333, type=int, help = "run on the given port")
 
-# client = MongoClient('192.168.10.9',27066)
-
 client_file_root_path = os.path.join(os.path.split(__file__)[0],'../client')
 client_file_root_path = os.path.abspath(client_file_root_path)
 
+NetworkData = database.NetworkData()
 
 
 
@@ -38,10 +37,11 @@ class demoMysqlHandler(tornado.web.RequestHandler):
       self.set_header('Access-Control-Allow-Origin','*')  # 添加响应头，允许指定域名的跨域请求
       self.set_header("Access-Control-Allow-Headers", "X-Requested-With");  
       self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS"); 
-      constraint=self.get_argument('constraint')
-      constraint = json.loads(constraint)
-      
-      self.write({'suc':'get success'})
+      params = self.get_argument('params')
+      params = json.loads(params)
+      print(params)
+      data = NetworkData.getData(params)
+      self.write(data)
 
 # json encode for numpy ndarray and so on
 class MyEncoder(json.JSONEncoder):

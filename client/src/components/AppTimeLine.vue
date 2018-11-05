@@ -28,7 +28,7 @@
 </template>
 <script>
 import AppTitle from './AppTitle.vue'
-import TimeLine from './layout/TimeLine.js'
+import TimeLine from './layout/TimeLine'
 
 const d3 = require('d3')
 
@@ -42,10 +42,17 @@ export default {
       selected_s: '1',
 
       items_g: [{ text: '15分钟', value: '15' }, { text: '30分钟', value: '30' }, { text: '60分钟', value: '60' }, { text: '自定义', value: '自定义' }],
-      selected_g: '15'
+      selected_g: '15',
+      networkData: null,
+      loadedData: null
     }
   },
   components: { AppTitle },
+  watch: {
+    loadedData: function() {
+      this.drawTimeLine(this.networkData)
+    }
+  },
   methods: {
     drawTimeLine(data) {
       let self = this
@@ -63,7 +70,6 @@ export default {
     },
     getDataWithParams(paramsObj) {
       // test /api/demo-mysql   发布： /network_security/api/demo-mysql
-      let data
       // this.$http.get('/api/demo-mysql', { params: paramsObj })
       //   .then((res) => {
       //     console.log('查询成功')
@@ -73,14 +79,23 @@ export default {
       //   }).catch((error) => {
       //     console.log('查询失败', error)
       //   })
+      let self = this
       let Url = 'http://127.0.0.1:22333/' + 'demo-mysql'
-      let constraint = {}
-      constraint['params'] = paramsObj
-      constraint = JSON.stringify(constraint)
       let formData = new URLSearchParams()
-      formData.append('constraint', constraint)
+      formData.append('params', JSON.stringify(paramsObj))
       this.$api.get(Url, formData, data => {
-        console.log('get success')
+        // console.log(data)
+        let newData = []
+        data.data.forEach(d => {
+          let nd = {}
+          for (let i = 0; i < data.fields.length; i++) {
+            nd[data.fields[i]] = d[i]
+          }
+          newData.push(nd)
+        })
+        self.networkData = newData
+        self.loadedData = Math.random()
+        // self.drawTimeLine(newData)
       })
     },
     timeChangeHandler(params) {
@@ -99,7 +114,8 @@ export default {
     self.getDataWithParams({
       where: {
         val: {
-          $gte: 0
+          start: 0,
+          end: 1000000000
         }
       },
       limit: 5000

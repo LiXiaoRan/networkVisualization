@@ -11,13 +11,15 @@
 
 <script>
   import AppTitle from './AppTitle.vue'
-  import NodeLinkGraph from './layout/NodeLinkGraph.js'
+  import NodeLinkGraph from './layout/NodeLinkGraph'
   const d3 = require('d3')
   export default {
     data () {
       return {
         icon: '<i class="fa fa-joomla" aria-hidden="true"></i>',
-        msgs: '多层网络'
+        msgs: '多层网络',
+        networkData: null,
+        loadedData: null
       }
     },
     components: {AppTitle},
@@ -79,14 +81,31 @@
       },
       getDataWithParams (handleMethod, paramsObj) {
         // test /api/demo-mysql   发布： /network_security/api/demo-mysql
-        this.$http.get('/api/demo-mysql', {params: paramsObj})
-          .then((res) => {
-            console.log('查询成功')
-            let data = JSON.parse(JSON.stringify(res.body.data))
-            handleMethod(data)
-          }).catch((error) => {
-            console.log('查询失败', error)
+        
+        // this.$http.get('/api/demo-mysql', {params: paramsObj})
+        //   .then((res) => {
+        //     console.log('查询成功')
+        //     let data = JSON.parse(JSON.stringify(res.body.data))
+        //     handleMethod(data)
+        //   }).catch((error) => {
+        //     console.log('查询失败', error)
+        //   })
+        let self = this
+        let Url = 'http://127.0.0.1:22333/' + 'demo-mysql'
+        let formData = new URLSearchParams()
+        formData.append('params', JSON.stringify(paramsObj))
+        this.$api.get(Url, formData, data => {
+          let newData = []
+          data.data.forEach(d => {
+            let nd = {}
+            for (let i = 0; i < data.fields.length; i++) {
+              nd[data.fields[i]] = d[i]
+            }
+            newData.push(nd)
           })
+          self.networkData = newData
+          self.loadedData = Math.random()
+        })
       },
       enableZoomEvent (flag) {
         let self = this
@@ -207,6 +226,9 @@
       paramsMsg: function (res) {
         console.log('watch~~~', this.paramsMsg)
         this.searchData(res)
+      },
+      loadedData: function(){
+        this.handleGraphData(this.networkData)
       }
     }
   }

@@ -17,7 +17,8 @@ import datetime
 # import frq_path_stat
 define("port", default=22333, type=int, help = "run on the given port")
 
-client_file_root_path = os.path.join(os.path.split(__file__)[0],'../client')
+# client_file_root_path = os.path.join(os.path.split(__file__)[0],'../client')
+client_file_root_path = os.path.join(os.path.split(__file__)[0],'../')
 client_file_root_path = os.path.abspath(client_file_root_path)
 
 NetworkData = database.NetworkData()

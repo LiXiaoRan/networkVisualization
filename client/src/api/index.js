@@ -1,5 +1,9 @@
 // 配置API接口地址
-var root = 'http://127.0.0.1:22333/' 
+// var root = 'http://127.0.0.1:22333/' 
+var root = 'http://192.168.10.9:22333/'
+// var root = 'http://162.105.92.117/network_security_server/'
+// 外网访问服务器端口 需要设置代理
+// var root = 'http://162.105.92.117:22333/'
 
 //var root = 'http://www.zhimengzhe.com/Javascriptjiaocheng/390541.html'
 // 引用axios
@@ -39,7 +43,7 @@ function apiAxios(method, url, params, success, failure) {
   }
   axios({
       method: method,
-      url: url,
+      url: root + url,
       data: method === 'POST' || method === 'PUT' ? params : null,
       params: method === 'GET' || method === 'DELETE' ? params : null,
       baseURL: root,

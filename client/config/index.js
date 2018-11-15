@@ -14,6 +14,7 @@ module.exports = {
     autoOpenBrowser: true,
     assetsSubDirectory: 'static',
     assetsPublicPath: '/',
+    host: '127.0.0.1',
     //配置 webpack 将接口代理到本地
     proxyTable: {
       '/api': {
@@ -53,8 +54,8 @@ module.exports = {
 
     productionSourceMap: true,
     // https://webpack.js.org/configuration/devtool/#production
-    // devtool: '#source-map',
-    devtool: '#cheap-module-eval-source-map',
+    devtool: '#source-map',
+    // devtool: '#cheap-module-eval-source-map',
 
     // Gzip off by default as many popular static hosts such as
     // Surge or Netlify already gzip all static assets for you.

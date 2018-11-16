@@ -1,6 +1,6 @@
 // 配置API接口地址
-// var root = 'http://127.0.0.1:22333/' 
-var root = 'http://192.168.10.9:22333/'
+var root = 'http://127.0.0.1:22333/'
+// var root = 'http://192.168.10.9:22333/'
 // var root = 'http://162.105.92.117/network_security_server/'
 // 外网访问服务器端口 需要设置代理
 // var root = 'http://162.105.92.117:22333/'

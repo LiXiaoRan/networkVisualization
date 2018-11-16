@@ -105,7 +105,7 @@ export default {
     getDataWithParams(paramsObj) {
       console.log("getDataWithParams 函数");
       let self = this;
-      let Url = "http://127.0.0.1:22333/" + "cal-layout";
+      let Url = "cal-layout";
       let formData = new URLSearchParams();
       formData.append("params", JSON.stringify(paramsObj));
       this.$api.get(Url, formData, data => {

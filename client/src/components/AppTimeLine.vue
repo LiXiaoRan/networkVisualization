@@ -80,7 +80,7 @@ export default {
       //     console.log('查询失败', error)
       //   })
       let self = this
-      let Url = 'http://127.0.0.1:22333/' + 'demo-mysql'
+      let Url = 'demo-mysql'
       let formData = new URLSearchParams()
       formData.append('params', JSON.stringify(paramsObj))
       this.$api.get(Url, formData, data => {
@@ -94,8 +94,10 @@ export default {
           newData.push(nd)
         })
         self.networkData = newData
-        self.loadedData = Math.random()
+        self.loadedData = Math.random() 
         // self.drawTimeLine(newData)
+      }, error => {
+        console.log(error)
       })
     },
     timeChangeHandler(params) {

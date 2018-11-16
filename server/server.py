@@ -25,7 +25,7 @@ client_file_root_path = os.path.abspath(client_file_root_path)
 NetworkData = database.NetworkData()
 
 
-
+ 
 class demoMysqlHandler(tornado.web.RequestHandler):
     def post(self):
       self.set_header('Access-Control-Allow-Origin','*')  # 添加响应头，允许指定域名的跨域请求

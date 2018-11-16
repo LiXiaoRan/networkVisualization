@@ -1,10 +1,11 @@
 <!-- 入口文件 -->
 <template>
   <div id="App">
-    <app-network v-bind:params-msg="paramsMsg"></app-network>
-    <app-node-tree></app-node-tree>
-    <app-time-line @time_change="handleTimeChange"></app-time-line>
-    <app-filter></app-filter>
+    <app-layout v-bind:params-msg="paramsMsg"></app-layout>
+    <!--<app-network v-bind:params-msg="paramsMsg"></app-network>-->
+    <!--<app-node-tree></app-node-tree>-->
+    <!--<app-time-line @time_change="handleTimeChange"></app-time-line>-->
+    <!--<app-filter></app-filter>-->
   </div>
 </template>
 <script>
@@ -13,10 +14,11 @@ import Vue from 'vue'
 // import { updateTestData } from './vuex/actions'
 // import { testData, testDataUpdateStatus } from './vuex/getters'
 import { mapActions, mapGetters } from 'vuex'
-import AppNetwork from './components/AppNetwork.vue'
-import AppNodeTree from './components/AppNodeTree.vue'
-import AppTimeLine from './components/AppTimeLine.vue'
-import AppFilter from './components/AppFilter.vue'
+// import AppNetwork from './components/AppNetwork.vue'
+// import AppNodeTree from './components/AppNodeTree.vue'
+// import AppTimeLine from './components/AppTimeLine.vue'
+// import AppFilter from './components/AppFilter.vue'
+import AppLayout from './components/AppLayout'
 
 export default {
   data() {
@@ -32,7 +34,8 @@ export default {
       paramsMsg: ''
     }
   },
-  components: { AppNetwork, AppNodeTree, AppTimeLine, AppFilter },
+  // components: { AppNetwork, AppNodeTree, AppTimeLine, AppFilter },
+  components: { AppLayout},
   computed: {
     privateTestData: {
       get() {

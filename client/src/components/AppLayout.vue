@@ -59,7 +59,7 @@ export default {
           break;
         case "多元尺度布局":
           self.now_layout_type = "mds";
-          graphLayOut('mds')  
+          graphLayOut('mds')
           break;
         case "网格布局":
           self.now_layout_type = "grid";
@@ -95,11 +95,11 @@ export default {
           end: 1000000000
         }
       },
-      limit: 500,
+      limit: 50000,
       layout_type: type
     });
-    } 
-    graphLayOut('circle')
+    }
+    graphLayOut('random')
   },
   methods: {
     getDataWithParams(paramsObj) {
@@ -114,7 +114,6 @@ export default {
       });
     },
     drawGraph(res) {
-      console.log("in");
       let padding = { top: 50, bottom: 50, left: 70, right: 70 };
       let svg = d3.select(".view-svg");
       let width = parseFloat(
@@ -155,14 +154,17 @@ export default {
           return yScale(d.y);
         })
         .attr("r", function(d) {
-          return d.weight;
+          return Math.ceil(Math.random()*10)
         })
         .attr("stroke", function(d) {
           return "#fff";
         })
         .attr("stroke-width", function(d) {
           return "1";
-        });
+        })
+        .attr('fill','#eee')
+        .attr('opacity',0.6)
+
 
       g.append("g")
         .selectAll("line")
@@ -193,7 +195,7 @@ export default {
 };
 </script>
 
-
+ 
 <style lang="less" scoped>
 @import "./AppLayout.less";
 </style>

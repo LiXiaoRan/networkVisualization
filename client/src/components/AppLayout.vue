@@ -95,7 +95,7 @@ export default {
           end: 1000000000
         }
       },
-      limit: 50000,
+      limit: 7000,
       layout_type: type
     });
     }

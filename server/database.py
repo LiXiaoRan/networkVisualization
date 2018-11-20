@@ -6,6 +6,7 @@
 import pymysql
 import time
 import json
+import time
 #connect to the db
 conn = pymysql.connect(host='192.168.10.9', db='transit_network', user = 'transitnet', password = 'pkuvistransit')
 tablename = 'transitnet0515s'
@@ -21,9 +22,12 @@ class NetworkData:
         end = params['where'][key]['end']
         sql = "select * from " + tablename + " where " + key + ">=" + "%s" + " and " + key + "<=" + "%s" + " limit " + "%s"
         print(sql)
+        start=time.clock()
         cursor.execute(sql, [start, end, params['limit']])
         data = cursor.fetchall()
-
+        end=time.clock()
+        diff_time=end-start
+        print("spend time for search database: "+str(diff_time))
         sql = "select COLUMN_NAME from information_schema.COLUMNS where table_name = %s"
         cursor.execute(sql, tablename)
         fields = cursor.fetchall()

@@ -13,6 +13,7 @@
 <script>
 import AppTitle from "./AppTitle.vue";
 import * as dat from "dat.gui";
+import qs from 'qs'
 const d3 = require("d3");
 
 export default {
@@ -20,7 +21,11 @@ export default {
     return {
       icon: '<i class="fa fa-joomla" aria-hidden="true"></i>',
       msgs: "后台布局",
-      now_layout_type: null
+      now_layout_type: null,
+      layout_data: {},
+      limit: 7000,
+      start: 0,
+      end: 1000000000
     };
   },
   components: { AppTitle },
@@ -47,39 +52,39 @@ export default {
       switch (value) {
         case "随机布局":
           self.now_layout_type = "random";
-          graphLayOut('random')
+          SwitchGraph("random");
           break;
         case "椭圆布局":
           self.now_layout_type = "circle";
-          graphLayOut('circle')
+          SwitchGraph("circle");
           break;
         case "graphopt布局":
           self.now_layout_type = "graphopt";
-          graphLayOut('graphopt')
+          SwitchGraph("graphopt");
           break;
         case "多元尺度布局":
           self.now_layout_type = "mds";
-          graphLayOut('mds')
+          SwitchGraph("mds");
           break;
         case "网格布局":
           self.now_layout_type = "grid";
-          graphLayOut('grid')
+          SwitchGraph("grid");
           break;
         case "大图布局":
           self.now_layout_type = "lgl";
-          graphLayOut('lgl')
+          SwitchGraph("lgl");
           break;
         case "分布式递归布局":
           self.now_layout_type = "drl";
-          graphLayOut('drl')
+          SwitchGraph("drl");
           break;
         case "层次化布局":
           self.now_layout_type = "sugiyama";
-          graphLayOut('sugiyama')
+          SwitchGraph("sugiyama");
           break;
         case "环状RT树布局":
           self.now_layout_type = "rt_circular";
-          graphLayOut('rt_circular')
+          SwitchGraph("rt_circular");
           break;
         default:
           break;
@@ -87,21 +92,45 @@ export default {
     });
     document.getElementById("layContainer").appendChild(gui.domElement);
 
-    var graphLayOut = function(type){
+    var graphLayOut = function(type) {
       self.getDataWithParams({
-      where: {
-        val: {
-          start: 0,
-          end: 1000000000
-        }
-      },
-      limit: 7000,
-      layout_type: type
-    });
-    }
-    graphLayOut('random')
+        where: {
+          val: {
+            start: self.start,
+            end: self.end
+          }
+        },
+        limit: self.limit,
+        layout_type: type
+      });
+    };
+    graphLayOut("random");
+
+    var SwitchGraph = function(type) {
+      self.drawSwitchGraph(type);
+    };
   },
   methods: {
+    /**
+     * 切换布局函数
+     */
+    drawSwitchGraph(type) {
+      let self = this;
+
+      let paramsObj = {
+        layoutData: JSON.stringify(self.layout_data),
+        layout_type: type
+      };
+
+      let Url = "get-layout-data";
+      let formData = new URLSearchParams();
+      formData.append("params", JSON.stringify(paramsObj));
+      this.$api.post(Url, formData, data => {
+        console.log("切换布局的数据 :");
+        console.log(data);
+        this.drawGraph(data);
+      });
+    },
     getDataWithParams(paramsObj) {
       console.log("getDataWithParams 函数");
       let self = this;
@@ -110,10 +139,13 @@ export default {
       formData.append("params", JSON.stringify(paramsObj));
       this.$api.get(Url, formData, data => {
         console.log(data);
+        self.layout_data = { links: data.links, nodes: data.nodes };
+        // console.log('self.layout_data :', self.layout_data.links);
         this.drawGraph(data);
       });
     },
     drawGraph(res) {
+      let startTime = +new Date();
       let padding = { top: 50, bottom: 50, left: 70, right: 70 };
       let svg = d3.select(".view-svg");
       let width = parseFloat(
@@ -154,7 +186,7 @@ export default {
           return yScale(d.y);
         })
         .attr("r", function(d) {
-          return Math.ceil(Math.random()*10)
+          return Math.ceil(Math.random() * 10);
         })
         .attr("stroke", function(d) {
           return "#fff";
@@ -162,9 +194,8 @@ export default {
         .attr("stroke-width", function(d) {
           return "1";
         })
-        .attr('fill','#eee')
-        .attr('opacity',0.6)
-
+        .attr("fill", "#eee")
+        .attr("opacity", 0.6);
 
       g.append("g")
         .selectAll("line")
@@ -189,13 +220,16 @@ export default {
         .attr("y2", function(d) {
           return yScale(d.y2);
         });
+
+      let endTime = +new Date();
+      console.log("渲染时间 :" + (endTime - startTime) / 1000);
     }
   },
   watch: {}
 };
 </script>
 
- 
+
 <style lang="less" scoped>
 @import "./AppLayout.less";
 </style>

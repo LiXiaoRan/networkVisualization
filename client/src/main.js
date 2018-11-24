@@ -4,6 +4,16 @@ import Vue from 'vue'
 import App from './App'
 import router from './router'
 
+import { library } from '@fortawesome/fontawesome-svg-core'
+import { faChartLine, faFilter } from '@fortawesome/free-solid-svg-icons'
+import { faJoomla, faUsb } from '@fortawesome/free-brands-svg-icons'
+import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
+
+library.add(faJoomla, faUsb, faChartLine, faFilter)
+
+Vue.component('font-awesome-icon', FontAwesomeIcon)
+
+
 Vue.config.productionTip = false
 import api from './api/index.js'
 Vue.prototype.$api = api

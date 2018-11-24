@@ -26,23 +26,21 @@ NetworkData = database.NetworkData()
 
 
  
-class demoMysqlHandler(tornado.web.RequestHandler):
+class getRecentDataHandler(tornado.web.RequestHandler):
     def post(self):
       self.set_header('Access-Control-Allow-Origin','*')  # 添加响应头，允许指定域名的跨域请求
       self.set_header("Access-Control-Allow-Headers", "X-Requested-With");  
       self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS"); 
-      constraint=self.get_argument('constraint')
-      constraint = json.loads(constraint)
-      self.write({'suc':'post success'})
+
 
     def get(self):
+      # 时间轴获取统计数据
       self.set_header('Access-Control-Allow-Origin','*')  # 添加响应头，允许指定域名的跨域请求
       self.set_header("Access-Control-Allow-Headers", "X-Requested-With");  
       self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS"); 
       params = self.get_argument('params')
       params = json.loads(params)
-      print(params)
-      data = NetworkData.getData(params)
+      data = NetworkData.getDataByRecentTime(params)
       self.write(data)
 
 
@@ -140,7 +138,7 @@ if __name__ == "__main__":
     print(client_file_root_path)
     app = tornado.web.Application(
         handlers=[
-                  (r'/demo-mysql', demoMysqlHandler),
+                  (r'/recent-data', getRecentDataHandler), 
                   (r'/cal-layout', calLayout),
                   (r'/get-layout-data', getLayoutData),
                   # (r'/checkClassName', checkClassNameHandler),

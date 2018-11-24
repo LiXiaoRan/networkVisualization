@@ -1,0 +1,134 @@
+#filter-panel {
+  height: calc(35% - 5px);
+  width: calc(35% - 5px);
+  top: calc(65% + 5px);
+  left: calc(65%);
+  position: absolute;
+  background: #303243;
+  .filter1 {
+    top: 2.5%;
+    margin-right: 30px;
+    height: 20%;
+    position: relative;
+    margin-left: 30px;
+    border-bottom: 1px #ccc dashed;
+  }
+  .filter2 {
+    top: 5%;
+    margin-right: 30px;
+    height: 20%;
+    position: relative;
+    margin-left: 30px;
+    border-bottom: 1px #ccc dashed;
+  }
+  .fcheckbox {
+    // margin-top: 3.8%;
+    color: grey;
+    vertical-align: middle;
+    font-size: 0.75em;
+    margin-left: 5%;
+    margin-right: 20px;
+    position:absolute;
+    height: calc(100% - 1.5em);
+    width: 100%;
+  }
+  .select1 {
+    position: absolute;
+    left: 0%;
+    top: 10%;
+    width: 30%;
+    // height: 100%;
+  }
+  .select2 {
+    position: absolute;
+    left: 33%;
+    top: 10%;
+    width: 30%;
+    // height: 100%;
+  }
+  .select3 {
+    position: absolute;
+    left: 66%;
+    top: 10%;
+    width: 30%;
+    // height: 100%;
+  }
+  .fcheckbox input {
+    // position: absolute;
+    visibility: hidden;
+  }
+  .fcheckbox input + label {
+    cursor: pointer;
+    position: absolute;
+    top: 3px;
+    width: 10px;
+    height: 10px;
+    border: 1px solid #5a5e75;
+    background: #5a5e75;
+  }
+  .fcheckbox label {
+    // margin-left: 20px;
+  }
+  .fcheckbox span {
+    margin-left: 15%;
+    // margin-bottom: 20px;
+  }
+  .fcheckbox input:checked + label::after {
+    content: close-quote;
+    position: absolute;
+    bottom: 40%;
+    width: 80%;
+    height: 30%;
+    border: 1px solid whitesmoke;
+    border-top-color: transparent;
+    border-right-color: transparent;
+    -ms-transform: rotate(-60deg);
+    -moz-transform: rotate(-60deg);
+    -webkit-transform: rotate(-60deg);
+    transform: rotate(-45deg);
+  }
+  .filtermsg {
+    width: 100%;
+    color: #696b72;
+    vertical-align: middle;
+    font-size: 0.8em;
+  }
+  .filtergraph {
+    position: relative;
+    top: 7.5%;
+    height: calc(52.5% - 44.8px);
+    // width: 64%;
+    margin-right: 30px;
+    margin-left: 30px;
+  }
+  .filtermsg-0 {
+    position: absolute;
+    top: 5%;
+    color: #696b72;
+    font-size: 0.8em;
+  }
+  .filtermsg-1 {
+    position: absolute;
+    left: 72%;
+    top: 5%;
+    color: #696b72;
+    font-size: 0.8em;
+  }
+  .filtermsg-2 {
+    font-family: "微软雅黑";
+    color: grey;
+    border-radius: 15px;
+    position: absolute;
+    left: 78%;
+    top: 3%;
+    width: 20%;
+    font-size: 0.8em;
+    background-color: #303243;
+    margin: 0 30px 0 10px;
+    outline: none;
+  }
+  #svgdiv {
+    position: absolute;
+    top: 20%;
+  }
+}

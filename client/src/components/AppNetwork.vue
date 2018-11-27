@@ -3,7 +3,6 @@
     <app-title v-bind:icon="icon" v-bind:msgs="msgs"></app-title>
     <div class='view'>
       <svg class='view-svg'>
-
       </svg>
       <div id="layContainer"></div>
     </div>
@@ -19,8 +18,9 @@ const d3 = require("d3");
 export default {
   data() {
     return {
-      icon: '<i class="fa fa-joomla" aria-hidden="true"></i>',
-      msgs: "后台布局",
+      // icon: '<i class="fa fa-joomla" aria-hidden="true"></i>',
+      icon: 'joomla', //需要再main.js 中注册
+      msgs: "多层网络",
       now_layout_type: null,
       layout_data: {},
       limit: 1000000,
@@ -231,5 +231,5 @@ export default {
 
 
 <style lang="less" scoped>
-@import "./AppLayout.less";
+@import "./AppNetwork.less";
 </style>

@@ -23,7 +23,7 @@ export default {
       msgs: "后台布局",
       now_layout_type: null,
       layout_data: {},
-      limit: 7000,
+      limit: 1000000,
       start: 0,
       end: 1000000000
     };

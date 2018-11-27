@@ -105,8 +105,8 @@ class getLayoutData(tornado.web.RequestHandler):
         params = json.loads(params)
         layoutType=params['layout_type']
         data=params['layoutData']
-        print("data in getLayoutData is ")
-        print(data)
+        # print("data in getLayoutData is ")
+        # print(data)
         start=time.clock()
         result=igraphTest.cal_back_layout_data(data,layoutType)
         end=time.clock()
@@ -124,8 +124,8 @@ class getLayoutData(tornado.web.RequestHandler):
         layoutType=params['layout_type']
         data=params['layoutData']
         data = json.loads(data)
-        print("data in getLayoutData is ")
-        print(data)
+        # print("data in getLayoutData is ")
+        # print(data)
         start=time.clock()
         result=igraphTest.cal_back_layout_data(data,layoutType)
         end=time.clock()

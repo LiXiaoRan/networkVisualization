@@ -69,6 +69,8 @@ class calLayout(tornado.web.RequestHandler):
             temp_nodes.append(target)
             links.append(edge)
         temp_nodes=set(temp_nodes)
+
+        print('node number', len(temp_nodes))
         for item in temp_nodes:
             node={'id':item}
             nodes.append(node)
@@ -98,7 +100,7 @@ class getLayoutData(tornado.web.RequestHandler):
         print("进入get")
         self.set_header('Access-Control-Allow-Origin','*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With");  
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS"); 
+        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");
         params = self.get_argument('params')
         params = json.loads(params)
         layoutType=params['layout_type']
@@ -123,7 +125,7 @@ class getLayoutData(tornado.web.RequestHandler):
         data=params['layoutData']
         data = json.loads(data)
         print("data in getLayoutData is ")
-        print(data)
+        # print(data)
         start=time.clock()
         result=igraphTest.cal_back_layout_data(data,layoutType)
         end=time.clock()

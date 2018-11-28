@@ -72,9 +72,9 @@ export default {
     getDataWithParams(paramsObj) {
       let self = this
       let Url = 'recent-data'
-      let formData = new URLSearchParams()
-      formData.append('params', JSON.stringify(paramsObj))
-      this.$api.get(Url, formData, data => {
+
+      CommunicateWithServer('get', paramsObj, Url, data => {
+        console.log(data)
         let newData = []
         data.data.forEach(d => {
           let nd = {}
@@ -85,10 +85,25 @@ export default {
         })
         console.log(data)
         self.networkData = newData
-        self.loadedData = Math.random() 
-      }, error => {
-        console.log(error)
+        self.loadedData = Math.random()
       })
+      // let formData = new URLSearchParams()
+      // formData.append('params', JSON.stringify(paramsObj))
+      // this.$api.get(Url, formData, data => {
+      //   let newData = []
+      //   data.data.forEach(d => {
+      //     let nd = {}
+      //     for (let i = 0; i < data.fields.length; i++) {
+      //       nd[data.fields[i]] = d[i]
+      //     }
+      //     newData.push(nd)
+      //   })
+      //   console.log(data)
+      //   self.networkData = newData
+      //   self.loadedData = Math.random() 
+      // }, error => {
+      //   console.log(error)
+      // })
     },
     timeChangeHandler(params) {
       let self = this
@@ -112,6 +127,5 @@ export default {
 </script>
 <style lang="less" scoped>
 @import "AppTimeLine.less";
-
 
 </style>

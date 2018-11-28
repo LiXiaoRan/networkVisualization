@@ -8,7 +8,6 @@
     </div>
   </div>
 </template>
-
 <script>
 import AppTitle from "./AppTitle.vue";
 import * as dat from "dat.gui";
@@ -23,7 +22,7 @@ export default {
       msgs: "多层网络",
       now_layout_type: null,
       layout_data: {},
-      limit: 7000,
+      limit: 5000,
       start: 0,
       end: 1000000000
     };
@@ -121,30 +120,49 @@ export default {
         layoutData: JSON.stringify(self.layout_data),
         layout_type: type
       };
-
       let Url = "get-layout-data";
-      let formData = new URLSearchParams();
-      formData.append("params", JSON.stringify(paramsObj));
-      this.$api.post(Url, formData, data => {
-        console.log("切换布局的数据 :");
-        console.log(data);
-        this.drawGraph(data);
-      });
+      CommunicateWithServer('post', paramsObj, Url, this.drawGraph)
+      // let formData = new URLSearchParams();
+      // formData.append("params", JSON.stringify(paramsObj));
+      // this.$api.post(Url, formData, data => {
+      //   console.log("切换布局的数据 :");
+      //   console.log(data);
+      //   this.drawGraph(data);
+      // });
     },
     getDataWithParams(paramsObj) {
-      console.log("getDataWithParams 函数");
-      let self = this;
-      let Url = "cal-layout";
-      let formData = new URLSearchParams();
-      formData.append("params", JSON.stringify(paramsObj));
-      this.$api.get(Url, formData, data => {
-        console.log(data);
-        self.layout_data = { links: data.links, nodes: data.nodes };
-        // console.log('self.layout_data :', self.layout_data.links);
-        this.drawGraph(data);
-      });
+
+      CommunicateWithServer('get', paramsObj, 'cal-layout', this.drawGraph)
+      // console.log("getDataWithParams 函数");
+      // let Url = "cal-layout";
+      // let formData = new URLSearchParams();
+      // formData.append("params", JSON.stringify(paramsObj));
+      // this.$api.get(Url, formData, data => {
+      //   console.log(data);
+      //   self.layout_data = { links: data.links, nodes: data.nodes };
+      //   // console.log('self.layout_data :', self.layout_data.links);
+      //   self.drawGraph(data);
+      // });
+      // let self = this
+      // paramsObj = JSON.stringify(paramsObj)
+      // $.ajax({
+      //   type: "GET",
+      //   url: "cal-layout",
+      //   data: {'params': paramsObj},
+      //   dataType: "json",
+      //   success: function(data) {
+      //     console.log(data);
+      //     self.layout_data = { links: data.links, nodes: data.nodes };
+      //     self.drawGraph(data);
+      //   },
+      //   error: function(err) {
+      //     console.log(err)
+      //   }
+      // });
     },
     drawGraph(res) {
+      console.log(res)
+      this.layout_data = {'links': res.links, nodes: res.nodes}
       let startTime = +new Date();
       let padding = { top: 50, bottom: 50, left: 70, right: 70 };
       let svg = d3.select(".view-svg");
@@ -227,9 +245,9 @@ export default {
   },
   watch: {}
 };
+
 </script>
-
-
 <style lang="less" scoped>
 @import "./AppNetwork.less";
+
 </style>

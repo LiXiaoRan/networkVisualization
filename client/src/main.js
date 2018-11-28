@@ -14,10 +14,54 @@ library.add(faJoomla, faUsb, faChartLine, faFilter)
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 
 
+
+
 Vue.config.productionTip = false
 import api from './api/index.js'
 Vue.prototype.$api = api
 /* eslint-disable no-new */
+import $ from 'jquery'
+window.$ = $
+
+var buildCodes = false
+
+// buildCodes = true
+
+{
+  window.CommunicateWithServer = function(type, paramsObj, url, callback) {
+    if (buildCodes) {
+      paramsObj = JSON.stringify(paramsObj)
+      $.ajax({
+        type: type,
+        url: url,
+        data: { 'params': paramsObj },
+        dataType: "json",
+        success: function(data) {
+          callback(data);
+        },
+        error: function(err) {
+          callback(err)
+        }
+      })
+    } else {
+      let formData = new URLSearchParams();
+      formData.append("params", JSON.stringify(paramsObj));
+      if (type == 'get') {
+        api.get(url, formData, data => {
+          callback(data)
+        }, error => {
+          callback(error)
+        })
+      } else if (type == 'post') {
+        api.post(url, formData, data => {
+          callback(data)
+        }, error => {
+          callback(error)
+        })
+      }
+    }
+  }
+}
 
 import store from './store/index.js';
 new Vue({

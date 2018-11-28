@@ -2,7 +2,7 @@
 # @Author: wakouboy
 # @Date:   2018-08-12 20:16:26
 # @Last Modified by:   wakouboy
-# @Last Modified time: 2018-11-24 19:52:54
+# @Last Modified time: 2018-11-28 12:50:00
 import pymysql
 import time
 import json
@@ -10,6 +10,8 @@ import time
 from datetime import datetime, timedelta
 #connect to the db
 conn = pymysql.connect(host='192.168.10.9', db='transit_network', user = 'transitnet', password = 'pkuvistransit')
+# conn = pymysql.connect(host='127.0.0.1', db='transit_network', user = 'root', password = '123456')
+
 tablename = 'transitnet0515s'
 cursor = conn.cursor()
 class NetworkData:

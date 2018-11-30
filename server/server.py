@@ -141,8 +141,6 @@ if __name__ == "__main__":
                   (r'/recent-data', getRecentDataHandler), 
                   (r'/cal-layout', calLayout),
                   (r'/get-layout-data', getLayoutData),
-                  # (r'/checkClassName', checkClassNameHandler),
-                  # (r'/queryCarList', queryCarListHandler),
                   (r'/(.*)', tornado.web.StaticFileHandler, {'path': client_file_root_path,
                                                'default_filename': 'index.html'}) # fetch client files
                   ],

@@ -17,7 +17,6 @@ const d3 = require("d3");
 export default {
   data() {
     return {
-      // icon: '<i class="fa fa-joomla" aria-hidden="true"></i>',
       icon: 'joomla', //需要再main.js 中注册
       msgs: "多层网络",
       now_layout_type: null,
@@ -110,9 +109,6 @@ export default {
     };
   },
   methods: {
-    /**
-     * 切换布局函数
-     */
     drawSwitchGraph(type) {
       let self = this;
 
@@ -122,43 +118,9 @@ export default {
       };
       let Url = "get-layout-data";
       CommunicateWithServer('post', paramsObj, Url, this.drawGraph)
-      // let formData = new URLSearchParams();
-      // formData.append("params", JSON.stringify(paramsObj));
-      // this.$api.post(Url, formData, data => {
-      //   console.log("切换布局的数据 :");
-      //   console.log(data);
-      //   this.drawGraph(data);
-      // });
     },
     getDataWithParams(paramsObj) {
-
       CommunicateWithServer('get', paramsObj, 'cal-layout', this.drawGraph)
-      // console.log("getDataWithParams 函数");
-      // let Url = "cal-layout";
-      // let formData = new URLSearchParams();
-      // formData.append("params", JSON.stringify(paramsObj));
-      // this.$api.get(Url, formData, data => {
-      //   console.log(data);
-      //   self.layout_data = { links: data.links, nodes: data.nodes };
-      //   // console.log('self.layout_data :', self.layout_data.links);
-      //   self.drawGraph(data);
-      // });
-      // let self = this
-      // paramsObj = JSON.stringify(paramsObj)
-      // $.ajax({
-      //   type: "GET",
-      //   url: "cal-layout",
-      //   data: {'params': paramsObj},
-      //   dataType: "json",
-      //   success: function(data) {
-      //     console.log(data);
-      //     self.layout_data = { links: data.links, nodes: data.nodes };
-      //     self.drawGraph(data);
-      //   },
-      //   error: function(err) {
-      //     console.log(err)
-      //   }
-      // });
     },
     drawGraph(res) {
       console.log(res)

@@ -2,7 +2,7 @@
 # @Author: wakouboy
 # @Date:   2018-08-12 20:16:26
 # @Last Modified by:   wakouboy
-# @Last Modified time: 2018-11-30 16:40:38
+# @Last Modified time: 2018-11-30 18:23:13
 import pymysql
 import time
 import json
@@ -44,7 +44,7 @@ class NetworkData:
         end = timeConvert(self.maxTime)
         start = 0
         if params['timeRange'] == '1day':
-            start = (end + timedelta(-1)).strftime('%Y%m%d%H%M%S') + self.maxTime[14:]
+            start = (end + timedelta(-0.1)).strftime('%Y%m%d%H%M%S') + self.maxTime[14:]
         end = self.maxTime
         print(start, end)
         key = 'end_time'

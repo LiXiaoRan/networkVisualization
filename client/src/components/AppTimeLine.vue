@@ -76,24 +76,8 @@ export default {
       CommunicateWithServer('get', paramsObj, Url, data => {
         self.networkData = data['data']
         self.loadedData = Math.random()
+        self.$store.state.testData = Math.random()
       })
-      // let formData = new URLSearchParams()
-      // formData.append('params', JSON.stringify(paramsObj))
-      // this.$api.get(Url, formData, data => {
-      //   let newData = []
-      //   data.data.forEach(d => {
-      //     let nd = {}
-      //     for (let i = 0; i < data.fields.length; i++) {
-      //       nd[data.fields[i]] = d[i]
-      //     }
-      //     newData.push(nd)
-      //   })
-      //   console.log(data)
-      //   self.networkData = newData
-      //   self.loadedData = Math.random() 
-      // }, error => {
-      //   console.log(error)
-      // })
     },
     timeChangeHandler(params) {
       let self = this

@@ -1,35 +1,21 @@
-/**
- * Created by huangxinxin on 16/8/24.
- */
-import Vue from 'vue'
-import Vuex from 'vuex'
-import utils from './utils'
-import * as types from './mutations'
+/*
+* @Author: wakouboy
+* @Date:   2018-08-08 23:30:27
+* @Last Modified by:   wakouboy
+* @Last Modified time: 2018-11-30 18:32:54
+*/
+import vue from 'vue';
+import vuex from 'vuex';
+import state from './state.js';
+import * as getters from './getters.js';
+import createLogger from 'vuex/dist/logger'; // 修改日志
 
-Vue.use(Vuex)
-Vue.prototype.VuexUtils = utils
-Vue.prototype.VuexMutations = types
+vue.use(vuex);
 
-const state = {
-  testData: null,
-  status: {
-    testData: {
-      update: null
-    }
-  }
-}
+const debug = process.env.NODE_ENV !== 'production'; // 开发环境中为true，否则为false
 
-const mutations = {
-  [types.TEST_DATA_UPDATE_SUCCESS] (state, data) {
-    state.testData = data
-    utils.setStatus(state, 'testData.update', types.TEST_DATA_UPDATE_SUCCESS)
-  },
-  [types.TEST_DATA_UPDATE_FAILED] (state) {
-    utils.setStatus(state, 'testData.update', types.TEST_DATA_UPDATE_FAILED)
-  }
-}
-
-export default new Vuex.Store({
-  strict: true,
-  state, mutations
-})
+export default new vuex.Store({
+    state,
+    getters,
+    plugins: debug ? [createLogger()] : [] // 开发环境下显示vuex的状态修改
+});

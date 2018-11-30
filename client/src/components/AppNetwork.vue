@@ -205,7 +205,16 @@ export default {
       console.log("渲染时间 :" + (endTime - startTime) / 1000);
     }
   },
-  watch: {}
+  computed: {
+    testData: function() {
+      return this.$store.state.testData
+    }
+  },
+  watch: {
+    testData: function(newVal, oldVal) {
+      console.log('communnication', newVal)
+    }
+  }
 };
 
 </script>

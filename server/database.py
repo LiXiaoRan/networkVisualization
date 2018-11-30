@@ -2,18 +2,18 @@
 # @Author: wakouboy
 # @Date:   2018-08-12 20:16:26
 # @Last Modified by:   wakouboy
-# @Last Modified time: 2018-11-28 12:50:00
+# @Last Modified time: 2018-11-30 16:40:38
 import pymysql
 import time
 import json
 import time
 from datetime import datetime, timedelta
 #connect to the db
-conn = pymysql.connect(host='192.168.10.9', db='transit_network', user = 'transitnet', password = 'pkuvistransit')
-# conn = pymysql.connect(host='127.0.0.1', db='transit_network', user = 'root', password = '123456')
+conn = pymysql.connect(host='192.168.10.9', db='transit_network', user = 'transitnet', password = 'pkuvistransit', cursorclass=pymysql.cursors.DictCursor)
+# conn = pymysql.connect(host='127.0.0.1', db='transit_network', user = 'root', password = '123456', cursorclass=pymysql.cursors.DictCursor)
 
 tablename = 'transitnet0515s'
-cursor = conn.cursor()
+
 class NetworkData:
     def __init__ (self):
         self.maxTime = 0
@@ -23,24 +23,23 @@ class NetworkData:
         start = params['where'][key]['start']
         end = params['where'][key]['end']
         sql = "select * from " + tablename + " where " + key + ">=" + "%s" + " and " + key + "<=" + "%s" + " limit " + "%s"
-        print(sql)
         start=time.clock()
-        cursor.execute(sql, [start, end, params['limit']])
-        data = cursor.fetchall()
+        data = []
+        with conn.cursor() as cursor:
+            cursor.execute(sql, [start, end, params['limit']])
+            data = cursor.fetchall()
         end=time.clock()
         diff_time=end-start
         print("spend time for search database: "+str(diff_time))
-        sql = "select COLUMN_NAME from information_schema.COLUMNS where table_name = %s"
-        cursor.execute(sql, tablename)
-        fields = cursor.fetchall()
-        return {'data': data, 'fields': fields}
+        return data
     def getDataByRecentTime(self, params):
         if self.maxTime == 0:
-            sql = "select max(end_time) from " + tablename
-            cursor.execute(sql)
-            data = cursor.fetchall()
-            self.maxTime = data[0][0]
-            print(self.maxTime)
+            with conn.cursor() as cursor:
+                sql = "select max(end_time) from " + tablename
+                cursor.execute(sql)
+                data = cursor.fetchall()
+                self.maxTime = data[0]['max(end_time)']
+                print(self.maxTime)
 
         end = timeConvert(self.maxTime)
         start = 0
@@ -49,15 +48,11 @@ class NetworkData:
         end = self.maxTime
         print(start, end)
         key = 'end_time'
-        sql = "select * from " + tablename + " where " + key + ">=" + "%s" + " and " + key + "<=" + "%s" + " limit " + "%s"
-        cursor.execute(sql, [start, end, 5000])
-        data = cursor.fetchall()
-
-        sql = "select COLUMN_NAME from information_schema.COLUMNS where table_name = %s"
-        cursor.execute(sql, tablename)
-        fields = cursor.fetchall()
-        
-        return {'data': data, 'fields': fields}
+        sql = "select * from " + tablename + " where " + key + ">=" + "%s" + " and " + key + "<=" + "%s"
+        with conn.cursor() as cursor:
+            cursor.execute(sql, [start, end])
+            data = cursor.fetchall()
+            return data
 
     def addGraph(self, data, name, tags, dt):
         sql = "insert into publicGraph(name, tags, data, time) values (%s, %s, %s, %s)"

@@ -74,17 +74,7 @@ export default {
       let Url = 'recent-data'
 
       CommunicateWithServer('get', paramsObj, Url, data => {
-        console.log(data)
-        let newData = []
-        data.data.forEach(d => {
-          let nd = {}
-          for (let i = 0; i < data.fields.length; i++) {
-            nd[data.fields[i]] = d[i]
-          }
-          newData.push(nd)
-        })
-        console.log(data)
-        self.networkData = newData
+        self.networkData = data['data']
         self.loadedData = Math.random()
       })
       // let formData = new URLSearchParams()

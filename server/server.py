@@ -41,7 +41,7 @@ class getRecentDataHandler(tornado.web.RequestHandler):
       params = self.get_argument('params')
       params = json.loads(params)
       data = NetworkData.getDataByRecentTime(params)
-      self.write(data)
+      self.write({'data': data})
 
 
 
@@ -57,13 +57,13 @@ class calLayout(tornado.web.RequestHandler):
         # print(layoutType)
         print(params)
         layoutType=params['layout_type']
-        data = NetworkData.getData(params)['data']
+        data = NetworkData.getData(params)
         links=[]
         temp_nodes=[]
         nodes=[]
         for row in data:
-            source=row[4]
-            target=row[6]
+            source=row['send_node_global_id']
+            target=row['receive_node_global_id']
             edge={'source':source,'target':target}
             temp_nodes.append(source)
             temp_nodes.append(target)

@@ -14,6 +14,9 @@ from tornado.options import define, options
 import tornado.websocket
 import datetime
 import igraphTest
+import graphfunc
+import networkx as nx
+import json
 
 # import frq_path_stat
 define("port", default=22333, type=int, help = "run on the given port")
@@ -23,8 +26,7 @@ client_file_root_path = os.path.join(os.path.split(__file__)[0],'../')
 client_file_root_path = os.path.abspath(client_file_root_path)
 
 NetworkData = database.NetworkData()
-
-
+LocalGraph = graphfunc.LocalGraph()
  
 class getRecentDataHandler(tornado.web.RequestHandler):
     def post(self):
@@ -77,10 +79,12 @@ class calLayout(tornado.web.RequestHandler):
 
         result={'nodes':nodes,'links':links}
         start=time.clock()
-        result=igraphTest.cal_back_layout_data(result,layoutType)
+        result,graph=igraphTest.cal_back_layout_data(result,layoutType)
         end=time.clock()
         diff_time=end-start
         print("spend time for calculate layout: "+str(diff_time))
+
+        LocalGraph.updatelocaldata(graph, 0)
 
         self.write(result)
 
@@ -131,6 +135,22 @@ class getLayoutData(tornado.web.RequestHandler):
         print("spend time for calculate layout: "+str(diff_time))
         self.write(result)
 
+class getDim2(tornado.web.RequestHandler):
+    # 获取降维数据
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        params = json.loads(self.get_argument('params'))
+        #print(params)
+        type = int(params['type'])
+        #type = int(json.loads(self.get_argument('type')))
+        nodes_new, results_new = LocalGraph.getdim2(type)
+        evt_unpacked = {'nodes': nodes_new, 'nodes_embedded': results_new.tolist(), 'edges': LocalGraph.G.edges(),'outlier':LocalGraph.outlierrecord}
+        evt = json.dumps(evt_unpacked)
+        self.write(evt)
+
+
 
 if __name__ == "__main__":
     tornado.options.parse_command_line()
@@ -141,6 +161,7 @@ if __name__ == "__main__":
                   (r'/recent-data', getRecentDataHandler), 
                   (r'/cal-layout', calLayout),
                   (r'/get-layout-data', getLayoutData),
+                  (r'/getDim2', getDim2),
                   (r'/(.*)', tornado.web.StaticFileHandler, {'path': client_file_root_path,
                                                'default_filename': 'index.html'}) # fetch client files
                   ],

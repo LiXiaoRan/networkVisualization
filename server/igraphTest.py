@@ -35,4 +35,4 @@ def cal_back_layout_data(result, layout_type):
                 link['x2'] = node['x']
                 link['y2'] = node['y']
 
-    return result
+    return result,graph

@@ -6,5 +6,9 @@
 */
 const state = {
     testData: null,
+	nodesSelected: null,
+	hlnodes:null,
+	hlview:null,
+	init_dim2:0,
 };
 export default state;

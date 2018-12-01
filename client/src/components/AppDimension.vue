@@ -63,7 +63,7 @@ export default {
             corners: 1, 
             rotate: 0, 
             direction: 1, 
-            color: '#d2d2d2', 
+            color: '#fff', 
 			opacity: 0.8,
             speed: 1, 
             trail: 60, 
@@ -110,8 +110,9 @@ export default {
 		let newtype=parseInt(document.getElementById("st_outlier_func").value);
 		if(newtype!=this.curoutliertype){
 			this.curoutliertype=newtype;
-			let obj={};
-			obj.type = JSON.stringify(this.curoutliertype);
+			let obj = {
+				type: this.curoutliertype
+			};
 			CommunicateWithServer('get', obj, 'changeOutlierType', function(){});
 		}
 	},
@@ -139,10 +140,10 @@ export default {
 	},
 	setscale(data){
 		let self = this;
-		let featurexmax=_.max(data, function(f){ return f[0]; })[0];
-		let featurexmin=_.min(data, function(f){ return f[0]; })[0];
-		let featureymax=_.max(data, function(f){ return f[1]; })[1];
-		let featureymin=_.min(data, function(f){ return f[1]; })[1];
+		let featurexmax=_.max(data, (f)=>{ return f[0]; })[0];
+		let featurexmin=_.min(data, (f)=>{ return f[0]; })[0];
+		let featureymax=_.max(data, (f)=>{ return f[1]; })[1];
+		let featureymin=_.min(data, (f)=>{ return f[1]; })[1];
 		
 		self.x_scale = d3.scaleLinear().range([self.xpadding,self.width-self.xpadding]).domain([featurexmin,featurexmax]);
 		self.y_scale = d3.scaleLinear().range([self.ypadding,self.height-self.ypadding]).domain([featureymin,featureymax]);
@@ -165,23 +166,23 @@ export default {
 		self.nodedom.selectAll("circle").remove();
 		let circles=self.nodedom.selectAll("circle").data(evt_data["nodes_embedded"])
 			.enter().append("circle")//.attr("id",function(d,i){return "nodes_"+d.id;})
-			.attr("fill", function(d,i){
+			.attr("fill", (d,i)=>{
 				let tmpnode=evt_data["nodes"][i];
 				return self.nodesmap(tmpnode,0);
 			})
 			.attr("stroke","#555")
 			.attr("r", 3)
-			.attr("cx", function(d,i){return self.x_scale(d[0]);})
-			.attr("cy", function(d,i){return self.y_scale(d[1]);})
-			.on("mouseover",function(d,i){
+			.attr("cx", (d,i)=>{return self.x_scale(d[0]);})
+			.attr("cy", (d,i)=>{return self.y_scale(d[1]);})
+			.on("mouseover",(d,i)=>{
 				self.$store.state.hlnodes = [evt_data["nodes"][i]];
 				self.$store.state.hlview = "dim2";
-			}).on("mouseout",function(d,i){
+			}).on("mouseout",(d,i)=>{
 				self.$store.state.hlnodes = [];
 				self.$store.state.hlview = "dim2";
 			});
 		circles.append("title")
-			    .text(function(d,i) {
+			    .text((d,i)=>{
 				  return evt_data["nodes"][i];
 				});	
 	},
@@ -217,11 +218,11 @@ export default {
 		let obj = {
 			type: self.curdim2type
 		};
-		$("#dim2_wait").show(function(){
+		$("#dim2_wait").show(()=>{
 			let target= document.getElementById('dim2_wait');
 			self.spinner.spin(target);  
 		});
-		CommunicateWithServer('get', obj, 'getDim2', function(evt_data){
+		CommunicateWithServer('get', obj, 'getDim2', (evt_data)=>{
 			//console.log(evt_data);
 			$("#dim2_wait").hide();
 			self.latestdata=evt_data;
@@ -248,14 +249,14 @@ export default {
 	hlnodes: function(newVal, oldVal) {
 	  if(this.$store.state.hlview!="dim2"){
 		  this.hlnodes_hl=newVal;
-		  this.nodedom.selectAll("circle").attr("r", function(d,i){return this.nodesmap(this.latestdata["nodes"][i],1);})
-			.attr("fill", function(d,i){return this.nodesmap(this.latestdata["nodes"][i],0);})
+		  this.nodedom.selectAll("circle").attr("r", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],1);})
+			.attr("fill", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],0);})
 	  }
     },
 	nodesSelected: function(newVal, oldVal) {
 	  this.hlnodes_sel=newVal;
-	  this.nodedom.selectAll("circle").attr("r", function(d,i){return this.nodesmap(this.latestdata["nodes"][i],1);})
-			.attr("fill", function(d,i){return this.nodesmap(this.latestdata["nodes"][i],0);})
+	  this.nodedom.selectAll("circle").attr("r", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],1);})
+			.attr("fill", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],0);})
     }
   }
 };

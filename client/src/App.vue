@@ -6,6 +6,7 @@
     <app-time-line @time_change="handleTimeChange"></app-time-line>
     <app-filter></app-filter>
 	<app-dimension></app-dimension>
+	<app-attributes></app-attributes>
   </div>
 </template>
 <script>
@@ -19,6 +20,7 @@ import AppNodeTree from './components/AppNodeTree.vue'
 import AppTimeLine from './components/AppTimeLine.vue'
 import AppFilter from './components/AppFilter.vue'
 import AppDimension from './components/AppDimension.vue'
+import AppAttributes from './components/AppAttributes.vue'
 
 export default {
   data() {
@@ -34,7 +36,7 @@ export default {
       paramsMsg: ''
     }
   },
-  components: { AppNetwork, AppNodeTree, AppTimeLine, AppFilter , AppDimension},
+  components: { AppNetwork, AppNodeTree, AppTimeLine, AppFilter , AppDimension, AppAttributes},
   computed: {
     privateTestData: {
       get() {

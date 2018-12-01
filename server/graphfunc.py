@@ -35,14 +35,14 @@ class LocalGraph:
     def initgraph(self):
         # 初始化节点高维属性
         # 更新节点degree属性
-        tmpnodes = self.G.nodes()
+        tmpnodes = list(self.G.nodes())
         for n in tmpnodes:
             self.nodes_degree[n] = {self.startnum: 0}
             self.nodes_clustering[n] = {self.startnum: 0}
             self.nodes_kcore[n] = {self.startnum: 0}
             self.nodes_eigen[n] = {self.startnum: 0}
             self.nodes_reachable[n] = {self.startnum: 0}
-        edges = self.G.edges()
+        edges = list(self.G.edges())
         for [a, b] in edges:
             self.nodes_degree[a][self.startnum] = self.nodes_degree[a][self.startnum] + 1
             self.nodes_degree[b][self.startnum] = self.nodes_degree[b][self.startnum] + 1
@@ -54,7 +54,7 @@ class LocalGraph:
         self.nodesattribute = nodes2highdim(self.G)
         self.nodesattribute_pre = self.nodesattribute.copy()
         # 更新节点其他属性
-        tmpnodes = self.G.nodes()
+        tmpnodes = list(self.G.nodes())
         for n in tmpnodes:
             self.nodes_clustering[n] = {self.startnum: self.nodesattribute[n][1]}
             self.nodes_kcore[n] = {self.startnum: self.nodesattribute[n][2]}
@@ -63,7 +63,7 @@ class LocalGraph:
 
     def getupdatededges(self, linksnew):
         # 获取旧graph->新graph的增加边和删除边
-        links = self.G.edges()
+        links = list(self.G.edges())
         addedges = [val for val in linksnew if val not in links]
         deledges = [val for val in links if val not in linksnew]
         return addedges, deledges
@@ -85,7 +85,7 @@ class LocalGraph:
             self.nodes_degree[a][newtime] = self.nodes_degree[a][newtime] - 1
             self.nodes_degree[b][newtime] = self.nodes_degree[b][newtime] - 1
             self.G.remove_edge(a, b)
-        nodes=self.G.nodes()
+        nodes=list(self.G.nodes())
         for n in self.nodes_degree:
             #度为零，孤立点，去除
             if self.nodes_degree[n][newtime]==0 and n in nodes:
@@ -140,7 +140,11 @@ class LocalGraph:
 
     def getdim2(self,type):
         return dim2(self.nodesattribute, type)
-
-
+    def getAttr(self,type,nodes):
+        tmpattrall = [self.nodes_degree, self.nodes_clustering, self.nodes_kcore, self.nodes_eigen, self.nodes_reachable]
+        tmpattr = {}
+        for n in nodes:
+            tmpattr[n] = tmpattrall[type][n]
+        return tmpattr
 
 

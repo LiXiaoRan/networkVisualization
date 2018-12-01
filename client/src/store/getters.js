@@ -11,6 +11,12 @@ export const hlnodes = function (state) {
 export const hlview = function (state) {
   return state.hlview
 }
+export const cleargraph = function (state) {
+  return state.cleargraph
+}
 export const init_dim2 = function (state) {
   return state.init_dim2
+}
+export const init_attri = function (state) {
+  return state.init_attri
 }

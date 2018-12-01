@@ -146,10 +146,37 @@ class getDim2(tornado.web.RequestHandler):
         type = int(params['type'])
         #type = int(json.loads(self.get_argument('type')))
         nodes_new, results_new = LocalGraph.getdim2(type)
-        evt_unpacked = {'nodes': nodes_new, 'nodes_embedded': results_new.tolist(), 'edges': LocalGraph.G.edges(),'outlier':LocalGraph.outlierrecord}
+        evt_unpacked = {'nodes': nodes_new, 'nodes_embedded': results_new.tolist(), 'edges': list(LocalGraph.G.edges()),'outlier':LocalGraph.outlierrecord}
         evt = json.dumps(evt_unpacked)
         self.write(evt)
 
+class changeOutlierType(tornado.web.RequestHandler):
+    # 改变检测outlier的方法
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        params = json.loads(self.get_argument('params'))
+        type = int(params['type'])
+        LocalGraph.outliertype=type
+        evt_unpacked = {}
+        evt = json.dumps(evt_unpacked)
+        self.write(evt)
+
+class getAttr(tornado.web.RequestHandler):
+    #获取指定节点的指定属性变化记录
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        params = json.loads(self.get_argument('params'))
+        type = int(params['type'])
+        nodes = params['nodes']
+        #print(type,nodes)
+        tmpattr=LocalGraph.getAttr(type,nodes)
+        evt_unpacked = {"attr":tmpattr}
+        evt = json.dumps(evt_unpacked)
+        self.write(evt)
 
 
 if __name__ == "__main__":
@@ -162,6 +189,8 @@ if __name__ == "__main__":
                   (r'/cal-layout', calLayout),
                   (r'/get-layout-data', getLayoutData),
                   (r'/getDim2', getDim2),
+                  (r'/changeOutlierType', changeOutlierType),
+                  (r'/getAttr', getAttr),
                   (r'/(.*)', tornado.web.StaticFileHandler, {'path': client_file_root_path,
                                                'default_filename': 'index.html'}) # fetch client files
                   ],

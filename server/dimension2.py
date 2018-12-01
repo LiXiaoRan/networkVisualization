@@ -39,7 +39,7 @@ def nodes2highdim(G):
     print('k_core', time_end - time_start)
 
     time_start = time.time()
-    nodesall=G.nodes()
+    nodesall=list(G.nodes())
     nodesattribute={}
     for n in nodesall:
         tmpattr=[degrees[n],clusteringco[n],corenum[n],eigncenternx[n]]
@@ -83,7 +83,7 @@ def nodes2highdim_update(G,addedges,deledges,nodesattribute):
     print('k_core', time_end - time_start)
 
     time_start = time.time()
-    nodesall = G.nodes()
+    nodesall = list(G.nodes())
     nodes_pre=list(nodesattribute.keys())
     #nodesattribute = {}
     for n in nodesall:
@@ -120,14 +120,14 @@ def updateclustering2(G,edges,nodesattribute):
     #print(e[0],e[1])
     nodesupdates1=[]
     nodesupdates2=set([])
-    nodes = G.nodes()
+    nodes = list(G.nodes())
     for e in edges:
         if e[0] in nodes:
             nodesupdates1.append(e[0])
         if e[1] in nodes:
             nodesupdates1.append(e[1])
         if e[0] in nodes and e[1] in nodes:
-            commoneneighbors = set(G.neighbors(e[0])).intersection(set(G.neighbors(e[1])))
+            commoneneighbors = set(list(G.neighbors(e[0]))).intersection(set(list(G.neighbors(e[1]))))
             nodesupdates2=nodesupdates2 | commoneneighbors
     nodesupdates=list(set(nodesupdates1) | nodesupdates2)
     #print(nodesupdates)

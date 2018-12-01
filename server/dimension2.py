@@ -21,6 +21,7 @@ def nodes2highdim(G):
     connectednum = [c for c in connectedG]
     time_end = time.time()
     print('connected_components', time_end - time_start)
+    print('connected_components_num', len(connectednum))
 
     time_start = time.time()
     #eigncenter.append(nx.eigenvector_centrality_numpy(H))
@@ -65,6 +66,7 @@ def nodes2highdim_update(G,addedges,deledges,nodesattribute):
     connectednum = [c for c in connectedG]
     time_end = time.time()
     print('connected_components', time_end - time_start)
+    print('connected_components_num', len(connectednum))
 
     time_start = time.time()
     # eigncenter.append(nx.eigenvector_centrality_numpy(H))

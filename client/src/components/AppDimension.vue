@@ -232,8 +232,8 @@ export default {
 	}
   },
   computed: {
-    init_dim2: function() {
-      return this.$store.state.init_dim2
+    timeupdated: function() {
+      return this.$store.state.timeupdated
     },
 	hlnodes:function() {
       return this.$store.state.hlnodes
@@ -243,7 +243,7 @@ export default {
     }
   },
   watch: {
-    init_dim2: function(newVal, oldVal) {
+    timeupdated: function(newVal, oldVal) {
       this.getdim2results();
     },
 	hlnodes: function(newVal, oldVal) {

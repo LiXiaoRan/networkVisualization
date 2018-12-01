@@ -7,9 +7,11 @@
 const state = {
     testData: null,
 	nodesSelected: null,
+	timeupdated: null,
 	hlnodes:null,
 	hlview:null,
-	cleargraph:0,
-	init_dim2:0,
+	//cleargraph:0,
+	//init_dim2:0,
+	//init_subgraph:0,
 };
 export default state;

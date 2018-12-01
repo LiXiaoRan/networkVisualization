@@ -4,6 +4,7 @@ import numpy as np
 import networkx as nx
 from dimension2 import *
 from outlier import *
+from dynamicBFS import *
 
 class LocalGraph:
     def __init__ (self):
@@ -14,6 +15,8 @@ class LocalGraph:
         self.updatestep = 1
 
         self.G = nx.Graph()
+        #self.none0tree1sub2=0
+        self.nodesselected=[]
         self.treeinfo = {"rootid": -1, "bfstree": {}, "nodes": []}
 
         self.nodesattribute = {}
@@ -43,7 +46,7 @@ class LocalGraph:
             self.nodes_eigen[n] = {self.startnum: 0}
             self.nodes_reachable[n] = {self.startnum: 0}
         edges = list(self.G.edges())
-        for [a, b] in edges:
+        for (a, b) in edges:
             self.nodes_degree[a][self.startnum] = self.nodes_degree[a][self.startnum] + 1
             self.nodes_degree[b][self.startnum] = self.nodes_degree[b][self.startnum] + 1
         for n in self.nodes_degree:
@@ -137,6 +140,23 @@ class LocalGraph:
             self.updateattributes(self.startnum + (self.updatenum+1) * self.updatestep)
 
             self.updatenum = self.updatenum + 1
+            print(self.nodesselected)
+            if len(self.nodesselected) != 0:
+                if len(self.nodesselected) == 1:
+                    for e in self.add_edges:
+                        insertEdge_BFS(self.treeinfo, e)
+                    for e in self.del_edges:
+                        deleteEdge_BFS(self.treeinfo, e)
+                    # return {'nodes': list(self.G.nodes()), 'edges': list(self.G.edges()), 'treeinfo': self.treeinfo}
+                    return {'treeinfo': self.treeinfo}
+                elif len(self.nodesselected) == 2:
+                    paths = biBFS(self.G, self.nodesselected[0], self.nodesselected[1], [])
+                    # return {'nodes': list(self.G.nodes()), 'edges': list(self.G.edges()), 'paths': paths}
+                    return {'paths': paths}
+                else:
+                    subgraph = self.G.subgraph(self.nodesselected)
+                    # return {'nodes': list(self.G.nodes()), 'edges': list(self.G.edges()),'subgraph_nodes': list(subgraph.nodes()), 'subgraph_edges': list(subgraph.edges())}
+                    return {'subgraph_nodes': list(subgraph.nodes()), 'subgraph_edges': list(subgraph.edges())}
 
     def getdim2(self,type):
         return dim2(self.nodesattribute, type)
@@ -147,4 +167,33 @@ class LocalGraph:
             tmpattr[n] = tmpattrall[type][n]
         return tmpattr
 
+    def choosenone(self):
+        self.nodesselected=[]
+    def getBFStree(self,nodes):
+        self.nodesselected = nodes
+        print(self.nodesselected)
+        nodeid=nodes[0]
+        if self.treeinfo["rootid"] != nodeid:
+            self.treeinfo = initBFStree(self.G, nodeid)
+        return {'treeinfo': self.treeinfo}
+    def getSPs(self, nodes):
+        self.nodesselected = nodes
+        node1 = nodes[0]
+        node2 = nodes[1]
+        paths = biBFS(self.G, node1, node2, [])
+        return {'paths': paths}
+    def getSubgraph(self,nodes):
+        self.nodesselected = nodes
+        subgraph = self.G.subgraph(nodes)
+        return {'subgraph_nodes': list(subgraph.nodes()),
+                        'subgraph_edges': list(subgraph.edges())}
 
+    def getsubdata(self):
+        print(self.nodesselected)
+        if len(self.nodesselected)!=0:
+            if len(self.nodesselected) == 1:
+                return self.getBFStree(self.nodesselected)
+            elif(len(self.nodesselected) == 2):
+                return self.getSPs(self.nodesselected)
+            else:
+                return self.getSubgraph(self.nodesselected)

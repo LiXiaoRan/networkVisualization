@@ -6,6 +6,7 @@
     <app-time-line @time_change="handleTimeChange"></app-time-line>
     <app-filter></app-filter>
 	<app-dimension></app-dimension>
+	<app-subgraph></app-subgraph>
 	<app-attributes></app-attributes>
   </div>
 </template>
@@ -20,6 +21,7 @@ import AppNodeTree from './components/AppNodeTree.vue'
 import AppTimeLine from './components/AppTimeLine.vue'
 import AppFilter from './components/AppFilter.vue'
 import AppDimension from './components/AppDimension.vue'
+import AppSubgraph from './components/AppSubgraph.vue'
 import AppAttributes from './components/AppAttributes.vue'
 
 export default {
@@ -36,7 +38,7 @@ export default {
       paramsMsg: ''
     }
   },
-  components: { AppNetwork, AppNodeTree, AppTimeLine, AppFilter , AppDimension, AppAttributes},
+  components: { AppNetwork, AppNodeTree, AppTimeLine, AppFilter , AppDimension, AppSubgraph,AppAttributes},
   computed: {
     privateTestData: {
       get() {

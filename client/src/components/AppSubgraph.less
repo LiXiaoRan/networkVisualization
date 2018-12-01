@@ -1,0 +1,46 @@
+
+#subgraph-panel{
+	position: absolute;
+	top:calc(45% + 5px);
+	left:100%;
+	width: 50%;
+	height: calc(35% - 5px);
+	background: #303243;
+	
+	#subgraph-inner{
+		height: calc(100% - 44.8px);
+		display: flex;
+		
+		#subgraph_svg{
+			flex:1;
+		}
+		text{
+			color: grey;
+			font-size: 0.8em;
+		}
+		.treelink{
+			fill: none;
+			stroke: #ddd;
+			stroke-opacity: 0.4;
+			stroke-width: 1.5px;
+		}
+		#subgraph_left{
+			display: flex;
+			flex: none; 
+			width: 20px;
+			justify-content: center;
+			align-items: center;
+			
+		}
+		#subgraph_right{
+			display: flex;
+			flex: none; 
+			width: 20px;
+			justify-content: center;
+			align-items: center;
+		}
+	}
+	
+}
+
+

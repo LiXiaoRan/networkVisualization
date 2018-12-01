@@ -84,7 +84,8 @@ class calLayout(tornado.web.RequestHandler):
         diff_time=end-start
         print("spend time for calculate layout: "+str(diff_time))
 
-        LocalGraph.updatelocaldata(graph, 0)
+        #LocalGraph.updatelocaldata(graph, 0)
+        LocalGraph.updatelocaldata(graph, params['where']["val"]["num"])
 
         self.write(result)
 
@@ -178,6 +179,67 @@ class getAttr(tornado.web.RequestHandler):
         evt = json.dumps(evt_unpacked)
         self.write(evt)
 
+class choosenone(tornado.web.RequestHandler):
+    #获取指定节点的指定属性变化记录
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        LocalGraph.choosenone()
+        evt_unpacked = {}
+        evt = json.dumps(evt_unpacked)
+        self.write(evt)
+
+class getBFStree(tornado.web.RequestHandler):
+    #获取指定节点的指定属性变化记录
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        params = json.loads(self.get_argument('params'))
+        nodes = params['nodes']
+        #nodes=[list(LocalGraph.G.nodes())[0]]
+        evt_unpacked = LocalGraph.getBFStree(nodes)
+        evt = json.dumps(evt_unpacked)
+        self.write(evt)
+class getSPs(tornado.web.RequestHandler):
+    #获取指定节点的指定属性变化记录
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        params = json.loads(self.get_argument('params'))
+        nodes = params['nodes']
+        #nodes = [list(LocalGraph.G.nodes())[0],list(LocalGraph.G.nodes())[1]]
+        evt_unpacked=LocalGraph.getSPs(nodes)
+        #print(evt_unpacked)
+        evt = json.dumps(evt_unpacked)
+        self.write(evt)
+
+class getSubgraph(tornado.web.RequestHandler):
+    #获取指定节点的指定属性变化记录
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        params = json.loads(self.get_argument('params'))
+        nodes = params['nodes']
+        #nodes = [list(LocalGraph.G.nodes())[0], list(LocalGraph.G.nodes())[1], list(LocalGraph.G.nodes())[2]]
+        evt_unpacked = LocalGraph.getSubgraph(nodes)
+        #print(evt_unpacked)
+        evt = json.dumps(evt_unpacked)
+        self.write(evt)
+
+class getsubdata(tornado.web.RequestHandler):
+    #获取指定节点的指定属性变化记录
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        evt_unpacked = LocalGraph.getsubdata()
+        evt = json.dumps(evt_unpacked)
+        self.write(evt)
+
 
 if __name__ == "__main__":
     tornado.options.parse_command_line()
@@ -191,6 +253,11 @@ if __name__ == "__main__":
                   (r'/getDim2', getDim2),
                   (r'/changeOutlierType', changeOutlierType),
                   (r'/getAttr', getAttr),
+                  (r'/choosenone', choosenone),
+                  (r'/getBFStree', getBFStree),
+                  (r'/getSPs', getSPs),
+                  (r'/getSubgraph', getSubgraph),
+                  (r'/getsubdata', getsubdata),
                   (r'/(.*)', tornado.web.StaticFileHandler, {'path': client_file_root_path,
                                                'default_filename': 'index.html'}) # fetch client files
                   ],

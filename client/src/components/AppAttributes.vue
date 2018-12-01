@@ -186,28 +186,30 @@ export default {
 	}
   },
   computed: {
+	  /*
     nodesSelected: function() {
       return this.$store.state.nodesSelected
     },
-	cleargraph:function() {
-      return this.$store.state.cleargraph
-    }
+	timeupdated:function() {
+      return this.$store.state.timeupdated
+    }*/
   },
   watch: {
+	  /*
     nodesSelected: function(newVal, oldVal) {
 	  this.curnodes=newVal;
-	  if(curnodes.length==0){
+	  if(this.curnodes.length==0){
 		this.attributes_g.selectAll("g").remove();
 		this.svg_label.selectAll("g").remove();
 	  }else{
 		  this.getattr();
 	  }
     },
-	cleargraph: function(newVal, oldVal) {
+	timeupdated: function(newVal, oldVal) {
 	  this.curnodes=[];
 	  this.attributes_g.selectAll("g").remove();
 	  this.svg_label.selectAll("g").remove();
-    }
+    }*/
   }
 };
 

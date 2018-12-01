@@ -186,16 +186,14 @@ export default {
 	}
   },
   computed: {
-	  /*
     nodesSelected: function() {
       return this.$store.state.nodesSelected
     },
 	timeupdated:function() {
       return this.$store.state.timeupdated
-    }*/
+    }
   },
   watch: {
-	  /*
     nodesSelected: function(newVal, oldVal) {
 	  this.curnodes=newVal;
 	  if(this.curnodes.length==0){
@@ -209,7 +207,7 @@ export default {
 	  this.curnodes=[];
 	  this.attributes_g.selectAll("g").remove();
 	  this.svg_label.selectAll("g").remove();
-    }*/
+    }
   }
 };
 

@@ -568,9 +568,18 @@ export default {
 	},
 	hlnodes: function(newVal, oldVal) {
 	  if(this.$store.state.hlview!="subgraph"){
-		  this.hlnodes_hl=newVal;
-		  this.nodedom.selectAll("circle").attr("r", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],1);})
-			.attr("fill", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],0);})
+		this.highlightnodes=newVal;
+		if(this.none0tree1sub2==1){
+			this.nodes_dom.selectAll("circle")
+				.attr("r",(d)=>{return this.circlefill(parseInt(d.id),1);})
+				.attr("fill",(d)=>{return this.circlefill(parseInt(d.id),0);});
+		}else if(this.none0tree1sub2==2){
+			for(var i=0;i<this.subg_nodes_g.length;i++){
+				this.subg_nodes_g[i].selectAll("circle")
+					.attr("r",(d,i)=>{return this.circlefill(d.id,1);})
+					.attr("fill",(d,i)=>{return this.circlefill(d.id,0);});
+			}
+		}
 	  }
     }
   }

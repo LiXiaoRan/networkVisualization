@@ -204,9 +204,17 @@ export default {
 	  }
     },
 	timeupdated: function(newVal, oldVal) {
+	  /*
 	  this.curnodes=[];
 	  this.attributes_g.selectAll("g").remove();
 	  this.svg_label.selectAll("g").remove();
+	  */
+	  if(this.curnodes.length==0){
+		this.attributes_g.selectAll("g").remove();
+		this.svg_label.selectAll("g").remove();
+	  }else{
+		  this.getattr();
+	  }
     }
   }
 };

@@ -11,6 +11,5 @@ const state = {
 	hlview:null,
 	cleargraph:0,
 	init_dim2:0,
-	init_attri:0,
 };
 export default state;

@@ -186,17 +186,22 @@ export default {
 	}
   },
   computed: {
-    init_attri: function() {
-      return this.$store.state.init_attri
+    nodesSelected: function() {
+      return this.$store.state.nodesSelected
     },
 	cleargraph:function() {
       return this.$store.state.cleargraph
     }
   },
   watch: {
-    init_attri: function(newVal, oldVal) {
+    nodesSelected: function(newVal, oldVal) {
 	  this.curnodes=newVal;
-	  this.getattr();
+	  if(curnodes.length==0){
+		this.attributes_g.selectAll("g").remove();
+		this.svg_label.selectAll("g").remove();
+	  }else{
+		  this.getattr();
+	  }
     },
 	cleargraph: function(newVal, oldVal) {
 	  this.curnodes=[];

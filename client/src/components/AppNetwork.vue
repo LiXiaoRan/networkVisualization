@@ -5,6 +5,7 @@
       <svg class='view-svg'>
       </svg>
       <div id="layContainer"></div>
+      <div id="miniMap"></div>
     </div>
   </div>
 </template>
@@ -25,7 +26,8 @@ export default {
       start: 0,
       end: 1000000000,
       link_all_show:true,
-      mainLayoutLink:null
+      mainLayoutLink:null,
+      mainMiniMap:null
     };
   },
   components: { AppTitle },
@@ -117,6 +119,14 @@ export default {
     var SwitchGraph = function(type) {
       self.drawSwitchGraph(type);
     };
+
+    d3.select("#miniMap")
+      .style("width", mainChart.mini_width + mainChart.mini_border + "px")
+      .style("height", mainChart.mini_width + mainChart.mini_border + "px");
+    
+    var miniMap=function () {
+
+    }
   },
   methods: {
     drawSwitchGraph(type) {
@@ -209,11 +219,11 @@ export default {
         })
         .attr("y2", function(d) {
           return yScale(d.y2);
-        })
-        .attr("display", "block");
+        });
 
       let endTime = +new Date();
       console.log("渲染时间 :" + (endTime - startTime) / 1000);
+      this.switchLinkShow()
 	  this.$store.state.init_dim2 = Math.random();
     },
     switchLinkShow:function(){

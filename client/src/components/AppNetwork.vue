@@ -27,7 +27,9 @@ export default {
       end: 1000000000,
       link_all_show:true,
       mainLayoutLink:null,
-      mainMiniMap:null
+      mainMiniMap:null,
+      mainChart:null,
+      viewSize:{}
     };
   },
   components: { AppTitle },
@@ -120,13 +122,23 @@ export default {
       self.drawSwitchGraph(type);
     };
 
-    d3.select("#miniMap")
-      .style("width", mainChart.mini_width + mainChart.mini_border + "px")
-      .style("height", mainChart.mini_width + mainChart.mini_border + "px");
-    
-    var miniMap=function () {
+    let svg = d3.select(".view-svg");
+    let viewWidth=svg.style("width")
+    let viewheight=svg.style("height")
+    self.viewSize={'width':viewWidth,'height':viewheight}
+    // console.log("viewWidth is "+viewWidth);
+    // console.log("viewheight is "+viewheight);
 
-    }
+    // var miniMap=d3.select("#miniMap")
+    //   .style("width", viewWidth/5 + "px")
+    //   .style("height", viewheight/5 + "px");
+    
+    // console.log("self.miniMap width is "+miniMap.style("width"));
+    // console.log("self.miniMap height is "+miniMap.style("height"));
+
+    // var miniMap=function () {
+
+    // }
   },
   methods: {
     drawSwitchGraph(type) {
@@ -223,18 +235,73 @@ export default {
 
       let endTime = +new Date();
       console.log("渲染时间 :" + (endTime - startTime) / 1000);
-      this.switchLinkShow()
-	  this.$store.state.init_dim2 = Math.random();
+      this.switchLinkShow();
+    this.$store.state.init_dim2 = Math.random();
+    this.miniMap=d3.select("#miniMap").append("svg")
+      .attr("width", $("#miniMap").width())
+      .attr("height", $("#miniMap").height())
+      // .attr("transform", "translate(0," + ($("#miniMap").width() -  $("#miniMap").height()) / 2 + ")");
+    this.drawMiniMap(res);
+
+    },
+
+    drawMiniMap:function (res) {
+      //绘制小地图
+      if(miniMapG) miniMapG.remove()
+      var miniMapG=this.miniMap.append("g");
+
+      miniMapG.selectAll(".m_links")
+        .data(res.links)
+        .enter()
+        .append("line")
+        .attr("stroke", function(d) {
+          return "#fff";
+        })
+        .attr("stroke-width", function(d) {
+          return "0.5";
+        })
+        .attr("x1", function(d) {
+          return this.posMiniX(xScale(d.x1));
+        })
+        .attr("y1", function(d) {
+          return this.posMiniY(yScale(d.y1));
+
+        })
+        .attr("x2", function(d) {
+          return this.posMiniX(xScale(d.x2));
+        })
+        .attr("y2", function(d) {
+          return this.posMiniY(yScale(d.y2));
+        });
+
+      miniMapG.selectAll(".m_nodes")
+        .data(res.nodes)
+        .enter()
+        .append("circle")
+        .attr("r", 1)
+        .attr("opacity", 0.9)
+        .attr("fill", "#C4C9CF")
+        .attr("cx", function(d) {
+          return this.posMiniX(xScale(d.x));
+        })
+        .attr("cy", function(d) {
+          return this.posMiniY(yScale(d.y));
+        })
+
+    },
+    posMiniX:function(x) {
+      return this.viewSize['width']* $("#miniMap").width();
+    },
+    posMiniY:function(Y) {
+      return this.viewSize['height']* $("#miniMap").height();
     },
     switchLinkShow:function(){
-      // console.log("link_all_show "+this.link_all_show);
+      //切换边显示状态
       if(self.mainLayoutLink){
         if(this.link_all_show){
-          // console.log("this监听到变化onFinishChange block "+this.link_all_show);
-          self.mainLayoutLink.attr("display", "block")
+          self.mainLayoutLink.attr("display", "block");
         }else{
-          self.mainLayoutLink.attr("display", "none")
-          // console.log("监听到变化onFinishChange none "+this.link_all_show);
+          self.mainLayoutLink.attr("display", "none");
         }
       }
     }

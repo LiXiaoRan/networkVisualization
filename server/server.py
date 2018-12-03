@@ -17,6 +17,8 @@ import igraphTest
 import graphfunc
 import networkx as nx
 import json
+import numpy as np
+
 
 # import frq_path_stat
 define("port", default=22333, type=int, help = "run on the given port")
@@ -76,7 +78,7 @@ class calLayout(tornado.web.RequestHandler):
         for item in temp_nodes:
             node={'id':item}
             nodes.append(node)
-
+        links=np.unique(links)
         result={'nodes':nodes,'links':links}
         start=time.clock()
         result=igraphTest.cal_back_layout_data(result,layoutType)

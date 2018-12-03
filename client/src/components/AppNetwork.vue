@@ -23,7 +23,9 @@ export default {
       layout_data: {},
       limit: 5000,
       start: 0,
-      end: 1000000000
+      end: 1000000000,
+      link_all_show:true,
+      mainLayoutLink:null
     };
   },
   components: { AppTitle },
@@ -33,9 +35,11 @@ export default {
     // self.getLayout();
     const gui = new dat.GUI();
     let obj = {
-      布局: "随机布局"
+      布局: "随机布局",
+      显示所有边:true
     };
-    var layout_text = gui.add(obj, "布局", [
+    var f1 = gui.addFolder('控制');
+    var layout_text = f1.add(obj, "布局", [
       "随机布局",
       "椭圆布局",
       "graphopt布局",
@@ -46,6 +50,12 @@ export default {
       "层次化布局",
       "环状RT树布局"
     ]);
+    var linkAllShow=f1.add(obj,'显示所有边').listen()
+    linkAllShow.onFinishChange(function (value) {
+      self.link_all_show = !self.link_all_show
+      self.switchLinkShow()
+    })
+
     layout_text.onChange(function(value) {
       switch (value) {
         case "随机布局":
@@ -154,7 +164,7 @@ export default {
         )
         .range([padding.top, height - padding.bottom]);
 
-      g.append("g")
+      var mainLayoutNode=g.append("g")
         .selectAll("circle")
         .data(res.nodes)
         .enter()
@@ -177,7 +187,7 @@ export default {
         .attr("fill", "#eee")
         .attr("opacity", 0.6);
 
-      g.append("g")
+     self.mainLayoutLink=g.append("g")
         .selectAll("line")
         .data(res.links)
         .enter()
@@ -199,11 +209,24 @@ export default {
         })
         .attr("y2", function(d) {
           return yScale(d.y2);
-        });
+        })
+        .attr("display", "block");
 
       let endTime = +new Date();
       console.log("渲染时间 :" + (endTime - startTime) / 1000);
 	  this.$store.state.init_dim2 = Math.random();
+    },
+    switchLinkShow:function(){
+      // console.log("link_all_show "+this.link_all_show);
+      if(self.mainLayoutLink){
+        if(this.link_all_show){
+          // console.log("this监听到变化onFinishChange block "+this.link_all_show);
+          self.mainLayoutLink.attr("display", "block")
+        }else{
+          self.mainLayoutLink.attr("display", "none")
+          // console.log("监听到变化onFinishChange none "+this.link_all_show);
+        }
+      }
     }
   },
   computed: {

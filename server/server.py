@@ -79,13 +79,15 @@ class calLayout(tornado.web.RequestHandler):
 
         result={'nodes':nodes,'links':links}
         start=time.clock()
-        result,graph=igraphTest.cal_back_layout_data(result,layoutType)
+        result=igraphTest.cal_back_layout_data(result,layoutType)
+        graph=result['graph']
+        result=result['result']
         end=time.clock()
         diff_time=end-start
         print("spend time for calculate layout: "+str(diff_time))
 
-        #LocalGraph.updatelocaldata(graph, 0)
-        LocalGraph.updatelocaldata(graph, params['where']["val"]["num"])
+        LocalGraph.updatelocaldata(graph, 0)
+        # LocalGraph.updatelocaldata(graph, params['where']["val"]["num"])
 
         self.write(result)
 
@@ -130,7 +132,7 @@ class getLayoutData(tornado.web.RequestHandler):
         data=params['layoutData']
         data = json.loads(data)
         start=time.clock()
-        result=igraphTest.cal_back_layout_data(data,layoutType)
+        result=igraphTest.cal_back_layout_data(data,layoutType)['result']
         end=time.clock()
         diff_time=end-start
         print("spend time for calculate layout: "+str(diff_time))

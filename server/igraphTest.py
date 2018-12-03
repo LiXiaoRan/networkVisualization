@@ -34,5 +34,5 @@ def cal_back_layout_data(result, layout_type):
             if link['target'] == node['id']:
                 link['x2'] = node['x']
                 link['y2'] = node['y']
-
-    return result,graph
+    result={'result':result,'graph':graph}
+    return result

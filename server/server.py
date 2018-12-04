@@ -97,7 +97,7 @@ class calLayout(tornado.web.RequestHandler):
         diff_time=end-start
         print("spend time for calculate layout: "+str(diff_time))
 
-        LocalGraph.updatelocaldata(graph, 0)
+        LocalGraph.updatelocaldata(result['links'], 0)
         # LocalGraph.updatelocaldata(graph, params['where']["val"]["num"])
 
         self.write(result)
@@ -185,7 +185,7 @@ class getAttr(tornado.web.RequestHandler):
         self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
         params = json.loads(self.get_argument('params'))
         type = int(params['type'])
-        nodes = params['nodes']
+        nodes = json.loads(params['nodes'])
         #print(type,nodes)
         tmpattr=LocalGraph.getAttr(type,nodes)
         evt_unpacked = {"attr":tmpattr}
@@ -215,6 +215,7 @@ class getBFStree(tornado.web.RequestHandler):
         evt_unpacked = LocalGraph.getBFStree(nodes)
         evt = json.dumps(evt_unpacked)
         self.write(evt)
+
 class getSPs(tornado.web.RequestHandler):
     #获取指定节点的指定属性变化记录
     def get(self):

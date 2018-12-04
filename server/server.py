@@ -78,7 +78,16 @@ class calLayout(tornado.web.RequestHandler):
         for item in temp_nodes:
             node={'id':item}
             nodes.append(node)
-        links=np.unique(links)
+        # links=np.unique(links)
+        seen = set()
+        new_links = []
+        for d in links:
+            t=tuple(d.items())
+            if t not in seen:
+                seen.add(t)
+                new_links.append(d)
+        links=new_links
+
         result={'nodes':nodes,'links':links}
         start=time.clock()
         result=igraphTest.cal_back_layout_data(result,layoutType)

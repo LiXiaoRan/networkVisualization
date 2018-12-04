@@ -204,6 +204,7 @@ export default {
       let endTime = +new Date();
       console.log("渲染时间 :" + (endTime - startTime) / 1000);
 	  this.$store.state.init_dim2 = Math.random();
+    this.$store.state.timeupdated = Math.random();
     }
   },
   computed: {

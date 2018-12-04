@@ -84,8 +84,8 @@ class calLayout(tornado.web.RequestHandler):
         diff_time=end-start
         print("spend time for calculate layout: "+str(diff_time))
 
-        #LocalGraph.updatelocaldata(graph, 0)
-        LocalGraph.updatelocaldata(graph, params['where']["val"]["num"])
+        LocalGraph.updatelocaldata(graph, 0)
+        # LocalGraph.updatelocaldata(graph, params['where']["val"]["num"])
 
         self.write(result)
 

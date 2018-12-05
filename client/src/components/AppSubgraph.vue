@@ -493,10 +493,10 @@ export default {
 	  let obj = {nodes: this.highlightnodes_sel};
 	  
 	  if(this.highlightnodes_sel.length==0){
+		  console.log("clear all");
 		  this.none0tree1sub2=0;
-		  this.curnodes=[];
-		  this.attributes_g.selectAll("g").remove();
-		  this.svg_label.selectAll("g").remove();
+		  this.clearsubgraph();
+		  this.cleartree();
 		  CommunicateWithServer('get', obj, "choosenone", ()=>{});
 	  }else if(this.highlightnodes_sel.length==1){
 		  	this.none0tree1sub2=1;
@@ -512,6 +512,7 @@ export default {
 			if(this.highlightnodes_sel.length==2){url="getSPs";}
 			else{url="getSubgraph";}
 			CommunicateWithServer('get', obj, url, (evt_data)=>{
+				console.log(evt_data);
 				let data=[];
 				if(this.highlightnodes_sel.length==2){
 					data=this.paths2subg(evt_data);
@@ -569,11 +570,14 @@ export default {
 	hlnodes: function(newVal, oldVal) {
 	  if(this.$store.state.hlview!="subgraph"){
 		this.highlightnodes=newVal;
-		if(this.none0tree1sub2==1){
+		//console.log(this.highlightnodes);
+		//console.log(this.highlightnodes_sel);
+		//console.log(this.none0tree1sub2);
+		if(this.highlightnodes_sel.length==1){
 			this.nodes_dom.selectAll("circle")
 				.attr("r",(d)=>{return this.circlefill(parseInt(d.id),1);})
 				.attr("fill",(d)=>{return this.circlefill(parseInt(d.id),0);});
-		}else if(this.none0tree1sub2==2){
+		}else if(this.highlightnodes_sel.length>=2){
 			for(var i=0;i<this.subg_nodes_g.length;i++){
 				this.subg_nodes_g[i].selectAll("circle")
 					.attr("r",(d,i)=>{return this.circlefill(d.id,1);})

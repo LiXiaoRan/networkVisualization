@@ -223,7 +223,7 @@ export default {
 			self.spinner.spin(target);  
 		});
 		CommunicateWithServer('get', obj, 'getDim2', (evt_data)=>{
-			//console.log(evt_data);
+			console.log(evt_data);
 			$("#dim2_wait").hide();
 			self.latestdata=evt_data;
 			self.setscale(evt_data["nodes_embedded"]);

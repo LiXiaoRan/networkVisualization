@@ -118,8 +118,15 @@ class LocalGraph:
                 self.nodes_eigen[n][newtime] = 0
                 self.nodes_reachable[n][newtime] = 0
 
-    def updatelocaldata(self, igraphobj, calltimes):
-        linksnew = igraphobj.get_edgelist()
+    def updatelocaldata(self, links_p, calltimes):
+        linksnew=[]
+        for l in links_p:
+            tmpsrc=l["source"]
+            tmpsrc=int(tmpsrc.split("_")[2])
+            tmpdst=l["target"]
+            tmpdst=int(tmpdst.split("_")[2])
+            linksnew.append((tmpsrc,tmpdst))
+        #linksnew = igraphobj.get_edgelist()
         linksnew = list(set(linksnew))
         if calltimes==0:
             self.initVars()
@@ -161,6 +168,7 @@ class LocalGraph:
     def getdim2(self,type):
         return dim2(self.nodesattribute, type)
     def getAttr(self,type,nodes):
+        print(nodes,type)
         tmpattrall = [self.nodes_degree, self.nodes_clustering, self.nodes_kcore, self.nodes_eigen, self.nodes_reachable]
         tmpattr = {}
         for n in nodes:

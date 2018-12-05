@@ -29,7 +29,8 @@ export default {
       mainLayoutLink: null,
       mainMiniMap: null,
       mainChart: null,
-      viewSize: {}
+      viewSize: {},
+      nodesselected: []
     };
   },
   components: { AppTitle },
@@ -184,8 +185,15 @@ export default {
             return d.y;
           })
         )
-        .range([padding.top, height - padding.bottom]);
+        .range([padding.top, height - padding.bottom])
 
+
+      svg.on("mouseup", () => {
+        if (event.target.nodeName == "svg") {
+          this.nodesselected = [];
+          this.$store.state.nodesSelected = this.nodesselected;
+        }
+      })
       var mainLayoutNode = g.append("g")
         .selectAll("circle")
         .data(res.nodes)
@@ -207,7 +215,28 @@ export default {
           return "1";
         })
         .attr("fill", "#eee")
-        .attr("opacity", 0.6);
+        .attr("opacity", 0.6)
+        .on("click", (d) => {
+          //console.log(d.id);
+          let tmpid = d.id
+          tmpid = parseInt(tmpid.split("_")[2]);
+          let tmpind = this.nodesselected.indexOf(tmpid);
+          if (tmpind >= 0) {
+            this.nodesselected.splice(tmpind, 1);
+          } else {
+            this.nodesselected.push(tmpid);
+          }
+          console.log(this.nodesselected);
+          this.$store.state.nodesSelected = this.nodesselected;
+        }).on("mouseover", (d) => {
+          let tmpid = d.id
+          tmpid = parseInt(tmpid.split("_")[2]);
+          this.$store.state.hlnodes = [tmpid];
+          this.$store.state.hlview = "graph";
+        }).on("mouseout", (d) => {
+          this.$store.state.hlnodes = [];
+          this.$store.state.hlview = "graph";
+        });
 
       self.mainLayoutLink = g.append("g")
         .selectAll("line")

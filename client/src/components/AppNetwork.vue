@@ -5,6 +5,7 @@
       <svg class='view-svg'>
       </svg>
       <div id="layContainer"></div>
+      <div id="miniMap"></div>
     </div>
   </div>
 </template>
@@ -23,7 +24,12 @@ export default {
       layout_data: {},
       limit: 5000,
       start: 0,
-      end: 1000000000
+      end: 1000000000,
+      link_all_show: true,
+      mainLayoutLink: null,
+      mainMiniMap: null,
+      mainChart: null,
+      viewSize: {}
     };
   },
   components: { AppTitle },
@@ -33,9 +39,11 @@ export default {
     // self.getLayout();
     const gui = new dat.GUI();
     let obj = {
-      布局: "随机布局"
+      布局: "随机布局",
+      显示所有边: true
     };
-    var layout_text = gui.add(obj, "布局", [
+    var f1 = gui.addFolder('控制');
+    var layout_text = f1.add(obj, "布局", [
       "随机布局",
       "椭圆布局",
       "graphopt布局",
@@ -46,6 +54,12 @@ export default {
       "层次化布局",
       "环状RT树布局"
     ]);
+    var linkAllShow = f1.add(obj, '显示所有边').listen()
+    linkAllShow.onFinishChange(function(value) {
+      self.link_all_show = !self.link_all_show
+      self.switchLinkShow()
+    })
+
     layout_text.onChange(function(value) {
       switch (value) {
         case "随机布局":
@@ -107,6 +121,24 @@ export default {
     var SwitchGraph = function(type) {
       self.drawSwitchGraph(type);
     };
+
+    let svg = d3.select(".view-svg");
+    let viewWidth = svg.style("width")
+    let viewheight = svg.style("height")
+    self.viewSize = { 'width': viewWidth, 'height': viewheight }
+    // console.log("viewWidth is "+viewWidth);
+    // console.log("viewheight is "+viewheight);
+
+    // var miniMap=d3.select("#miniMap")
+    //   .style("width", viewWidth/5 + "px")
+    //   .style("height", viewheight/5 + "px");
+
+    // console.log("self.miniMap width is "+miniMap.style("width"));
+    // console.log("self.miniMap height is "+miniMap.style("height"));
+
+    // var miniMap=function () {
+
+    // }
   },
   methods: {
     drawSwitchGraph(type) {
@@ -124,7 +156,7 @@ export default {
     },
     drawGraph(res) {
       console.log(res)
-      this.layout_data = {'links': res.links, nodes: res.nodes}
+      this.layout_data = { 'links': res.links, nodes: res.nodes }
       let startTime = +new Date();
       let padding = { top: 50, bottom: 50, left: 70, right: 70 };
       let svg = d3.select(".view-svg");
@@ -154,7 +186,7 @@ export default {
         )
         .range([padding.top, height - padding.bottom]);
 
-      g.append("g")
+      var mainLayoutNode = g.append("g")
         .selectAll("circle")
         .data(res.nodes)
         .enter()
@@ -177,7 +209,7 @@ export default {
         .attr("fill", "#eee")
         .attr("opacity", 0.6);
 
-      g.append("g")
+      self.mainLayoutLink = g.append("g")
         .selectAll("line")
         .data(res.links)
         .enter()
@@ -203,8 +235,76 @@ export default {
 
       let endTime = +new Date();
       console.log("渲染时间 :" + (endTime - startTime) / 1000);
-	  this.$store.state.init_dim2 = Math.random();
-    this.$store.state.timeupdated = Math.random();
+      this.switchLinkShow();
+      this.$store.state.init_dim2 = Math.random();
+      this.$store.state.timeupdated = Math.random();
+      this.miniMap = d3.select("#miniMap").append("svg")
+        .attr("width", $("#miniMap").width())
+        .attr("height", $("#miniMap").height())
+      // .attr("transform", "translate(0," + ($("#miniMap").width() -  $("#miniMap").height()) / 2 + ")");
+      this.drawMiniMap(res);
+
+    },
+
+    drawMiniMap: function(res) {
+      //绘制小地图
+      if (miniMapG) miniMapG.remove()
+      var miniMapG = this.miniMap.append("g");
+
+      miniMapG.selectAll(".m_links")
+        .data(res.links)
+        .enter()
+        .append("line")
+        .attr("stroke", function(d) {
+          return "#fff";
+        })
+        .attr("stroke-width", function(d) {
+          return "0.5";
+        })
+        .attr("x1", function(d) {
+          return this.posMiniX(xScale(d.x1));
+        })
+        .attr("y1", function(d) {
+          return this.posMiniY(yScale(d.y1));
+
+        })
+        .attr("x2", function(d) {
+          return this.posMiniX(xScale(d.x2));
+        })
+        .attr("y2", function(d) {
+          return this.posMiniY(yScale(d.y2));
+        });
+
+      miniMapG.selectAll(".m_nodes")
+        .data(res.nodes)
+        .enter()
+        .append("circle")
+        .attr("r", 1)
+        .attr("opacity", 0.9)
+        .attr("fill", "#C4C9CF")
+        .attr("cx", function(d) {
+          return this.posMiniX(xScale(d.x));
+        })
+        .attr("cy", function(d) {
+          return this.posMiniY(yScale(d.y));
+        })
+
+    },
+    posMiniX: function(x) {
+      return this.viewSize['width'] * $("#miniMap").width();
+    },
+    posMiniY: function(Y) {
+      return this.viewSize['height'] * $("#miniMap").height();
+    },
+    switchLinkShow: function() {
+      //切换边显示状态
+      if (self.mainLayoutLink) {
+        if (this.link_all_show) {
+          self.mainLayoutLink.attr("display", "block");
+        } else {
+          self.mainLayoutLink.attr("display", "none");
+        }
+      }
     }
   },
   computed: {

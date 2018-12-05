@@ -17,6 +17,8 @@ import igraphTest
 import graphfunc
 import networkx as nx
 import json
+import numpy as np
+
 
 # import frq_path_stat
 define("port", default=22333, type=int, help = "run on the given port")
@@ -76,10 +78,21 @@ class calLayout(tornado.web.RequestHandler):
         for item in temp_nodes:
             node={'id':item}
             nodes.append(node)
+        # links=np.unique(links)
+        seen = set()
+        new_links = []
+        for d in links:
+            t=tuple(d.items())
+            if t not in seen:
+                seen.add(t)
+                new_links.append(d)
+        links=new_links
 
         result={'nodes':nodes,'links':links}
         start=time.clock()
-        result,graph=igraphTest.cal_back_layout_data(result,layoutType)
+        result=igraphTest.cal_back_layout_data(result,layoutType)
+        graph=result['graph']
+        result=result['result']
         end=time.clock()
         diff_time=end-start
         print("spend time for calculate layout: "+str(diff_time))
@@ -130,7 +143,7 @@ class getLayoutData(tornado.web.RequestHandler):
         data=params['layoutData']
         data = json.loads(data)
         start=time.clock()
-        result=igraphTest.cal_back_layout_data(data,layoutType)
+        result=igraphTest.cal_back_layout_data(data,layoutType)['result']
         end=time.clock()
         diff_time=end-start
         print("spend time for calculate layout: "+str(diff_time))

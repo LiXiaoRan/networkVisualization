@@ -359,13 +359,14 @@ export default {
 			.links(data_link);
 		simulation.alpha(1).restart();
 		function ticked() {
+			g_node.attr("cx", (d)=>{  return d.x = Math.max(20, Math.min(w - 20, d.x)); })
+				.attr("cy", (d)=>{ return d.y = Math.max(20, Math.min(h - 20, d.y));  });
+				
 			g_link.attr("x1", (d)=> { return d.source.x; })
 				.attr("y1", (d)=> { return d.source.y; })
 				.attr("x2", (d)=> { return d.target.x; })
 				.attr("y2", (d)=> { return d.target.y; });
 
-			g_node.attr("cx", (d)=> { return d.x; })
-				.attr("cy", (d) =>{ return d.y; });
 			g_text.attr("x", d => d.x)
 				.attr("y", d => d.y);
 		}

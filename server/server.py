@@ -65,19 +65,27 @@ class calLayout(tornado.web.RequestHandler):
         links=[]
         temp_nodes=[]
         nodes=[]
+        start = time.clock()
         for row in data:
-            source=row['send_node_global_id']
-            target=row['receive_node_global_id']
+            source=row['send_node_global_id'].strip()
+            target=row['receive_node_global_id'].strip()
             edge={'source':source,'target':target}
             temp_nodes.append(source)
             temp_nodes.append(target)
+            # if not source in temp_nodes:
+            #     temp_nodes.append(source)
+            # if not target in temp_nodes:
+            #     temp_nodes.append(target)
             links.append(edge)
         temp_nodes=set(temp_nodes)
+       
+
 
         print('node number', len(temp_nodes))
         for item in temp_nodes:
             node={'id':item}
             nodes.append(node)
+        print(nodes[0])
         # links=np.unique(links)
         seen = set()
         new_links = []
@@ -88,6 +96,10 @@ class calLayout(tornado.web.RequestHandler):
                 new_links.append(d)
         links=new_links
 
+        end=time.clock()
+        diff_time=end-start
+        print("spend time for build graph: "+str(diff_time))
+
         result={'nodes':nodes,'links':links}
         start=time.clock()
         result=igraphTest.cal_back_layout_data(result,layoutType)
@@ -96,11 +108,9 @@ class calLayout(tornado.web.RequestHandler):
         end=time.clock()
         diff_time=end-start
         print("spend time for calculate layout: "+str(diff_time))
-
-        LocalGraph.updatelocaldata(result['links'], 0)
         # LocalGraph.updatelocaldata(graph, params['where']["val"]["num"])
-
         self.write(result)
+        LocalGraph.updatelocaldata(result['links'], 0)
 
 
     def post(self):

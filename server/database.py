@@ -2,7 +2,7 @@
 # @Author: wakouboy
 # @Date:   2018-08-12 20:16:26
 # @Last Modified by:   wakouboy
-# @Last Modified time: 2018-12-04 21:19:13
+# @Last Modified time: 2018-12-11 12:12:15
 import pymysql
 import time
 import json
@@ -22,11 +22,13 @@ class NetworkData:
         key = list(params['where'].keys())[0]
         start = params['where'][key]['start']
         end = params['where'][key]['end']
-        sql = "select * from " + tablename + " where " + key + ">=" + "%s" + " and " + key + "<=" + "%s" + " limit " + "%s"
+        # sql = "select * from " + tablename + " where " + key + ">=" + "%s" + " and " + key + "<=" + "%s" + " limit 0," + "%s"
+        # 每次查询结果 不一致
+        sql = "select * from " + tablename + " limit 0," + "%s"
         start=time.clock()
         data = []
         with conn.cursor() as cursor:
-            cursor.execute(sql, [start, end, params['limit']])
+            cursor.execute(sql, params['limit'])
             data = cursor.fetchall()
         end=time.clock()
         diff_time=end-start

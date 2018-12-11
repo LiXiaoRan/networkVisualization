@@ -22,7 +22,7 @@ export default {
       msgs: "多层网络",
       now_layout_type: null,
       layout_data: {},
-      limit: 5000,
+      limit: 30000,
       start: 0,
       end: 1000000000,
       link_all_show: true,
@@ -36,11 +36,11 @@ export default {
   components: { AppTitle },
   mounted() {
     let self = this;
-    self.now_layout_type = "random";
+    self.now_layout_type = "大图布局";
     // self.getLayout();
     const gui = new dat.GUI();
     let obj = {
-      布局: "随机布局",
+      布局: "大图布局",
       显示所有边: true
     };
     var f1 = gui.addFolder('控制');
@@ -117,7 +117,7 @@ export default {
         layout_type: type
       });
     };
-    graphLayOut("random");
+    graphLayOut("lgl");
 
     var SwitchGraph = function(type) {
       self.drawSwitchGraph(type);
@@ -208,7 +208,8 @@ export default {
           return yScale(d.y);
         })
         .attr("r", function(d) {
-          return Math.ceil(Math.random() * 10);
+          // return Math.ceil(Math.random() * 10);
+          return 4
         })
         .attr("stroke", function(d) {
           return "#fff";

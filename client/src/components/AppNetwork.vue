@@ -187,6 +187,8 @@ export default {
         )
         .range([padding.top, height - padding.bottom])
 
+      this.xScale = xScale
+      this.yScale = yScale
 
       svg.on("mouseup", () => {
         if (event.target.nodeName == "svg") {
@@ -271,14 +273,18 @@ export default {
         .attr("width", $("#miniMap").width())
         .attr("height", $("#miniMap").height())
       // .attr("transform", "translate(0," + ($("#miniMap").width() -  $("#miniMap").height()) / 2 + ")");
-      this.drawMiniMap(res);
+      // this.drawMiniMap(res);
 
     },
 
     drawMiniMap: function(res) {
       //绘制小地图
+      let self = this 
       if (miniMapG) miniMapG.remove()
       var miniMapG = this.miniMap.append("g");
+      var xScale = this.xScale
+      var yScale = this.yScale
+
 
       miniMapG.selectAll(".m_links")
         .data(res.links)
@@ -291,17 +297,17 @@ export default {
           return "0.5";
         })
         .attr("x1", function(d) {
-          return this.posMiniX(xScale(d.x1));
+          return self.posMiniX(xScale(d.x1));
         })
         .attr("y1", function(d) {
-          return this.posMiniY(yScale(d.y1));
+          return self.posMiniY(yScale(d.y1));
 
         })
         .attr("x2", function(d) {
-          return this.posMiniX(xScale(d.x2));
+          return self.posMiniX(xScale(d.x2));
         })
         .attr("y2", function(d) {
-          return this.posMiniY(yScale(d.y2));
+          return self.posMiniY(yScale(d.y2));
         });
 
       miniMapG.selectAll(".m_nodes")

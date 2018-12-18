@@ -15,5 +15,10 @@ export const hlview = function (state) {
   return state.hlview
 }
 
+export const nodeTypeList_get = function (state) {
+  return state.nodeTypeList
+}
 
-
+export const nodeAttrList_get = function (state) {
+  return state.nodeAttrList
+}

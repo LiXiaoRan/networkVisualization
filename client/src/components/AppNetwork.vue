@@ -13,6 +13,7 @@
 import AppTitle from "./AppTitle.vue";
 import * as dat from "dat.gui";
 import qs from 'qs'
+import { mapState, mapGetters, mapMutations, mapActions } from 'vuex'
 const d3 = require("d3");
 
 export default {
@@ -157,7 +158,7 @@ export default {
     },
     drawGraph(res) {
       console.log(res)
-      this.layout_data = { 'links': res.links, nodes: res.nodes }
+      this.layout_data = { 'links': res.links, "nodes": res.nodes }
       let startTime = +new Date();
       let padding = { top: 50, bottom: 50, left: 70, right: 70 };
       let svg = d3.select(".view-svg");
@@ -201,6 +202,13 @@ export default {
         .data(res.nodes)
         .enter()
         .append("circle")
+        .attr("class","layout_node")
+        .attr("nodeType",function (d) {
+          return d.nodeType;
+        })
+        .attr("nodeAttribute",function (d) {
+          return d.nodeAttribute;
+        })
         .attr("cx", function(d) {
           return xScale(d.x);
         })
@@ -246,6 +254,7 @@ export default {
         .data(res.links)
         .enter()
         .append("line")
+        .attr("class","layout_link")
         .attr("stroke", function(d) {
           return "#fff";
         })
@@ -341,14 +350,50 @@ export default {
           self.mainLayoutLink.attr("display", "none");
         }
       }
+    },
+
+
+    secondFillter:function(typeList,attributeList){
+      console.log('过滤函数 : 执行了',d3.selectAll(".layout_node"));
+      //二级过滤
+      d3.selectAll(".layout_node")
+      .attr("display",function(d){
+        if(typeList.indexOf(d.nodeType)!=-1 && attributeList.indexOf(d.nodeAttribute)!=-1){
+            return "block"
+        }else {
+            // console.log('不显示。 d nodetype is  :', d.nodeType,d.nodeAttribute);
+            return "none"
+        }
+
+
+      })
+
+      d3.selectAll(".layout_link")
+      .attr("display",function(d){
+        console.log('d.source is '+ d.source);
+        console.log('d.target is '+ d.target);
+
+      })
+
+
     }
   },
   computed: {
+    ...mapGetters(['nodeTypeList_get','nodeAttrList_get']),
     testData: function() {
       return this.$store.state.testData
     }
   },
   watch: {
+    //监听过滤组件中的变化
+    nodeTypeList_get:function(val){
+      console.log('appnetowrk nodeTypeList :', val);
+      this.secondFillter(val,this.nodeAttrList_get)
+    },
+    nodeAttrList_get:function(val){
+        console.log('appnetowrk nodeAttrList :', val);
+        this.secondFillter(this.nodeTypeList_get,val)
+    },
     testData: function(newVal, oldVal) {
       console.log('communnication', newVal)
     }

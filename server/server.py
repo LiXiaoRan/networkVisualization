@@ -29,6 +29,9 @@ client_file_root_path = os.path.abspath(client_file_root_path)
 
 NetworkData = database.NetworkData()
 LocalGraph = graphfunc.LocalGraph()
+
+typeArray=["主机","交换机","服务器"]
+attrtArray=["置瘫","控制","正常"]
  
 class getRecentDataHandler(tornado.web.RequestHandler):
     def post(self):
@@ -83,7 +86,9 @@ class calLayout(tornado.web.RequestHandler):
 
         print('node number', len(temp_nodes))
         for item in temp_nodes:
-            node={'id':item}
+            type_int=random.randint(0,2)
+            attribute_int=random.randint(0,2)
+            node={'id':item, 'nodeType':typeArray[type_int],'nodeAttribute':attrtArray[attribute_int]}
             nodes.append(node)
         print(nodes[0])
         # links=np.unique(links)
@@ -108,6 +113,7 @@ class calLayout(tornado.web.RequestHandler):
         end=time.clock()
         diff_time=end-start
         print("spend time for calculate layout: "+str(diff_time))
+        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",result['nodes'][0])
         # LocalGraph.updatelocaldata(graph, params['where']["val"]["num"])
         self.write(result)
         LocalGraph.updatelocaldata(result['links'], 0)
@@ -157,6 +163,7 @@ class getLayoutData(tornado.web.RequestHandler):
         end=time.clock()
         diff_time=end-start
         print("spend time for calculate layout: "+str(diff_time))
+        # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",result['nodes'][0])
         self.write(result)
 
 class getDim2(tornado.web.RequestHandler):

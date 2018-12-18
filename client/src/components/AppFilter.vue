@@ -33,7 +33,7 @@
       <span class="filtermsg-0">节点数量</span>
       <span class="filtermsg-1">类型</span>
       <select class="filtermsg-2" v-model="selected">
-        <option v-for="item in items" v-bind:value="item.value">{{item.text}}</option>
+        <option v-for="item in items" v-bind:value="item.value" :key="item.value" >{{item.text}}</option>
       </select>
       <div id='svgdiv'>
         <svg id="barchart"></svg>
@@ -42,6 +42,7 @@
   </div>
 </template>
 <script type="text/javascript">
+import { mapState, mapGetters, mapMutations, mapActions } from 'vuex'
 import AppTitle from './AppTitle.vue'
 const d3 = require('d3')
 export default {
@@ -55,14 +56,15 @@ export default {
       span4: '致瘫',
       span5: '控制',
       span6: '正常',
-      nodeType: [],
-      nodeAttr: [],
+      nodeType: ['主机','交换机','服务器'],
+      nodeAttr: ['致瘫','控制','正常'],
       items: [{ text: '总流量', value: '总流量' }, { text: '流入量', value: '流入量' }, { text: '流出量', value: '流出量' }],
       selected: '总流量'
     }
   },
   components: { AppTitle },
   methods: {
+    ...mapActions(['modifyNodeTypeList_sync','modifyNodeAttrList_sync']),
     drawHistogram(randomData, randomDataLength) {
       let self = this
       let domItem = d3.select(self.$el)
@@ -148,10 +150,13 @@ export default {
   },
   watch: {
     nodeType: function(data) {
-      console.log(data)
+      console.log( $.type(data) +"  "+data)
+      this.modifyNodeTypeList_sync({nodeTypeList :data});
+
     },
     nodeAttr: function(data) {
       console.log(data)
+      this.modifyNodeAttrList_sync({nodeAttrList : data})
     },
     selected: function(data) {
       console.log(data)

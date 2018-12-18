@@ -10,6 +10,8 @@ const state = {
 	timeupdated: null,
 	hlnodes:null,
 	hlview:null,
+	nodeTypeList:['主机','交换机','服务器'],
+	nodeAttrList:['致瘫','控制','正常'],
 	//cleargraph:0,
 	//init_dim2:0,
 	//init_subgraph:0,

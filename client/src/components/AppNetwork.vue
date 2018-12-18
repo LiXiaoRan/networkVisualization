@@ -355,23 +355,24 @@ export default {
 
     secondFillter:function(typeList,attributeList){
       console.log('过滤函数 : 执行了',d3.selectAll(".layout_node"));
+      let noneIDList=[]
       //二级过滤
       d3.selectAll(".layout_node")
       .attr("display",function(d){
         if(typeList.indexOf(d.nodeType)!=-1 && attributeList.indexOf(d.nodeAttribute)!=-1){
             return "block"
         }else {
-            // console.log('不显示。 d nodetype is  :', d.nodeType,d.nodeAttribute);
+            noneIDList.push(d.id)
             return "none"
-        }
-
-
-      })
+        }})
 
       d3.selectAll(".layout_link")
       .attr("display",function(d){
-        console.log('d.source is '+ d.source);
-        console.log('d.target is '+ d.target);
+        if(noneIDList.indexOf(d.source)!=-1||(noneIDList.indexOf(d.target)!=-1)){
+          return "none"
+        }else{
+          return "block"
+        }
 
       })
 

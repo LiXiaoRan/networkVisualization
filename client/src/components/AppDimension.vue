@@ -41,6 +41,8 @@ export default {
 	  svg: null,
       linkdom: null,
       nodedom: null,
+	  nodedom_hl: null,
+	  nodedom_sel: null,
       xpadding: 30,
       ypadding: 50,
 	  brush: null,
@@ -49,6 +51,7 @@ export default {
       latestdata: null,
       hlnodes_hl: [],
       hlnodes_sel: [],
+	  nodes_embedded: [],
       curdim2type: 0,
       curoutliertype: null,
       minoutliernum: null,
@@ -96,6 +99,8 @@ export default {
 		
 	self.linkdom = self.svg.append("g").attr("class", "links");
     self.nodedom = self.svg.append("g").attr("class", "nodes");
+	self.nodedom_hl = self.svg.append("g").attr("class", "nodes_hl");
+	self.nodedom_sel = self.svg.append("g").attr("class", "nodes_sel");
 
   },
   methods: {
@@ -237,9 +242,29 @@ export default {
 			console.log(evt_data);
 			$("#dim2_wait").hide();
 			self.latestdata=evt_data;
+			self.nodes_embedded=evt_data;
 			self.setscale(evt_data["nodes_embedded"]);
 			self.drawgraph(evt_data);
 		});
+	},
+	drawhlnodes(hlnodes,color,dom){
+		let prenodes=this.nodedom.selectAll("circle")["_groups"][0];
+		dom.selectAll("circle").remove();
+		dom.selectAll("circle").data(hlnodes)
+			.enter().append("circle")
+			.attr("fill", color)
+			.attr("stroke","#303243")
+			.attr("r", 6)
+			.attr("cx", (d,i)=>{
+				let tmpid=_.indexOf(this.nodes_embedded["nodes"],d);
+				//let tmpemb=this.nodes_embedded["nodes_embedded"][tmpid];
+				//return this.x_scale(tmpemb[0]);
+				return prenodes[tmpid].getAttribute("cx");
+			})
+			.attr("cy", (d,i)=>{
+				let tmpid=_.indexOf(this.nodes_embedded["nodes"],d);
+				return prenodes[tmpid].getAttribute("cy");
+			});
 	}
   },
   computed: {
@@ -260,15 +285,19 @@ export default {
 	hlnodes: function(newVal, oldVal) {
 	  if(this.$store.state.hlview!="dim2"){
 		  this.hlnodes_hl=newVal;
-		  this.nodedom.selectAll("circle").attr("r", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],1);})
-			.attr("fill", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],0);})
+		  //console.log("hlnodes_hl",this.hlnodes_hl);
+		  //this.nodedom.selectAll("circle").attr("r", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],1);})
+			//.attr("fill", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],0);})
+		  this.drawhlnodes(this.hlnodes_hl,"#b8ddf3",this.nodedom_hl);
 	  }
     },
 	nodesSelected: function(newVal, oldVal) {
 	  this.hlnodes_sel=newVal;
-	  this.nodedom.selectAll("circle").attr("r", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],1);})
-			.attr("fill", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],0);})
-    }
+	  //console.log("hlnodes_sel",this.hlnodes_sel);
+	  //this.nodedom.selectAll("circle").attr("r", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],1);})
+			//.attr("fill", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],0);})
+	  this.drawhlnodes(this.hlnodes_sel,"#87CEFA",this.nodedom_sel);
+	}
   }
 };
 

@@ -148,6 +148,12 @@ export default {
 		self.x_scale = d3.scaleLinear().range([self.xpadding,self.width-self.xpadding]).domain([featurexmin,featurexmax]);
 		self.y_scale = d3.scaleLinear().range([self.ypadding,self.height-self.ypadding]).domain([featureymin,featureymax]);
 	},
+	RandomNum(Min,Max){
+		let Range = Max - Min;
+		let Rand = Math.random();
+		let num = Min + Math.round(Rand * Range);
+		return num;
+	},
 	normalize(data,min,max){
 		if (min==max){
 			return 0.5;
@@ -170,10 +176,15 @@ export default {
 				let tmpnode=evt_data["nodes"][i];
 				return self.nodesmap(tmpnode,0);
 			})
-			.attr("stroke","#555")
+			.attr("stroke","#ddd")
+			.attr("opacity",0.25)
 			.attr("r", 3)
-			.attr("cx", (d,i)=>{return self.x_scale(d[0]);})
-			.attr("cy", (d,i)=>{return self.y_scale(d[1]);})
+			.attr("cx", (d,i)=>{
+				return Math.max(0, Math.min(self.x_scale(d[0])+self.RandomNum(-0.02*self.width,0.02*self.width), self.width));
+			})
+			.attr("cy", (d,i)=>{
+				return Math.max(0, Math.min(self.y_scale(d[1])+self.RandomNum(-0.02*self.height,0.02*self.height), self.height));
+			})
 			.on("mouseover",(d,i)=>{
 				self.$store.state.hlnodes = [evt_data["nodes"][i]];
 				self.$store.state.hlview = "dim2";

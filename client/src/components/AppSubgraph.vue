@@ -473,6 +473,9 @@ export default {
 				//console.log();
 			}
 		}
+		if(tmpnodes.length==0){
+			tmpnodes=[this.highlightnodes_sel[0],this.highlightnodes_sel[1]];
+		}
 		return [tmpnodes,tmppaths];
 	}
   },
@@ -521,7 +524,7 @@ export default {
 					data=[evt_data["subgraph_nodes"],evt_data["subgraph_edges"]];
 				}
 				
-				//console.log(data);
+				console.log(data);
 				for(let i=0;i<data[0].length;i++){
 					data[0][i]={"id":data[0][i]};
 				}

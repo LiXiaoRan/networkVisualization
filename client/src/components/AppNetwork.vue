@@ -12,8 +12,10 @@
 <script>
   import AppTitle from "./AppTitle.vue";
   import * as dat from "dat.gui";
-  import qs from 'qs'
   import {mapState, mapGetters, mapMutations, mapActions} from 'vuex'
+  import hostImg from "../assets/host.png"
+  import switchImg from "../assets/switch.png"
+  import serverImg from "../assets/server.png"
 
   const d3 = require("d3");
 
@@ -30,7 +32,7 @@
         linkAllShow: true,
         mainMiniMap: null,
         viewSize: {},
-        nodesImgList: ["../assets/host.png", "../assets/switch.png", "../assets/server.png"]
+        nodesImgList: [hostImg, switchImg, serverImg]
       };
     },
     components: {AppTitle},
@@ -178,19 +180,26 @@
           .attr("x2", d => this.xScale(d.x2))
           .attr("y2", d => this.yScale(d.y2));
 
+        console.log(result.nodes);
+
         this.allNodesG = this.layoutNodesG.selectAll("g")
           .data(result.nodes)
           .enter()
           .append("g");
-        this.allNodesG.append("circle")
-          .attr("nodeType", d => d.nodeType)
-          .attr("nodeAttribute", d => d.nodeAttribute)
-          .attr("cx", d => this.xScale(d.x))
-          .attr("cy", d => this.yScale(d.y))
-          .attr("r", 5)
-          .attr("stroke", "#FFFFFF")
-          .attr("stroke-width", 1)
-          .attr("fill", "#1F77B4")
+        this.allNodesG.append("image")
+          .attr("xlink:href", d => {
+            if (d.nodeType === "主机") {
+              return this.nodesImgList[0];
+            } else if (d.nodeType === "交换机") {
+              return this.nodesImgList[1];
+            } else if (d.nodeType === "服务器") {
+              return this.nodesImgList[2];
+            }
+          })
+          .attr("x", d => this.xScale(d.x))
+          .attr("y", d => this.yScale(d.y))
+          .attr("width", 8)
+          .attr("height", 8)
           .on("click", (d) => {
 
           }).on("mouseout", (d) => {

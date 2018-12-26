@@ -28,11 +28,8 @@
         start: 0,
         end: 1000000000,
         linkAllShow: true,
-        mainLayoutLink: null,
         mainMiniMap: null,
-        mainChart: null,
         viewSize: {},
-        nodesSelected: [],
         nodesImgList: ["../assets/host.png", "../assets/switch.png", "../assets/server.png"]
       };
     },
@@ -126,9 +123,7 @@
       graphLayout("lgl");
 
       this.svg = d3.select(".view-svg");
-      let viewWidth = svg.style("width");
-      let viewHeight = svg.style("height");
-      this.viewSize = {width: viewWidth, height: viewHeight}
+      this.viewSize = {width: parseFloat(this.svg.style("width")), height: parseFloat(this.svg.style("height"))}
     },
     methods: {
       drawSwitchGraph(type) {
@@ -142,42 +137,40 @@
       getDataWithParams(paramsObj) {
         CommunicateWithServer('get', paramsObj, 'cal-layout', this.drawGraph)
       },
-      drawGraph(res) {
-        this.layoutData = {'links': res.links, "nodes": res.nodes};
+      drawGraph(result) {
+        this.layoutData = {'links': result.links, "nodes": result.nodes};
         let padding = {top: 50, bottom: 50, left: 70, right: 70};
         if (this.svg.select("g")) this.svg.select("g").remove();
         let svgG = this.svg.append("g");
 
-        svgG.append("g").append("rect")
+        svgG.append("g").attr("class", "background").append("rect")
           .attr("width", this.viewSize.width)
-          .attr("height",this.viewSize.height)
-          .attr("fill","white");
+          .attr("height", this.viewSize.height)
+          .attr("fill", "none");
 
+        this.layoutLinksG = svgG.append("g").attr("class", "links");
+        this.layoutNodesG = svgG.append("g").attr("class", "nodes");
 
+        this.xScale = d3.scaleLinear()
+          .domain(d3.extent(result.nodes, d => d.x))
+          .range([padding.left, this.viewSize.width - padding.right]);
 
-        this.xScale = d3
-          .scaleLinear()
-          .domain(d3.extent(res.nodes, d => d.x))
-          .range([padding.left, width - padding.right]);
-        this.yScale = d3
-          .scaleLinear()
-          .domain(d3.extent(res.nodes, d => d.y))
-          .range([padding.top, height - padding.bottom]);
+        this.yScale = d3.scaleLinear()
+          .domain(d3.extent(result.nodes, d => d.y))
+          .range([padding.top, this.viewSize.height - padding.bottom]);
 
-
-        svg.on("mouseup", () => {
+        this.svg.on("mouseup", () => {
           if (event.target.nodeName === "svg") {
             this.nodesSelected = [];
             this.$store.state.nodesSelected = this.nodesSelected;
           }
         });
 
-        this.mainLayoutLink = svgG.append("g")
-          .selectAll("line")
-          .data(res.links)
+        this.allLinksG = this.layoutLinksG.selectAll("g")
+          .data(result.links)
           .enter()
-          .append("line")
-          .attr("class", "links")
+          .append("g");
+        this.allLinksG.append("line")
           .attr("stroke", "#999999")
           .attr("stroke-width", 1)
           .attr("x1", d => this.xScale(d.x1))
@@ -185,12 +178,11 @@
           .attr("x2", d => this.xScale(d.x2))
           .attr("y2", d => this.yScale(d.y2));
 
-        this.mainLayoutNode = svgG.append("g")
-          .selectAll("circle")
-          .data(res.nodes)
+        this.allNodesG = this.layoutNodesG.selectAll("g")
+          .data(result.nodes)
           .enter()
-          .append("circle")
-          .attr("class", "nodes")
+          .append("g");
+        this.allNodesG.append("circle")
           .attr("nodeType", d => d.nodeType)
           .attr("nodeAttribute", d => d.nodeAttribute)
           .attr("cx", d => this.xScale(d.x))
@@ -200,24 +192,10 @@
           .attr("stroke-width", 1)
           .attr("fill", "#1F77B4")
           .on("click", (d) => {
-            let tmpId = d.id;
-            tmpId = parseInt(tmpid.split("_")[2]);
-            let tmpIndex = this.nodesSelected.indexOf(tmpId);
-            if (tmpIndex >= 0) {
-              this.nodesSelected.splice(tmpIndex, 1);
-            } else {
-              this.nodesSelected.push(tmpId);
-            }
-            this.$store.state.nodesSelected = this.nodesSelected;
-          }).on("mouseover", (d) => {
-            let tmpid = d.id;
-            tmpid = parseInt(tmpid.split("_")[2]);
-            this.$store.state.hlnodes = [tmpid];
-            this.$store.state.hlview = "graph";
+
           }).on("mouseout", (d) => {
-            this.$store.state.hlnodes = [];
-            this.$store.state.hlview = "graph";
-          });
+
+        });
 
         let endTime = +new Date();
         this.switchLinkShow();
@@ -241,7 +219,7 @@
           .attr("x1", d => this.posMiniX(this.xScale(d.x1)))
           .attr("y1", d => this.posMiniY(this.yScale(d.y1)))
           .attr("x2", d => this.posMiniX(this.xScale(d.x2)))
-          .attr("y2", d => this.posMiniY(this.xScale(d.y2)));
+          .attr("y2", d => this.posMiniY(this.yScale(d.y2)));
 
         miniMapG.selectAll(".m_nodes")
           .data(res.nodes)
@@ -262,36 +240,30 @@
       },
       switchLinkShow: function () {
         //切换边显示状态
-        if (this.mainLayoutLink) {
+        if (this.layoutLinksG) {
           if (this.linkAllShow) {
-            this.mainLayoutLink.attr("display", "block");
+            this.layoutLinksG.attr("display", "block");
           } else {
-            this.mainLayoutLink.attr("display", "none");
+            this.layoutLinksG.attr("display", "none");
           }
         }
       },
       secondFilter: function (typeList, attributeList) {
         let noneIDList = [];
         //二级过滤
-        d3.selectAll(".nodes")
-          .attr("display", function (d) {
-            if (typeList.indexOf(d.nodeType) !== -1 && attributeList.indexOf(d.nodeAttribute) !== -1) {
-              return "block"
-            } else {
-              noneIDList.push(d.id);
-              return "none"
-            }
-          });
+        this.allNodesG.attr("display", d => {
+          if (typeList.indexOf(d.nodeType) !== -1 && attributeList.indexOf(d.nodeAttribute) !== -1) {
+            return "block"
+          } else {
+            noneIDList.push(d.id);
+            return "none"
+          }
+        });
 
-        d3.selectAll(".links")
-          .attr("display", function (d) {
-            if (noneIDList.indexOf(d.source) !== -1 || (noneIDList.indexOf(d.target) !== -1)) {
-              return "none"
-            } else {
-              return "block"
-            }
-
-          })
+        this.allLinksG.attr("display", d => {
+          if (noneIDList.indexOf(d.source) !== -1 || (noneIDList.indexOf(d.target) !== -1)) return "none";
+          else return "block";
+        })
 
 
       }
@@ -305,7 +277,6 @@
     watch: {
       //监听过滤组件中的变化
       nodeTypeList_get: function (val) {
-        console.log('appnetowrk nodeTypeList :', val);
         this.secondFilter(val, this.nodeAttrList_get)
       },
       nodeAttrList_get: function (val) {
@@ -313,7 +284,7 @@
         this.secondFilter(this.nodeTypeList_get, val)
       },
       testData: function (newVal, oldVal) {
-        console.log('communnication', newVal)
+
       }
     }
   };

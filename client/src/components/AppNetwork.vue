@@ -11,13 +11,12 @@
 </template>
 <script>
   import AppTitle from "./AppTitle.vue";
-  import * as dat from "dat.gui";
-  import {mapState, mapGetters, mapMutations, mapActions} from 'vuex'
-  import hostImg from "../assets/host.png"
-  import switchImg from "../assets/switch.png"
-  import serverImg from "../assets/server.png"
-
-  const d3 = require("d3");
+  import * as dat from "dat.gui"
+  import {mapGetters} from 'vuex';
+  import hostImg from "../assets/host.png";
+  import switchImg from "../assets/switch.png";
+  import serverImg from "../assets/server.png";
+  import * as d3 from "d3";
 
   export default {
     data() {
@@ -26,7 +25,7 @@
         msgs: "多层网络",
         nowLayoutType: null,
         layoutData: {},
-        limit: 30000,
+        limit: 8000,
         start: 0,
         end: 1000000000,
         linkAllShow: true,
@@ -37,15 +36,27 @@
     },
     components: {AppTitle},
     mounted() {
+      this.svg = d3.select(".view-svg");
+      this.viewSize = {width: parseFloat(this.svg.style("width")), height: parseFloat(this.svg.style("height"))};
+      this.padding = {top: 50, bottom: 50, left: 50, right: 50};
+      let rateWH = Math.sqrt(this.viewSize.width * this.viewSize.height / 1200 / 400);
+      let maxLinkWidth = 3 * rateWH;
+      let minLinkWidth = 0.6 * rateWH;
+      this.linkScale = d3.scaleLog().range([minLinkWidth, maxLinkWidth]);
+      let maxNodeR = 30 * rateWH;
+      let minNodeR = 6 * rateWH;
+      this.nodeScale = d3.scaleLog().range([minNodeR, maxNodeR]);
+
       let self = this;
       this.nowLayoutType = "大图布局";
       const gui = new dat.GUI();
       let obj = {
-        布局: "大图布局",
+        布局: "力导向布局",
         显示所有边: true
       };
       let f1 = gui.addFolder('控制');
       let layoutText = f1.add(obj, "布局", [
+        "力导向布局",
         "随机布局",
         "椭圆布局",
         "graphopt布局",
@@ -59,7 +70,7 @@
       let linkAllShow = f1.add(obj, '显示所有边').listen();
       linkAllShow.onFinishChange(() => {
         this.linkAllShow = !this.linkAllShow;
-        this.switchLinkShow()
+        this.switchLinkShow();
       });
 
       let graphLayout = function (type) {
@@ -81,6 +92,10 @@
 
       layoutText.onChange(value => {
         switch (value) {
+          case "力导向布局":
+            this.nowLayoutType = "kk";
+            switchGraph("kk");
+            break;
           case "随机布局":
             this.nowLayoutType = "random";
             switchGraph("random");
@@ -122,10 +137,7 @@
         }
       });
       document.getElementById("layContainer").appendChild(gui.domElement);
-      graphLayout("lgl");
-
-      this.svg = d3.select(".view-svg");
-      this.viewSize = {width: parseFloat(this.svg.style("width")), height: parseFloat(this.svg.style("height"))}
+      graphLayout("kk");
     },
     methods: {
       drawSwitchGraph(type) {
@@ -136,12 +148,14 @@
         let Url = "get-layout-data";
         CommunicateWithServer('post', paramsObj, Url, this.drawGraph)
       },
+
       getDataWithParams(paramsObj) {
         CommunicateWithServer('get', paramsObj, 'cal-layout', this.drawGraph)
       },
+
       drawGraph(result) {
+        console.log(result);
         this.layoutData = {'links': result.links, "nodes": result.nodes};
-        let padding = {top: 50, bottom: 50, left: 70, right: 70};
         if (this.svg.select("g")) this.svg.select("g").remove();
         let svgG = this.svg.append("g");
 
@@ -155,11 +169,14 @@
 
         this.xScale = d3.scaleLinear()
           .domain(d3.extent(result.nodes, d => d.x))
-          .range([padding.left, this.viewSize.width - padding.right]);
+          .range([this.padding.left, this.viewSize.width - this.padding.right]);
 
         this.yScale = d3.scaleLinear()
           .domain(d3.extent(result.nodes, d => d.y))
-          .range([padding.top, this.viewSize.height - padding.bottom]);
+          .range([this.padding.top, this.viewSize.height - this.padding.bottom]);
+
+        this.linkScale.domain(d3.extent(result.links, d => d.flow));
+        this.nodeScale.domain(d3.extent(result.nodes, d => d.degree));
 
         this.svg.on("mouseup", () => {
           if (event.target.nodeName === "svg") {
@@ -174,13 +191,11 @@
           .append("g");
         this.allLinksG.append("line")
           .attr("stroke", "#999999")
-          .attr("stroke-width", 1)
+          .attr("stroke-width", d => this.linkScale(d.flow))
           .attr("x1", d => this.xScale(d.x1))
           .attr("y1", d => this.yScale(d.y1))
-          .attr("x2", d => this.xScale(d.x2))
-          .attr("y2", d => this.yScale(d.y2));
-
-        console.log(result.nodes);
+          .attr("x2", d => this.xScale((d.x2 + d.x1) / 2))
+          .attr("y2", d => this.yScale((d.y2 + d.y1) / 2));
 
         this.allNodesG = this.layoutNodesG.selectAll("g")
           .data(result.nodes)
@@ -196,24 +211,22 @@
               return this.nodesImgList[2];
             }
           })
-          .attr("x", d => this.xScale(d.x))
-          .attr("y", d => this.yScale(d.y))
-          .attr("width", 8)
-          .attr("height", 8)
+          .attr("x", d => this.xScale(d.x) - this.nodeScale(d.degree) / 2)
+          .attr("y", d => this.yScale(d.y) - this.nodeScale(d.degree) / 2)
+          .attr("width", d => this.nodeScale(d.degree))
+          .attr("height", d => this.nodeScale(d.degree))
           .on("click", (d) => {
 
           }).on("mouseout", (d) => {
 
         });
-
-        let endTime = +new Date();
-        this.switchLinkShow();
         this.$store.state.init_dim2 = Math.random();
         this.$store.state.timeupdated = Math.random();
         this.miniMap = d3.select("#miniMap").append("svg")
           .attr("width", $("#miniMap").width())
-          .attr("height", $("#miniMap").height())
+          .attr("height", $("#miniMap").height());
       },
+
       drawMiniMap: function (res) {
         //绘制小地图
         if (miniMapG) miniMapG.remove();
@@ -241,12 +254,15 @@
           .attr("cy", d => this.posMiniY(this.yScale(d.y)));
 
       },
+
       posMiniX: function (x) {
         return this.viewSize.width * $("#miniMap").width();
       },
+
       posMiniY: function (Y) {
         return this.viewSize.height * $("#miniMap").height();
       },
+
       switchLinkShow: function () {
         //切换边显示状态
         if (this.layoutLinksG) {
@@ -257,24 +273,20 @@
           }
         }
       },
+
       secondFilter: function (typeList, attributeList) {
-        let noneIDList = [];
         //二级过滤
         this.allNodesG.attr("display", d => {
-          if (typeList.indexOf(d.nodeType) !== -1 && attributeList.indexOf(d.nodeAttribute) !== -1) {
-            return "block"
+          if (typeList.includes(d.nodeType) && attributeList.includes(d.nodeAttribute)) {
+            return "block";
           } else {
-            noneIDList.push(d.id);
-            return "none"
+            this.allLinksG.attr("display", d => {
+              if (d.source === d.id || d.target === d.id) return "none";
+              else return "block";
+            });
+            return "none";
           }
         });
-
-        this.allLinksG.attr("display", d => {
-          if (noneIDList.indexOf(d.source) !== -1 || (noneIDList.indexOf(d.target) !== -1)) return "none";
-          else return "block";
-        })
-
-
       }
     },
     computed: {
@@ -289,7 +301,6 @@
         this.secondFilter(val, this.nodeAttrList_get)
       },
       nodeAttrList_get: function (val) {
-        console.log('appnetowrk nodeAttrList :', val);
         this.secondFilter(this.nodeTypeList_get, val)
       },
       testData: function (newVal, oldVal) {

@@ -36,6 +36,7 @@
     },
     components: {AppTitle},
     mounted() {
+      console.log(event.transform);
       this.svg = d3.select(".view-svg");
       this.viewSize = {width: parseFloat(this.svg.style("width")), height: parseFloat(this.svg.style("height"))};
       this.padding = {top: 50, bottom: 50, left: 50, right: 50};
@@ -157,15 +158,15 @@
         console.log(result);
         this.layoutData = {'links': result.links, "nodes": result.nodes};
         if (this.svg.select("g")) this.svg.select("g").remove();
-        let svgG = this.svg.append("g");
+        this.svgG = this.svg.append("g");
 
-        svgG.append("g").attr("class", "background").append("rect")
+        this.svgG.append("g").attr("class", "background").append("rect")
           .attr("width", this.viewSize.width)
           .attr("height", this.viewSize.height)
           .attr("fill", "none");
 
-        this.layoutLinksG = svgG.append("g").attr("class", "links");
-        this.layoutNodesG = svgG.append("g").attr("class", "nodes");
+        this.layoutLinksG = this.svgG.append("g").attr("class", "links");
+        this.layoutNodesG = this.svgG.append("g").attr("class", "nodes");
 
         this.xScale = d3.scaleLinear()
           .domain(d3.extent(result.nodes, d => d.x))
@@ -194,8 +195,8 @@
           .attr("stroke-width", d => this.linkScale(d.flow))
           .attr("x1", d => this.xScale(d.x1))
           .attr("y1", d => this.yScale(d.y1))
-          .attr("x2", d => this.xScale((d.x2 + d.x1) / 2))
-          .attr("y2", d => this.yScale((d.y2 + d.y1) / 2));
+          .attr("x2", d => this.xScale(d.x2))
+          .attr("y2", d => this.yScale(d.y2));
 
         this.allNodesG = this.layoutNodesG.selectAll("g")
           .data(result.nodes)

@@ -36,7 +36,6 @@
     },
     components: {AppTitle},
     mounted() {
-      console.log(event.transform);
       this.svg = d3.select(".view-svg");
       this.viewSize = {width: parseFloat(this.svg.style("width")), height: parseFloat(this.svg.style("height"))};
       this.padding = {top: 50, bottom: 50, left: 50, right: 50};
@@ -158,15 +157,14 @@
         console.log(result);
         this.layoutData = {'links': result.links, "nodes": result.nodes};
         if (this.svg.select("g")) this.svg.select("g").remove();
-        this.svgG = this.svg.append("g");
+        let zoom = d3.zoom().scaleExtent([1, 10]).on("zoom", () => {
+          this.nodesLinksG.attr("transform", d3.event.transform);
+        });
+        this.svg.call(zoom);
+        this.nodesLinksG = this.svg.append("g");
 
-        this.svgG.append("g").attr("class", "background").append("rect")
-          .attr("width", this.viewSize.width)
-          .attr("height", this.viewSize.height)
-          .attr("fill", "none");
-
-        this.layoutLinksG = this.svgG.append("g").attr("class", "links");
-        this.layoutNodesG = this.svgG.append("g").attr("class", "nodes");
+        this.layoutLinksG = this.nodesLinksG.append("g").attr("class", "links");
+        this.layoutNodesG = this.nodesLinksG.append("g").attr("class", "nodes");
 
         this.xScale = d3.scaleLinear()
           .domain(d3.extent(result.nodes, d => d.x))

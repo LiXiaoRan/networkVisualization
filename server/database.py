@@ -9,12 +9,14 @@ import json
 import time
 from datetime import datetime, timedelta
 #connect to the db
-# conn = pymysql.connect(host='192.168.10.9', db='transit_network', user = 'transitnet', password = 'pkuvistransit', cursorclass=pymysql.cursors.DictCursor)
-conn = pymysql.connect(host='127.0.0.1', db='transit_network', user = 'root', password = '123456', cursorclass=pymysql.cursors.DictCursor)
+#conn = pymysql.connect(host='192.168.10.9', db='transit_network', user = 'transitnet', password = 'pkuvistransit', cursorclass=pymysql.cursors.DictCursor)
+conn = pymysql.connect(host='127.0.0.1', db='network_security', user = 'root', password = 'root', cursorclass=pymysql.cursors.DictCursor)
 
 tablename = 'transitnet0515s'
 
 class NetworkData:
+
+
     def __init__ (self):
         self.maxTime = 0
 
@@ -62,6 +64,14 @@ class NetworkData:
         cursor.execute(sql, (name, tags, data, dt))
         conn.commit()
         return 1
+
+    def getTimeRangeData(self, begin, end):
+        sql = "select * from transitnet0515s where start_time >= %s and end_time <= %s order by start_time"
+        data = ''
+        with conn.cursor() as cursor:
+            cursor.execute(sql, [begin, end])
+            data = cursor.fetchall()
+        return data
 
 def timeConvert(tstr):
     tstr = tstr[0:14]

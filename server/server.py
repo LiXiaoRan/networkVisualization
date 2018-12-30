@@ -30,18 +30,10 @@ client_file_root_path = os.path.abspath(client_file_root_path)
 NetworkData = database.NetworkData()
 LocalGraph = graphfunc.LocalGraph()
 
-<<<<<<< Updated upstream
 typeArray = ["主机", "交换机", "服务器"]
 attrtArray = ["置瘫", "控制", "正常"]
 
 
-=======
-
-typeArray=["主机","交换机","服务器"]
-attrtArray=["置瘫","控制","正常"]
-
- 
->>>>>>> Stashed changes
 class getRecentDataHandler(tornado.web.RequestHandler):
     def post(self):
         self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
@@ -368,22 +360,6 @@ if __name__ == "__main__":
     print(client_file_root_path)
     app = tornado.web.Application(
         handlers=[
-<<<<<<< Updated upstream
-            (r'/recent-data', getRecentDataHandler),
-            (r'/cal-layout', calLayout),
-            (r'/get-layout-data', getLayoutData),
-            (r'/getDim2', getDim2),
-            (r'/changeOutlierType', changeOutlierType),
-            (r'/getAttr', getAttr),
-            (r'/choosenone', choosenone),
-            (r'/getBFStree', getBFStree),
-            (r'/getSPs', getSPs),
-            (r'/getSubgraph', getSubgraph),
-            (r'/getsubdata', getsubdata),
-            (r'/(.*)', tornado.web.StaticFileHandler, {'path': client_file_root_path,
-                                                       'default_filename': 'index.html'})  # fetch client files
-        ],
-=======
                   (r'/recent-data', getRecentDataHandler), 
                   (r'/cal-layout', calLayout),
                   (r'/get-layout-data', getLayoutData),
@@ -400,7 +376,6 @@ if __name__ == "__main__":
                   (r'/(.*)', tornado.web.StaticFileHandler, {'path': client_file_root_path,
                                                'default_filename': 'index.html'}) # fetch client files
                   ],
->>>>>>> Stashed changes
         debug=True,
     )
 

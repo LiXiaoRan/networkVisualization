@@ -90,7 +90,7 @@ class calLayout(tornado.web.RequestHandler):
             attribute_int=random.randint(0,2)
             node={'id':item, 'nodeType':typeArray[type_int],'nodeAttribute':attrtArray[attribute_int]}
             nodes.append(node)
-        print(nodes[0])
+        # print(nodes[0])
         # links=np.unique(links)
         seen = set()
         new_links = []
@@ -113,7 +113,7 @@ class calLayout(tornado.web.RequestHandler):
         end=time.clock()
         diff_time=end-start
         print("spend time for calculate layout: "+str(diff_time))
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",result['nodes'][0])
+        # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>",result['nodes'][0])
         # LocalGraph.updatelocaldata(graph, params['where']["val"]["num"])
         self.write(result)
         LocalGraph.updatelocaldata(result['links'], 0)
@@ -131,7 +131,7 @@ class calLayout(tornado.web.RequestHandler):
 class getLayoutData(tornado.web.RequestHandler):
     '''计算前端选择布局后提交的数据'''
     def get(self):
-        print("进入get")
+        # print("进入get")
         self.set_header('Access-Control-Allow-Origin','*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With");  
         self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS");

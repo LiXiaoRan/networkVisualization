@@ -2,7 +2,7 @@
 # @Author: wakouboy
 # @Date:   2018-08-12 20:16:26
 # @Last Modified by:   wakouboy
-# @Last Modified time: 2018-12-19 10:00:57
+# @Last Modified time: 2019-01-02 12:57:03
 import pymysql
 import time
 import json
@@ -11,6 +11,7 @@ from datetime import datetime, timedelta
 #connect to the db
 conn = pymysql.connect(host='192.168.10.9', db='transit_network', user = 'transitnet', password = 'pkuvistransit', cursorclass=pymysql.cursors.DictCursor)
 # conn = pymysql.connect(host='127.0.0.1', db='transit_network', user = 'root', password = '123456', cursorclass=pymysql.cursors.DictCursor)
+
 
 tablename = 'transitnet0515s'
 
@@ -62,6 +63,14 @@ class NetworkData:
         cursor.execute(sql, (name, tags, data, dt))
         conn.commit()
         return 1
+
+    def getTimeRangeData(self, begin, end):
+        sql = "select * from transitnet0515s where start_time >= %s and end_time <= %s order by start_time"
+        data = ''
+        with conn.cursor() as cursor:
+            cursor.execute(sql, [begin, end])
+            data = cursor.fetchall()
+        return data
 
 def timeConvert(tstr):
     tstr = tstr[0:14]

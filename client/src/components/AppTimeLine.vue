@@ -2,34 +2,63 @@
 <template>
   <div id='timeline-panel'>
     <app-title v-bind:icon="icon" v-bind:msgs="msgs"></app-title>
-    <div id="filter">
-      <label for="timeSpan">全局时间跨度：</label>
-      <select id="timeSpan" v-model="selected_s">
-        <option v-for="item in items_s" v-bind:value="item.value">{{item.text}}</option>
-      </select>
-      <label for="timeGranularity">时间粒度：</label>
-      <select id="timeGranularity" v-model="selected_g">
-        <option v-for="item in items_g" v-bind:value="item.value">{{item.text}}</option>
-      </select>
-      <span >时刻指示器：<span id="currentTime">2016/8/15 0:00:00</span></span>
-      <button id="pause" value="1">暂停动画</button>
-    </div>
-    <div class='view'>
-      <div class="left-indicator">
-        <span class="selected">选中时段流量</span>
-        <span class="global">全局时段流量</span>
+    <div id="timeline_bottom">
+      <div id="timeline_select">
+        <div id="time_span_outer">
+          全局时间跨度:&nbsp;
+          <span class="button-dropdown button-dropdown-plain" data-buttons="dropdown" id="time_span1">
+						<button class="button button-caution button-pill" id="global_time_span_btn">
+						  最近1小时 
+              <!-- <i class="fa fa-caret-down"></i> -->
+              <font-awesome-icon icon="caret-down" />
+
+						</button>
+						<ul class="button-dropdown-list is-below" id="global_time_span_list">
+						  <li id="global_tl_real"><a >最近半小时</a></li>
+						  <li id="global_tl_day"><a >最近1小时</a></li>
+						  <li id="global_tl_week"><a >最近3小时</a></li>
+						  <li id="global_tl_month"><a >最近5小时</a></li>
+						</ul>
+					</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 时间粒度:&nbsp;
+          <span class="button-dropdown button-dropdown-plain" data-buttons="dropdown" id="time_span2">
+						<button class="button button-caution button-pill" id="time_granulariy_btn">
+						  5分钟 
+              <!-- <i class="fa fa-caret-down"></i> -->
+              <font-awesome-icon icon="caret-down" />
+						</button>
+						<ul class="button-dropdown-list is-below" id="time_granulariy_list">
+						  <li id="granulariy_tl_5"><a >1分钟</a></li>
+						  <li id="granulariy_tl_15"><a >5分钟</a></li>
+						  <li id="granulariy_tl_30"><a >10分钟</a></li>
+						  <li id="granulariy_tl_60"><a >15分钟</a></li>
+						</ul>
+					</span>
+        </div>
+        <div id="timeline_tip">时刻指示器:&nbsp;00:00:00</div>
+        <button class="button button-box button-tiny" id="timeline_play">
+          <i class="fa fa-play"></i>
+          <!-- <font-awesome-icon icon="play" /> -->
+         &nbsp;&nbsp;开始动画</button>
       </div>
-      <svg class='view-svg'>
-        <g class="timeline_detail"></g>
-        <g class='container'></g>
-      </svg>
+      <div id="timeline_line">
+        <div id="upper_level">
+          <div class="timeline_text" id="timeline_text2">选中时段流量</div>
+          <div id="upper_line"></div>
+        </div>
+        <div id="lower_level">
+          <div class="timeline_text" id="timeline_text1">全局时段流量</div>
+          <div id="lower_line"></div>
+        </div>
+      </div>
     </div>
   </div>
 </template>
 <script>
 import AppTitle from './AppTitle.vue'
-import TimeLine from './layout/TimeLine'
-
+import TimeLine2 from './layout/TimeLine2'
+import '../../static/bootstrap.min.css'
+import '../../static/buttons.css'
+window.timeTimePlay = false
 const d3 = require('d3')
 
 export default {
@@ -38,36 +67,21 @@ export default {
       // icon: '<i class="fa fa-line-chart" aria-hidden="true"></i>',
       icon: 'chart-line',
       msgs: '时间轴',
-
-      items_s: [{ text: '最近一天', value: '1' }, { text: '最近一周', value: '7' }, { text: '最近一月', value: '30' }],
-      selected_s: '1',
-
-      items_g: [{ text: '15分钟', value: '15' }, { text: '30分钟', value: '30' }, { text: '60分钟', value: '60' }, { text: '自定义', value: '自定义' }],
-      selected_g: '15',
       networkData: null,
       loadedData: null
+
     }
   },
   components: { AppTitle },
   watch: {
     loadedData: function() {
-      this.drawTimeLine(this.networkData)
+    this.drawTimeLine()
     }
   },
   methods: {
-    drawTimeLine(data) {
+    drawTimeLine() {
       let self = this
-      let domItem = d3.select(self.$el)
-      let svg = domItem.select('.view-svg')
-      let width = parseFloat((svg.attr('width')) === null ? (svg.style('width')) : (svg.attr('width')))
-      let height = parseFloat((svg.attr('height')) === null ? (svg.style('height')) : (svg.attr('height')))
-      self.TimeLine = new TimeLine({
-        view: svg,
-        width: width,
-        height: height,
-        timeChangeHandler: self.timeChangeHandler,
-        timeData: data
-      })
+      self.TimeLine = new TimeLine2()
     },
     getDataWithParams(paramsObj) {
       let self = this

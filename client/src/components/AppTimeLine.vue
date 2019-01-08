@@ -8,7 +8,10 @@
           全局时间跨度:&nbsp;
           <span class="button-dropdown button-dropdown-plain" data-buttons="dropdown" id="time_span1">
 						<button class="button button-caution button-pill" id="global_time_span_btn">
-						  最近1小时 <i class="fa fa-caret-down"></i>
+						  最近1小时 
+              <!-- <i class="fa fa-caret-down"></i> -->
+              <font-awesome-icon icon="caret-down" />
+
 						</button>
 						<ul class="button-dropdown-list is-below" id="global_time_span_list">
 						  <li id="global_tl_real"><a >最近半小时</a></li>
@@ -19,7 +22,9 @@
 					</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 时间粒度:&nbsp;
           <span class="button-dropdown button-dropdown-plain" data-buttons="dropdown" id="time_span2">
 						<button class="button button-caution button-pill" id="time_granulariy_btn">
-						  5分钟 <i class="fa fa-caret-down"></i>
+						  5分钟 
+              <!-- <i class="fa fa-caret-down"></i> -->
+              <font-awesome-icon icon="caret-down" />
 						</button>
 						<ul class="button-dropdown-list is-below" id="time_granulariy_list">
 						  <li id="granulariy_tl_5"><a >1分钟</a></li>
@@ -30,7 +35,10 @@
 					</span>
         </div>
         <div id="timeline_tip">时刻指示器:&nbsp;00:00:00</div>
-        <button class="button button-box button-tiny" id="timeline_play"><i class="fa fa-play"></i>&nbsp;&nbsp;开始动画</button>
+        <button class="button button-box button-tiny" id="timeline_play">
+          <i class="fa fa-play"></i>
+          <!-- <font-awesome-icon icon="play" /> -->
+         &nbsp;&nbsp;开始动画</button>
       </div>
       <div id="timeline_line">
         <div id="upper_level">
@@ -50,8 +58,7 @@ import AppTitle from './AppTitle.vue'
 import TimeLine2 from './layout/TimeLine2'
 import '../../static/bootstrap.min.css'
 import '../../static/buttons.css'
-import '../../static/font-awesome.min.css'
-
+window.timeTimePlay = false
 const d3 = require('d3')
 
 export default {

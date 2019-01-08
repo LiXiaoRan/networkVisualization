@@ -5,12 +5,12 @@ import App from './App'
 import router from './router'
 
 import { library } from '@fortawesome/fontawesome-svg-core'
-import { faChartLine, faFilter } from '@fortawesome/free-solid-svg-icons'
+import { faChartLine, faFilter, faCaretDown, faPlay } from '@fortawesome/free-solid-svg-icons'
 import { faChevronLeft,faBackward,faChevronRight,faForward} from '@fortawesome/free-solid-svg-icons'
 import { faJoomla, faUsb } from '@fortawesome/free-brands-svg-icons'
 import { FontAwesomeIcon } from '@fortawesome/vue-fontawesome'
 
-library.add(faJoomla, faUsb, faChartLine, faFilter,faChevronLeft,faBackward,faChevronRight,faForward)
+library.add(faJoomla, faUsb, faChartLine, faCaretDown, faPlay, faFilter,faChevronLeft,faBackward,faChevronRight,faForward)
 
 Vue.component('font-awesome-icon', FontAwesomeIcon)
 

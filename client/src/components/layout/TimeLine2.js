@@ -108,7 +108,8 @@ export default class TimeLine2 {
 
       } else {
         //暂停
-        document.getElementById("timeline_play").innerHTML = '<i class="fa fa-play"></i>&nbsp;&nbsp;开始动画';
+        // document.getElementById("timeline_play").innerHTML = '<i class="fa fa-play"></i>&nbsp;&nbsp;开始动画';
+        document.getElementById("timeline_play").innerHTML = '<font-awesome-icon icon="play" /></i>&nbsp;&nbsp;开始动画';
         autoplaytimer = window.clearInterval(autoplaytimer);
       }
     })

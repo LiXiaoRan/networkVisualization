@@ -2,21 +2,20 @@
 # @Author: wakouboy
 # @Date:   2018-08-12 20:16:26
 # @Last Modified by:   wakouboy
-# @Last Modified time: 2018-12-11 12:12:15
+# @Last Modified time: 2019-01-02 12:57:03
 import pymysql
 import time
 import json
 import time
 from datetime import datetime, timedelta
 #connect to the db
-#conn = pymysql.connect(host='192.168.10.9', db='transit_network', user = 'transitnet', password = 'pkuvistransit', cursorclass=pymysql.cursors.DictCursor)
-conn = pymysql.connect(host='127.0.0.1', db='network_security', user = 'root', password = 'root', cursorclass=pymysql.cursors.DictCursor)
+conn = pymysql.connect(host='192.168.10.9', db='transit_network', user = 'transitnet', password = 'pkuvistransit', cursorclass=pymysql.cursors.DictCursor)
+# conn = pymysql.connect(host='127.0.0.1', db='transit_network', user = 'root', password = '123456', cursorclass=pymysql.cursors.DictCursor)
+
 
 tablename = 'transitnet0515s'
 
 class NetworkData:
-
-
     def __init__ (self):
         self.maxTime = 0
 

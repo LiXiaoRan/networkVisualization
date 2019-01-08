@@ -62,6 +62,8 @@ var buildCodes = false
       }
     }
   }
+  window.select_time = {observe:'', start:'', end:''};
+
 }
 
 import store from './store/index.js';

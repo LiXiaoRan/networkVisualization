@@ -62,16 +62,13 @@ export default {
       msgs: '时间轴',
       networkData: null,
       loadedData: null
-
     }
   },
   components: { AppTitle },
   watch: {
-    loadedData: function() {
-    this.drawTimeLine()
-    }
   },
   methods: {
+    //绘制时间轴
     drawTimeLine() {
       let self = this
       self.TimeLine = new TimeLine2()
@@ -96,12 +93,27 @@ export default {
       console.log('hello ~~ emit event ', name)
       this.$emit(name, params)
     }
+
   },
   mounted() {
     let self = this
     self.getDataWithParams({
       timeRange: '1day'
     })
+    self.drawTimeLine();
+    //监听全局变量windows.select_time
+    Object.defineProperty(select_time, 'observe',{
+      set:function(value){
+        //需要触发的渲染函数可以写在这...
+        let tranformTime = {start: select_time.start, end: select_time.end }
+        self.$store.commit('modifySelectTime', tranformTime);
+      }
+    })
+
+    // setInterval(function () {
+    //   alert(this.selectTime)
+    // },2200)
+
   }
 }
 

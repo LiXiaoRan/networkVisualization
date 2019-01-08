@@ -1,12 +1,16 @@
 const d3 = require('d3')
+import Vue from 'vue'
 export default class TimeLine2 {
    constructor(){
-     this.Timeline();
+     let self = this;
+     self.select_time = "";
+     self.Timeline();
    }
    Timeline() {
-
+     let self = this
      var timeline_data = [];//获取下面整体时间段中的所有数据
      var select_data = [];//brush选中时间段的数据
+
      Date.prototype.Format = function(fmt) {
        var o = {
          "M+": this.getMonth() + 1, //月份
@@ -494,12 +498,18 @@ export default class TimeLine2 {
       select_data = [].concat(brush_data);//看作为一层的深拷贝
       console.log(brush_startTime, brush_endTime)
 
+
+
       /****
        * 可以在这里写与主界面布局的接口，
        * 也可自行传出选中的数据：select_data，
        * 以及选中的时间：uppertimewindow（为Date格式），brush_startTime、brush_endTime（为String格式）
        * ***/
-
+      //let brush_time = { 'start':brush_startTime, 'end': brush_endTime };
+      //传出数据;
+      select_time.observe = brush_startTime;//用于监听
+      select_time.start = brush_startTime;
+      select_time.end = brush_endTime;
     }
     redrawTimeline();
 

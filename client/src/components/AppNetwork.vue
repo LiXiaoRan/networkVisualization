@@ -292,6 +292,9 @@
       ...mapGetters(['nodeTypeList_get', 'nodeAttrList_get']),
       testData: function () {
         return this.$store.state.testData
+      },
+      selectTime: function () {
+        return this.$store.state.selectTime
       }
     },
     watch: {
@@ -304,6 +307,9 @@
       },
       testData: function (newVal, oldVal) {
 
+      },
+      'selectTime.start': function (val) {
+        console.log(this.selectTime)
       }
     }
   };

@@ -286,6 +286,91 @@
             return "none";
           }
         });
+      },
+      transformType: function (value) {
+        //根据格式转换需要的字符串
+        let str = ''
+        switch (value) {
+          case "力导向布局":
+            str = "kk";
+            return str;
+          case "随机布局":
+            str = "random";
+            return str;
+          case "椭圆布局":
+            str = "circle";
+            return str;
+          case "graphopt布局":
+            str = "graphopt";
+            return str;
+          case "多元尺度布局":
+            str = "mds";
+            return str;
+          case "网格布局":
+            str = "grid";
+            return str;
+          case "大图布局":
+            str = "lgl";
+            return str;
+          case "分布式递归布局":
+            str = "drl";
+            return str;
+          case "层次化布局":
+            str = "sugiyama";
+            return str;
+          case "环状RT树布局":
+            str = "rt_circular";
+            return str;
+          default:
+            break;
+        }
+      },
+      transformData: function (data) {
+        //转化为后台需要的布局
+        let typeArray = ["主机", "交换机", "服务器"]
+        let attrtArray = ["置瘫", "控制", "正常"]
+        let formatData_node = [], formatData_link = [];
+        let nodes = [], links = [];
+        let source = '', target = '';
+        data.forEach(function (d) {
+          source = d.send_node_global_id.trim();
+          target = d.receive_node_global_id.trim()
+          nodes.push(source)
+          nodes.push(target)
+          links.push({ source: source, target: target, flow: +d.val });
+        })
+
+
+        //去重
+        nodes = [...new Set(nodes)];
+
+        let strObj = {};
+        links.forEach(function (item) {
+          let str = JSON.stringify({source: item.source, target: item.target})
+
+          if(!strObj[str]){
+            strObj[str] = item;//第一次出现
+            //formatData_link.push({ source: item.source, target: item.target, flow: 0 });//不含重复项
+          }else{
+            strObj[str].flow += item.flow;//重复出现
+          }
+        })
+
+
+        //按格式处理nodes
+        nodes.forEach(function (d) {
+          let obj = { id: d, nodeAttribute: attrtArray[parseInt(Math.random()*3)],
+            nodeType: typeArray[parseInt(Math.random()*3)],
+            in: 0, out: 0, x: 0, y: 0 };
+          formatData_node.push(obj);
+        })
+        //按格式处理links
+        for (let link in strObj){
+          formatData_link.push(strObj[link]);
+        }
+        let formatData = { nodes: formatData_node, links: formatData_link };
+
+        return formatData;
       }
     },
     computed: {
@@ -295,6 +380,11 @@
       },
       selectTime: function () {
         return this.$store.state.selectTime
+      },
+      selectData: function () {
+        let data = this.$store.state.selectData;
+        let formatData = this.transformData(data);
+        return formatData;
       }
     },
     watch: {
@@ -309,7 +399,12 @@
 
       },
       'selectTime.start': function (val) {
-        console.log(this.selectTime)
+       //根据时间轴的筛选进行布局
+      let type =  $(".c option:selected").text();
+        type = this.transformType(type);
+        this.layoutData = this.selectData;
+        this.drawSwitchGraph(type);
+
       }
     }
   };

@@ -10,7 +10,11 @@ const mutations = {
 
     modifySelectTime(state, obj){
       state.selectTime = obj;
-    }
+    },
+
+    modifySelectData(state, arr){
+    state.selectData = arr;
+   }
 
 }
 

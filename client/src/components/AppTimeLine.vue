@@ -8,7 +8,7 @@
           全局时间跨度:&nbsp;
           <span class="button-dropdown button-dropdown-plain" data-buttons="dropdown" id="time_span1">
 						<button class="button button-caution button-pill" id="global_time_span_btn">
-						  最近1小时 
+						  最近1小时
               <!-- <i class="fa fa-caret-down"></i> -->
               <font-awesome-icon icon="caret-down" />
 
@@ -22,7 +22,7 @@
 					</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 时间粒度:&nbsp;
           <span class="button-dropdown button-dropdown-plain" data-buttons="dropdown" id="time_span2">
 						<button class="button button-caution button-pill" id="time_granulariy_btn">
-						  5分钟 
+						  5分钟
               <!-- <i class="fa fa-caret-down"></i> -->
               <font-awesome-icon icon="caret-down" />
 						</button>
@@ -114,6 +114,7 @@ export default {
         //需要触发的渲染函数可以写在这...
         let tranformTime = {start: select_time.start, end: select_time.end }
         self.$store.commit('modifySelectTime', tranformTime);
+        self.$store.commit('modifySelectData', select_time.data);
       }
     })
 

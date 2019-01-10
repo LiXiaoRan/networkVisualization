@@ -511,6 +511,7 @@ export default class TimeLine2 {
       select_time.observe = brush_startTime;//用于监听
       select_time.start = brush_startTime;
       select_time.end = brush_endTime;
+      select_time.data = select_data;
     }
     redrawTimeline();
 

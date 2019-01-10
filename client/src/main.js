@@ -62,7 +62,7 @@ var buildCodes = false
       }
     }
   }
-  window.select_time = {observe:'', start:'', end:''};
+  window.select_time = {observe:'', start:'', end:'', data:[]};//定义全局变量，方便数据传出
 
 }
 

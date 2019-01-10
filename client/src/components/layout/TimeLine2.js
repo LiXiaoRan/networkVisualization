@@ -171,7 +171,7 @@ export default class TimeLine2 {
       var lower_timeminsplite = 30; //lower timeline axis tick, default:60
       var upper_timeminsplite = 15; //upper timeline axis tick, default:30
       var lower_timeminspan = 60; //global time range, default:60
-      var upper_timemin_gran = 5; //upper time granulariy, default:5
+      var upper_timemin_gran = 1; //upper time granulariy, default:5
 
       var lowertimerange = []; //lower time range
       var lowertimebrushed = []; //upper time range

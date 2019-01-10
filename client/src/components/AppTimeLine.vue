@@ -22,7 +22,7 @@
 					</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 时间粒度:&nbsp;
           <span class="button-dropdown button-dropdown-plain" data-buttons="dropdown" id="time_span2">
 						<button class="button button-caution button-pill" id="time_granulariy_btn">
-						  5分钟
+						  1分钟
               <!-- <i class="fa fa-caret-down"></i> -->
               <font-awesome-icon icon="caret-down" />
 						</button>

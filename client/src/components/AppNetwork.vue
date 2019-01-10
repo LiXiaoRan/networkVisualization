@@ -221,6 +221,7 @@
         });
         this.$store.state.init_dim2 = Math.random();
         this.$store.state.timeupdated = Math.random();
+        if (d3.select("#miniMap").select("svg")) d3.select("#miniMap").select("svg").remove();
         this.miniMap = d3.select("#miniMap").append("svg")
           .attr("width", $("#miniMap").width())
           .attr("height", $("#miniMap").height());

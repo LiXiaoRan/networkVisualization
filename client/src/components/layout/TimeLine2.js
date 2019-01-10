@@ -1,5 +1,4 @@
 const d3 = require('d3')
-import Vue from 'vue'
 export default class TimeLine2 {
    constructor(){
      let self = this;
@@ -104,12 +103,12 @@ export default class TimeLine2 {
           } else {
             focusToTime(newtime);
           }
-        }, 1000);
+        }, 5000);
 
       } else {
         //暂停
         // document.getElementById("timeline_play").innerHTML = '<i class="fa fa-play"></i>&nbsp;&nbsp;开始动画';
-        document.getElementById("timeline_play").innerHTML = '<font-awesome-icon icon="play" /></i>&nbsp;&nbsp;开始动画';
+        document.getElementById("timeline_play").innerHTML = '<i class="fa fa-play"></i>&nbsp;&nbsp;开始动画';
         autoplaytimer = window.clearInterval(autoplaytimer);
       }
     })
@@ -293,6 +292,7 @@ export default class TimeLine2 {
     }
 
     function brushed() {
+
       var s = d3.event.selection;
       var select_x = s[0],
         select_x1 = s[1];
@@ -403,6 +403,10 @@ export default class TimeLine2 {
       }).on("mouseleave", function() {
         focus_mousemove.attr("display", "none");
       }).on("click", function() {
+       //暂停动画
+        document.getElementById("timeline_play").innerHTML = '<i class="fa fa-play"></i>&nbsp;&nbsp;开始动画'
+        autoplaytimer = window.clearInterval(autoplaytimer);
+
         var pardom = $("#upper_line .focusarea .overlay")[0];
         var curx = d3.mouse(pardom)[0];
         var curtime = focus_x.invert(curx);
@@ -445,6 +449,7 @@ export default class TimeLine2 {
     }
 
     function drawUpperRectRangeLoc(timeendlocx, timespanwidth) {
+
       if (timeendlocx > focus_width) {
         timeendlocx = focus_width;
       }

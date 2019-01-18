@@ -22,3 +22,11 @@ export const nodeTypeList_get = function (state) {
 export const nodeAttrList_get = function (state) {
   return state.nodeAttrList
 }
+
+export const selectTime_get = function (state) {
+  return state.selectTime
+}
+
+export const selectData_get = function (state) {
+  return state.selectData
+}

@@ -51,12 +51,12 @@
       this.nowLayoutType = "大图布局";
       const gui = new dat.GUI();
       let obj = {
-        布局: "力导向布局",
+        布局: "环状RT树布局",
         显示所有边: true
       };
       let f1 = gui.addFolder('控制');
       let layoutText = f1.add(obj, "布局", [
-        "力导向布局",
+        "环状RT树布局",
         "随机布局",
         "椭圆布局",
         "graphopt布局",
@@ -65,7 +65,7 @@
         "大图布局",
         "分布式递归布局",
         "层次化布局",
-        "环状RT树布局"
+        "力导向布局",
       ]);
       let linkAllShow = f1.add(obj, '显示所有边').listen();
       linkAllShow.onFinishChange(() => {
@@ -137,7 +137,7 @@
         }
       });
       document.getElementById("layContainer").appendChild(gui.domElement);
-      graphLayout("kk");
+      graphLayout("rt_circular");
     },
     methods: {
       drawSwitchGraph(type) {
@@ -155,6 +155,8 @@
 
       drawGraph(result) {
         console.log(result);
+        let nodeType = this.nodeTypeList_get;
+        let nodeAttrType = this.nodeAttrList_get;
         this.layoutData = {'links': result.links, "nodes": result.nodes};
         if (this.svg.select("g")) this.svg.select("g").remove();
         let zoom = d3.zoom().scaleExtent([1, 10]).on("zoom", () => {
@@ -219,6 +221,9 @@
           }).on("mouseout", (d) => {
 
         });
+
+        this.secondFilter(nodeType, nodeAttrType);
+
         this.$store.state.init_dim2 = Math.random();
         this.$store.state.timeupdated = Math.random();
         if (d3.select("#miniMap").select("svg")) d3.select("#miniMap").select("svg").remove();
@@ -276,16 +281,19 @@
 
       secondFilter: function (typeList, attributeList) {
         //二级过滤
-        this.allNodesG.attr("display", d => {
-          if (typeList.includes(d.nodeType) && attributeList.includes(d.nodeAttribute)) {
+        let disappearNodes = new Set();
+        this.allNodesG.attr("display", node => {
+          if (typeList.includes(node.nodeType) && attributeList.includes(node.nodeAttribute)) {
             return "block";
           } else {
-            this.allLinksG.attr("display", d => {
-              if (d.source === d.id || d.target === d.id) return "none";
-              else return "block";
-            });
-            return "none";
+           disappearNodes.add(node.id)
+           return "none";
           }
+        });
+        disappearNodes = [...disappearNodes];
+        this.allLinksG.attr("display", link => {
+          if (disappearNodes.includes(link.source) || disappearNodes.includes(link.target) ) return "none";
+           else return "block";
         });
       },
       transformType: function (value) {
@@ -329,7 +337,7 @@
       transformData: function (data) {
         //转化为后台需要的布局
         let typeArray = ["主机", "交换机", "服务器"]
-        let attrtArray = ["置瘫", "控制", "正常"]
+        let attrtArray = ["致瘫", "控制", "正常"]
         let formatData_node = [], formatData_link = [];
         let nodes = [], links = [];
         let source = '', target = '';
@@ -376,16 +384,9 @@
     },
     computed: {
       ...mapGetters(['nodeTypeList_get', 'nodeAttrList_get']),
+      ...mapGetters(['selectTime_get', 'selectData_get']),
       testData: function () {
         return this.$store.state.testData
-      },
-      selectTime: function () {
-        return this.$store.state.selectTime
-      },
-      selectData: function () {
-        let data = this.$store.state.selectData;
-        let formatData = this.transformData(data);
-        return formatData;
       }
     },
     watch: {
@@ -399,13 +400,20 @@
       testData: function (newVal, oldVal) {
 
       },
-      'selectTime.start': function (val) {
-       //根据时间轴的筛选进行布局
-      let type =  $(".c option:selected").text();
-        type = this.transformType(type);
-        this.layoutData = this.selectData;
-        this.drawSwitchGraph(type);
+      'selectTime_get.start': {
+        handler: function (val) {
+          //根据时间轴的筛选进行布局
 
+            let type =  $(".c option:selected").text();
+            type = this.transformType(type);
+
+            let data = [].concat(this.selectData_get);
+            this.layoutData = this.transformData(data);
+            console.log(this.layoutData)
+            this.drawSwitchGraph(type);
+
+        },
+        immediate: true
       }
     }
   };

@@ -9,7 +9,8 @@ export default class TimeLine2 {
      let self = this
      var timeline_data = [];//获取下面整体时间段中的所有数据
      var select_data = [];//brush选中时间段的数据
-
+     let hoursData = {};
+     let distinguish_time = 30; //默认值为半小时
      Date.prototype.Format = function(fmt) {
        var o = {
          "M+": this.getMonth() + 1, //月份
@@ -34,7 +35,7 @@ export default class TimeLine2 {
     var timeline = {};
     let obj = {};
     var newstr = '';
-    let startTime ='20160715152212400000'//"20160716004757000000" //'20160716084707500000'
+    let startTime ='20160715155212400000'//"20160716004757000000" //'20160716084707500000'
     let maxendtime='20160715162212400000'//"20160716014757000000"//"20160716094707500000";
     Center.startTime = newdatestr(startTime)
     Center.endTime = newdatestr(maxendtime)
@@ -93,6 +94,11 @@ export default class TimeLine2 {
       let playbool = tmphtml.indexOf("play") >= 0 ? true : false;
       if (playbool) {
         //开始
+        let newTime_x = uppertimewindow[1].valueOf();
+        let maxTime_x = focus_x.invert(focus_width).valueOf();
+        if(newTime_x >= maxTime_x){
+          focusToStart();
+        }
         document.getElementById("timeline_play").innerHTML = '<i class="fa fa-pause"></i>&nbsp;&nbsp;暂停动画';
         autoplaytimer = window.setInterval(function() {
           var newtime = uppertimewindow[1].valueOf() + upper_timemin_gran * 60 * 1000;
@@ -100,10 +106,11 @@ export default class TimeLine2 {
           if (newtime > maxtime) {
             focusToEnd();
             autoplaytimer = window.clearInterval(autoplaytimer);
+            document.getElementById("timeline_play").innerHTML = '<i class="fa fa-play"></i>&nbsp;&nbsp;开始动画';
           } else {
             focusToTime(newtime);
           }
-        }, 5000);
+        }, 2000);
 
       } else {
         //暂停
@@ -170,8 +177,8 @@ export default class TimeLine2 {
     } {
       var lower_timeminsplite = 30; //lower timeline axis tick, default:60
       var upper_timeminsplite = 15; //upper timeline axis tick, default:30
-      var lower_timeminspan = 60; //global time range, default:60
-      var upper_timemin_gran = 1; //upper time granulariy, default:5
+      var lower_timeminspan = 30; //global time range, default:60
+      var upper_timemin_gran = 5; //upper time granulariy, default:5
 
       var lowertimerange = []; //lower time range
       var lowertimebrushed = []; //upper time range
@@ -181,25 +188,14 @@ export default class TimeLine2 {
     }
 
     function redrawTimeline(){
-      CommunicateWithServer('get',obj,'getData',redrawTimeLine);
-      // $.ajax({
-      //   type: 'GET',
-      //   url: 'getData',
-      //   data: obj,
-      //   dataType: 'json',
-      //   success: function(evt_data) {
-      //     lower_data=evt_data.data
-      //     console.log(lower_data);
-      //     drawLowerTimeLine(lower_data);
-      //     drawUpperTimeLine(lower_data);
-      //     // Datacenter.getMultipleGraphs(data)
-      //   },
-      //   error: function(jqXHR) {
-      //     console.log('post error!!', jqXHR);
-      //   },
-      // })
+      if(!hoursData[lower_timeminspan]){
+        CommunicateWithServer('get',obj,'getData',redrawTimeLineD);
+      }else{
+        redrawTimeLineD(hoursData[lower_timeminspan])//将数据缓存下来，重复的直接利用，不用再次对数据库进行请求
+      }
     }
-    function redrawTimeLine(evt_data) {
+    function redrawTimeLineD(evt_data) {
+        hoursData[lower_timeminspan] = evt_data
         lower_data= evt_data.data;
         timeline_data = evt_data.timeLineData;//获取下面整体时间段中的所有数据
         drawLowerTimeLine(lower_data);

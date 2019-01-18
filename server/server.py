@@ -31,7 +31,7 @@ NetworkData = database.NetworkData()
 LocalGraph = graphfunc.LocalGraph()
 
 typeArray = ["主机", "交换机", "服务器"]
-attrtArray = ["置瘫", "控制", "正常"]
+attrtArray = ["致瘫", "控制", "正常"]
 
 
 class getRecentDataHandler(tornado.web.RequestHandler):
@@ -281,8 +281,11 @@ class getData(tornado.web.RequestHandler):
         print('params', params)
         timeRange = json.loads(params['data'])
         print('timeRange', timeRange[0], timeRange[1])
+        start = time.clock()
         data = NetworkData.getTimeRangeData(timeRange[0], timeRange[1])
-        print(len(data))
+        end = time.clock()
+        diff_time = end - start
+        print("spend time for get timeLine data: " + str(diff_time))
         newdata=[]
         i=0
         while i<len(data)-1:

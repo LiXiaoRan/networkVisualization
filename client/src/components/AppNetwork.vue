@@ -413,7 +413,7 @@
             this.drawSwitchGraph(type);
 
         },
-        immediate: true
+        //immediate: true
       }
     }
   };

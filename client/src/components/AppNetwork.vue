@@ -137,6 +137,7 @@
     },
     components: {AppTitle},
     mounted() {
+      let self = this;
       let node_legend_svg = d3.selectAll(".graph_nodelegend_svg").append("svg")
         .attr("width", "20px").attr("height", "20px").append("image");
       node_legend_svg.attr("class", "brandCircle_image")
@@ -144,17 +145,17 @@
         .attr("x", 0).attr("y", 4)
         .attr("width", 16).attr("height", 16);
 
-      let start_angle = 0;
-      let end_angle = 180 * (Math.PI / 180);
+      this.start_angle = 0;
+      this.end_angle = 180 * (Math.PI / 180);
       let legend_r = 3;
       let legend_level_height = parseFloat(d3.select("#level_legend .network_text4").style("height"));
       let collapsed_color = ["white", "#b72626"];
       let control_color = ["#008475", "white"];
-      let collapsed_color_0 = ["#b72626", "#cd4d40", "#d37053", "#da9155", "#dac385"];
-      let control_color_0 = ["#008475", "#00ba8a", "#4dcf8b", "#9ce28d", "#dff68e"];
+      this.collapsed_color_0 = ["#b72626", "#cd4d40", "#d37053", "#da9155", "#dac385"];
+      this.control_color_0 = ["#008475", "#00ba8a", "#4dcf8b", "#9ce28d", "#dff68e"];
       let arcs_level = d3.arc()
-        .startAngle(start_angle)
-        .endAngle(end_angle)
+        .startAngle(this.start_angle)
+        .endAngle(this.end_angle)
         .innerRadius(2.4 * legend_r)
         .outerRadius(1.7 * legend_r);
       let level_svg = d3.selectAll(".graph_level_svg").append("svg")
@@ -187,11 +188,11 @@
           .attr("y", legend_color_height / 4 * 3)
           .attr("width", legend_color_width / 5)
           .attr("height", legend_color_height / 4)
-          .style("fill", function (d, i) {
+          .style("fill", (d, i) => {
             if (j === 0) {
-              return collapsed_color_0[i];
+              return self.collapsed_color_0[i];
             } else {
-              return control_color_0[i];
+              return self.control_color_0[i];
             }
           });
         d3.select(this).selectAll(".levelText")
@@ -220,7 +221,6 @@
       let minNodeR = 6 * rateWH;
       this.nodeScale = d3.scaleLog().range([minNodeR, maxNodeR]);
 
-      let self = this;
       this.nowLayoutType = "大图布局";
       const gui = new dat.GUI();
       let obj = {
@@ -402,36 +402,32 @@
           }).on("mouseout", (d) => {
 
         });
-        let collapsed_color_0 = ["#b72626", "#cd4d40", "#d37053", "#da9155", "#dac385"];
-        let control_color_0 = ["#008475", "#00ba8a", "#4dcf8b", "#9ce28d", "#dff68e"];
-        let start_angle = 0;
-        let end_angle = 180 * (Math.PI / 180);
 
         this.allNodesG.append("path").attr("d", (d) => {
-          let tmpr = this.nodeScale(d.degree) / 2;
-          let arcs = d3.arc().startAngle(start_angle).endAngle(end_angle)
-            .innerRadius(tmpr - this.arcs_width / 2).outerRadius(tmpr + this.arcs_width / 2);
+          let tmp_r = this.nodeScale(d.degree) / 2;
+          let arcs = d3.arc().startAngle(this.start_angle).endAngle(this.end_angle)
+            .innerRadius(tmp_r - this.arcs_width / 2).outerRadius(tmp_r + this.arcs_width / 2);
           return arcs(d);
         })
           .attr("class", "arc_collapse")
           .attr("transform", (d) => {
             return "translate(" + (this.xScale(d.x)) + "," + (this.yScale(d.y)) + ")"
           })
-          .attr("fill", function (d, i) {
-            return collapsed_color_0[i % 5];
+          .attr("fill", (d, i) => {
+            return this.collapsed_color_0[i % 5];
           });
 
         this.allNodesG.append("path").attr("d", (d) => {
-          let tmpr = this.nodeScale(d.degree) / 2;
-          let arcs = d3.arc().startAngle(start_angle).endAngle(end_angle)
-            .innerRadius(tmpr - this.arcs_width / 2).outerRadius(tmpr + this.arcs_width / 2);
+          let tmp_r = this.nodeScale(d.degree) / 2;
+          let arcs = d3.arc().startAngle(this.start_angle).endAngle(this.end_angle)
+            .innerRadius(tmp_r - this.arcs_width / 2).outerRadius(tmp_r + this.arcs_width / 2);
           return arcs(d);
         }).attr("class", "arc_control")
           .attr("transform", (d) => {
             return "translate(" + (this.xScale(d.x)) + "," + (this.yScale(d.y)) + ")" + "rotate(180)"
           })
-          .attr("fill", function (d, i) {
-            return control_color_0[i % 5];
+          .attr("fill", (d, i) => {
+            return this.control_color_0[i % 5];
           });
 
         this.secondFilter(nodeType, nodeAttrType);

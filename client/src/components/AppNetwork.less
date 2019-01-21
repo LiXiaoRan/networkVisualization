@@ -3,19 +3,19 @@
 #layout-panel {
   position: absolute;
   height: calc(65% - 5px);
-  width: calc(65% - 5px);
+  width: calc(65% - 255px);
   left: 5px;
   top: 5px;
   background: #303243;
 
-  #layContainer{
+  #layContainer {
     position: absolute;
-    top: 0;
-    right: 0;
+    top: 5px;
+    left: 5px;
     z-index: 100;
   }
 
-  #miniMap{
+  #miniMap {
     width: 20%;
     height: 30%;
     position: absolute;
@@ -29,6 +29,7 @@
     height: calc(100% - 44.8px);
     display: flex;
     position: relative;
+    float: left;
   }
 
   .view-svg {
@@ -37,6 +38,7 @@
 
     .node {
       fill: @circle-color;
+
       .simpleCircle {
         stroke: #eee;
       }
@@ -68,6 +70,101 @@
 
     .linkH {
       stroke: #cacacc;
+    }
+  }
+}
+
+#legend-index {
+  position: absolute;
+  height: calc(65% - 5px);
+  width: calc(255px);
+  left: calc(65% - 255px);
+  top: 5px;
+  background: #303243;
+
+  .legend {
+    width: 255px;
+    height: calc(100% - 44.8px);
+    flex: 1;
+    display: -moz-box;
+    display: -webkit-box;
+    display: box;
+    -moz-box-orient: vertical;
+    -webkit-box-orient: vertical;
+    box-orient: vertical;
+
+    table td {
+      vertical-align: middle;
+    }
+
+    table td svg {
+      display: table-cell;
+    }
+
+    #time_legend {
+      height: 20%;
+      min-height: 80px;
+      border-bottom: 1px dashed #8e6bc4;
+    }
+
+    #nodes_legend {
+      -moz-box-flex: 1;
+      -webkit-box-flex: 1;
+      box-flex: 1;
+      border-bottom: 1px dashed #8e6bc4;
+      min-height: 185px;
+    }
+
+    #level_legend {
+      height: 20%;
+      min-height: 50px;
+      .levelText {
+        color: #959595;
+      }
+    }
+
+    .levelText {
+      fill: #959595;
+      font-family: Microsoft YaHei;
+      font-size: 20px;
+    }
+
+    #time_legend, #nodes_legend, #level_legend {
+      padding: 5px 0;
+      margin: 0 30px;
+      display: -moz-box;
+      display: -webkit-box;
+      display: box;
+      -webkit-box-align: center;
+      -moz-box-align: center;
+    }
+
+    .network_text1 {
+      color: #959595;
+      font-family: Microsoft YaHei, serif;
+      font-size: 8px;
+    }
+
+    .network_text2 {
+      color: white;
+      font-size: 18px;
+      font-family: Consolas, serif;
+      letter-spacing: -1px;
+    }
+
+    .network_text3 {
+      color: white;
+      font-family: Microsoft YaHei, serif;
+    }
+
+    .graph_tabel_padding {
+      height: 5px;
+    }
+
+    .network_text4 {
+      color: #959595;
+      font-family: Microsoft YaHei, serif;
+      font-size: 14px;
     }
   }
 }

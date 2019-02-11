@@ -58,7 +58,9 @@ import AppTitle from './AppTitle.vue'
 import TimeLine2 from './layout/TimeLine2'
 import '../../static/bootstrap.min.css'
 import '../../static/buttons.css'
-import '../../static/font-awesome.min.css'
+// import '../../static/font-awesome.min.css'
+import 'font-awesome/css/font-awesome.css'
+
 window.timeTimePlay = false
 const d3 = require('d3')
 

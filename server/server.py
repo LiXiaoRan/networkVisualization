@@ -104,7 +104,7 @@ class calLayout(tornado.web.RequestHandler):
         end = time.clock()
         diff_time = end - start
         print("spend time for calculate layout: " + str(diff_time))
-        print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", result['nodes'][0])
+        # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", result['nodes'][0])
         self.write(result)
         LocalGraph.updatelocaldata(result['links'], 0)
 

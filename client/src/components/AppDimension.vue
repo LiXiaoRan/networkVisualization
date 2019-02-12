@@ -43,7 +43,7 @@ export default {
       nodedom: null,
 	  nodedom_hl: null,
 	  nodedom_sel: null,
-      xpadding: 30,
+      xpadding: 50,
       ypadding: 50,
 	  brush: null,
       x_scale: null,
@@ -288,7 +288,7 @@ export default {
 		  //console.log("hlnodes_hl",this.hlnodes_hl);
 		  //this.nodedom.selectAll("circle").attr("r", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],1);})
 			//.attr("fill", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],0);})
-		  this.drawhlnodes(this.hlnodes_hl,"#b8ddf3",this.nodedom_hl);
+		  //this.drawhlnodes(this.hlnodes_hl,"#b8ddf3",this.nodedom_hl);
 	  }
     },
 	nodesSelected: function(newVal, oldVal) {
@@ -296,7 +296,7 @@ export default {
 	  //console.log("hlnodes_sel",this.hlnodes_sel);
 	  //this.nodedom.selectAll("circle").attr("r", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],1);})
 			//.attr("fill", (d,i)=>{return this.nodesmap(this.latestdata["nodes"][i],0);})
-	  this.drawhlnodes(this.hlnodes_sel,"#87CEFA",this.nodedom_sel);
+	  //this.drawhlnodes(this.hlnodes_sel,"#87CEFA",this.nodedom_sel);
 	}
   }
 };

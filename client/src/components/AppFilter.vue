@@ -157,19 +157,7 @@ export default {
       svg.append('g')
         .attr('class', 'brush')
         .call(brush)
-    }
-  },
-  mounted() {
-    let self = this
-    let randomData = []
-    let randomDataLength = 50
-    for (let i = 0; i < randomDataLength; i++) {
-      let rand = Math.floor(Math.random() * 500)
-      randomData.push([i, rand])
-    }
-    self.drawHistogram(randomData, randomDataLength)
-  },
-  methods:{
+    },
     switchPaslyLevel(level){
       // alert(level)
       $(".pasly_button").html(level+"级 "+'<i class="fa fa-caret-down"></i>')
@@ -218,6 +206,16 @@ export default {
           break;
       }
     }
+  },
+  mounted() {
+    let self = this
+    let randomData = []
+    let randomDataLength = 50
+    for (let i = 0; i < randomDataLength; i++) {
+      let rand = Math.floor(Math.random() * 500)
+      randomData.push([i, rand])
+    }
+    self.drawHistogram(randomData, randomDataLength)
   },
   watch: {
     nodeType: function(data) {

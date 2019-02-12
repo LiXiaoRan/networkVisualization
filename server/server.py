@@ -67,9 +67,9 @@ class calLayout(tornado.web.RequestHandler):
         nodes = []
         start = time.clock()
         for row in data:
-            source = row['send_node_global_id'].strip()
-            target = row['receive_node_global_id'].strip()
-            flow = row['val']
+            source = row['trans_node_global_no'].strip()
+            target = row['recv_node_golbal_no'].strip()
+            flow = row['flow']
             link = {'source': source, 'target': target, 'flow': flow}
             temp_nodes.append(source)
             temp_nodes.append(target)

@@ -121,9 +121,9 @@
         msgs: "多层网络",
         iconLegend: "joomla",
         legendMsgs: "图例与指示",
-        nowLayoutType: null,
+        nowLayoutType: "rt_circular",
         layoutData: {},
-        limit: 8000,
+        limit: 1000,
         start: 0,
         end: 1000000000,
         linkAllShow: true,
@@ -132,7 +132,8 @@
         nodesImgList: [hostImg, switchImg, serverImg],
         hostNum: 0,
         serverNum: 0,
-        switchNum: 0
+        switchNum: 0,
+        nowLevel: 0,
       };
     },
     components: {AppTitle},
@@ -220,15 +221,15 @@
       let maxNodeR = 30 * rateWH;
       let minNodeR = 6 * rateWH;
       this.nodeScale = d3.scaleLog().range([minNodeR, maxNodeR]);
-
-      this.nowLayoutType = "大图布局";
       const gui = new dat.GUI();
       let obj = {
-        布局: "环状RT树布局",
+        网络层次: "全部层级",
+        网络布局: "环状RT树布局",
         显示所有边: true
       };
       let f1 = gui.addFolder('控制');
-      let layoutText = f1.add(obj, "布局", [
+      let levelText = f1.add(obj, "网络层次", ["全部层级", "链路层", "网络层", "应用层"]);
+      let layoutText = f1.add(obj, "网络布局", [
         "环状RT树布局",
         "随机布局",
         "椭圆布局",
@@ -246,7 +247,7 @@
         this.switchLinkShow();
       });
 
-      let graphLayout = function (type) {
+      let graphLayout = function () {
         self.getDataWithParams({
           where: {
             val: {
@@ -255,68 +256,76 @@
             }
           },
           limit: self.limit,
-          layout_type: type
+          layout_type: self.nowLayoutType,
+          level: self.nowLevel
         });
       };
 
-      let switchGraph = function (type) {
-        self.drawSwitchGraph(type);
-      };
+      levelText.onChange(value => {
+        //向后台传输所需层次数据
+        switch (value) {
+          case "全部层级":
+            this.nowLevel = 0;
+            break;
+          case "链路层":
+            this.nowLevel = 1;
+            break;
+          case "网络层":
+            this.nowLevel = 2;
+            break;
+          case "应用层":
+            this.nowLevel = 3;
+            break;
+        }
+        graphLayout();
+      });
 
       layoutText.onChange(value => {
         switch (value) {
           case "力导向布局":
             this.nowLayoutType = "kk";
-            switchGraph("kk");
             break;
           case "随机布局":
             this.nowLayoutType = "random";
-            switchGraph("random");
             break;
           case "椭圆布局":
             this.nowLayoutType = "circle";
-            switchGraph("circle");
             break;
           case "graphopt布局":
             this.nowLayoutType = "graphopt";
-            switchGraph("graphopt");
             break;
           case "多元尺度布局":
             this.nowLayoutType = "mds";
-            switchGraph("mds");
             break;
           case "网格布局":
             this.nowLayoutType = "grid";
-            switchGraph("grid");
             break;
           case "大图布局":
             this.nowLayoutType = "lgl";
-            switchGraph("lgl");
             break;
           case "分布式递归布局":
             this.nowLayoutType = "drl";
-            switchGraph("drl");
             break;
           case "层次化布局":
             this.nowLayoutType = "sugiyama";
-            switchGraph("sugiyama");
             break;
           case "环状RT树布局":
             this.nowLayoutType = "rt_circular";
-            switchGraph("rt_circular");
             break;
           default:
             break;
         }
+        this.drawSwitchGraph();
       });
       document.getElementById("layContainer").appendChild(gui.domElement);
-      graphLayout("rt_circular");
+      graphLayout();
     },
     methods: {
-      drawSwitchGraph(type) {
+      drawSwitchGraph() {
         let paramsObj = {
           layoutData: JSON.stringify(this.layoutData),
-          layout_type: type
+          layout_type: this.nowLayoutType,
+          level: this.nowLevel,
         };
         let Url = "get-layout-data";
         CommunicateWithServer('post', paramsObj, Url, this.drawGraph)
@@ -504,44 +513,6 @@
           else return "block";
         });
       },
-      transformType: function (value) {
-        //根据格式转换需要的字符串
-        let str = '';
-        switch (value) {
-          case "力导向布局":
-            str = "kk";
-            return str;
-          case "随机布局":
-            str = "random";
-            return str;
-          case "椭圆布局":
-            str = "circle";
-            return str;
-          case "graphopt布局":
-            str = "graphopt";
-            return str;
-          case "多元尺度布局":
-            str = "mds";
-            return str;
-          case "网格布局":
-            str = "grid";
-            return str;
-          case "大图布局":
-            str = "lgl";
-            return str;
-          case "分布式递归布局":
-            str = "drl";
-            return str;
-          case "层次化布局":
-            str = "sugiyama";
-            return str;
-          case "环状RT树布局":
-            str = "rt_circular";
-            return str;
-          default:
-            break;
-        }
-      },
       transformData: function (data) {
         //转化为后台需要的布局
         let typeArray = ["主机", "交换机", "服务器"];
@@ -613,14 +584,9 @@
       'selectTime_get.start': {
         handler: function (val) {
           //根据时间轴的筛选进行布局
-
-          let type = $(".c option:selected").text();
-          type = this.transformType(type);
-
           let data = [].concat(this.selectData_get);
           this.layoutData = this.transformData(data);
-          console.log(this.layoutData);
-          this.drawSwitchGraph(type);
+          this.drawSwitchGraph();
 
         },
         //immediate: true

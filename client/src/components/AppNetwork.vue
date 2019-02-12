@@ -585,17 +585,18 @@
       },
       testData: function (newVal, oldVal) {
 
-      },
-      'selectTime_get.start': {
-        handler: function (val) {
-          //根据时间轴的筛选进行布局
-          let data = [].concat(this.selectData_get);
-          this.layoutData = this.transformData(data);
-          this.drawSwitchGraph();
-
-        },
-        //immediate: true
       }
+      // ,
+      // 'selectTime_get.start': {
+      //   handler: function (val) {
+      //     //根据时间轴的筛选进行布局
+      //     let data = [].concat(this.selectData_get);
+      //     this.layoutData = this.transformData(data);
+      //     this.drawSwitchGraph();
+      //
+      //   },
+      //   //immediate: true
+      // }
     }
   };
 

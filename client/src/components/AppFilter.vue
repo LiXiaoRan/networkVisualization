@@ -16,18 +16,36 @@
       </div>
     </div>
     <div class="filter2">
-      <span class="filtermsg">节点属性</span>
-      <div class="fcheckbox">
-        <div class="select1">
-          <input type="checkbox" value="致瘫" v-model="nodeAttr" id="node4" /><label for="node4"></label><span>{{ span4 }}</span>
-        </div>
-        <div class="select2">
-          <input type="checkbox" value="控制" v-model="nodeAttr" id="node5" /><label for="node5"></label><span>{{ span5 }}</span>
-        </div>
-        <div class="select3">
-          <input type="checkbox" value="正常" v-model="nodeAttr" id="node6" /><label for="node6" id="node6label"></label><span id="node6span">{{ span6 }}</span>
-        </div>
-      </div>
+          <span class="filtermsg">致瘫级别</span>
+          <span class="button-dropdown button-dropdown-plain" data-buttons="dropdown" >
+						<button class="button button-caution button-pill pasly_button" id="global_time_span_btn">
+						  5级
+              <!-- <i class="fa fa-caret-down"></i> -->
+              <font-awesome-icon icon="caret-down" />
+						</button>
+						<ul class="button-dropdown-list is-below">
+              <li id="global_tl_fourth"><a @click="switchPaslyLevel(5)">5级</a></li>
+						  <li id="global_tl_fourth"><a @click="switchPaslyLevel(4)">4级</a></li>
+						  <li id="global_tl_three"><a @click="switchPaslyLevel(3)">3级</a></li>
+						  <li id="global_tl_two"><a @click="switchPaslyLevel(2)">2级</a></li>
+						  <li id="global_tl_one"><a @click="switchPaslyLevel(1)">1级</a></li>
+						</ul>
+					</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
+          <span class="filtermsg">控制级别</span>
+          <span class="button-dropdown button-dropdown-plain" data-buttons="dropdown">
+						<button class="button button-caution button-pill control_button" id="global_time_span_btn">
+						  5级
+              <!-- <i class="fa fa-caret-down"></i> -->
+              <font-awesome-icon icon="caret-down" />
+						</button>
+						<ul class="button-dropdown-list is-below" >
+						  <li id="global_tl_fourthc"><a @click="switchControlLevel(5)">5级</a></li>
+						  <li id="global_tl_fourthc"><a @click="switchControlLevel(4)">4级</a></li>
+						  <li id="global_tl_threec"><a @click="switchControlLevel(4)">3级</a></li>
+						  <li id="global_tl_twoc"><a @click="switchControlLevel(4)">2级</a></li>
+						  <li id="global_tl_onec"><a @click="switchControlLevel(4)">1级</a></li>
+						</ul>
+					</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
     </div>
     <div class="filtergraph">
       <span class="filtermsg-0">节点数量</span>
@@ -44,6 +62,9 @@
 <script type="text/javascript">
 import { mapState, mapGetters, mapMutations, mapActions } from 'vuex'
 import AppTitle from './AppTitle.vue'
+import '../../static/bootstrap.min.css'
+import '../../static/buttons.css'
+import 'font-awesome/css/font-awesome.css'
 const d3 = require('d3')
 export default {
   data() {
@@ -147,6 +168,56 @@ export default {
       randomData.push([i, rand])
     }
     self.drawHistogram(randomData, randomDataLength)
+  },
+  methods:{
+    switchPaslyLevel(level){
+      // alert(level)
+      $(".pasly_button").html(level+"级 "+'<i class="fa fa-caret-down"></i>')
+      switch (level) {
+        //在这里写切换瘫痪等级的逻辑
+        case 1:
+          
+          break;
+        case 2:
+          
+          break;
+        case 3:
+          
+          break;
+        case 4:
+          
+          break;
+        case 5:
+          
+          break;      
+        default:
+          break;
+      }
+    },
+    switchControlLevel(level){
+      // alert(level)
+      $(".control_button").html(level+"级 "+'<i class="fa fa-caret-down"></i>')
+      switch (level) {
+        //在这里写切换控制等级的逻辑
+        case 1:
+          
+          break;
+        case 2:
+          
+          break;
+        case 3:
+          
+          break;
+        case 4:
+          
+          break;
+        case 5:
+          
+          break;      
+        default:
+          break;
+      }
+    }
   },
   watch: {
     nodeType: function(data) {

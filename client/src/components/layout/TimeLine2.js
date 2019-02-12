@@ -498,7 +498,7 @@ export default class TimeLine2 {
        }
      })
       select_data = [].concat(brush_data);//看作为一层的深拷贝
-      console.log(brush_startTime, brush_endTime)
+      //console.log(brush_startTime, brush_endTime)
 
 
 
@@ -509,10 +509,12 @@ export default class TimeLine2 {
        * ***/
       //let brush_time = { 'start':brush_startTime, 'end': brush_endTime };
       //传出数据;
-      select_time.observe = brush_startTime;//用于监听
+
       select_time.start = brush_startTime;
       select_time.end = brush_endTime;
       select_time.data = select_data;
+      console.log('select_data:+++++++++', select_data);
+      select_time.observe = brush_startTime;//用于监听
     }
     redrawTimeline();
 

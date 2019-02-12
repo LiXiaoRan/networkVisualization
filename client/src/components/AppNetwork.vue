@@ -123,7 +123,7 @@
         legendMsgs: "图例与指示",
         nowLayoutType: "rt_circular",
         layoutData: {},
-        limit: 1000,
+        limit: 500,
         start: 0,
         end: 1000000000,
         linkAllShow: true,
@@ -351,6 +351,11 @@
         if (this.svg.select("g")) this.svg.select("g").remove();
         let zoom = d3.zoom().scaleExtent([1, 10]).on("zoom", () => {
           this.nodesLinksG.attr("transform", d3.event.transform);
+          /*g放大的时候其子节点不放大*/
+          // if (d3.event.transform.k > 1) {
+          //   this.allNodesG.attr("transform", "scale(" + (1 / d3.event.transform.k) + ")");
+          //   this.allLinksG.selectAll('line').attr("stroke-width", d => this.linkScale(d.flow) / d3.event.transform.k);
+          // }
         });
         this.svg.call(zoom);
         this.nodesLinksG = this.svg.append("g");

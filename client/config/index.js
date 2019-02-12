@@ -13,7 +13,7 @@ module.exports = {
     //port: process.env.PORT || 8080,
     autoOpenBrowser: true,
     assetsSubDirectory: 'static',
-    assetsPublicPath: './',
+    assetsPublicPath: '/',
     host: '127.0.0.1',
     //配置 webpack 将接口代理到本地
     proxyTable: {

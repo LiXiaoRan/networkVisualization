@@ -26,7 +26,7 @@ window.$ = $
 
 var buildCodes = false
 
-//buildCodes = true
+// buildCodes = true
 
 {
   window.CommunicateWithServer = function(type, paramsObj, url, callback) {

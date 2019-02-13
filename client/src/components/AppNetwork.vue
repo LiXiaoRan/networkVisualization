@@ -412,7 +412,14 @@
           .attr("width", d => this.nodeScale(d.degree))
           .attr("height", d => this.nodeScale(d.degree))
           .on("click", (d) => {
-
+			  //console.log(d.id);
+			  let tmpind=this.$store.state.nodesSelected.indexOf(d.id);
+			  if(tmpind>=0){
+				this.$store.state.nodesSelected.splice(tmpind,1);
+			  }else{
+				this.$store.state.nodesSelected.push(d.id);
+			  }
+			  //console.log(this.$store.state.nodesSelected);
           }).on("mouseout", (d) => {
 
         });
@@ -585,17 +592,18 @@
       },
       testData: function (newVal, oldVal) {
 
-      },
-      'selectTime_get.start': {
-        handler: function (val) {
-          //根据时间轴的筛选进行布局
-          let data = [].concat(this.selectData_get);
-          this.layoutData = this.transformData(data);
-          this.drawSwitchGraph();
-
-        },
-        //immediate: true
       }
+      // ,
+      // 'selectTime_get.start': {
+      //   handler: function (val) {
+      //     //根据时间轴的筛选进行布局
+      //     let data = [].concat(this.selectData_get);
+      //     this.layoutData = this.transformData(data);
+      //     this.drawSwitchGraph();
+      //
+      //   },
+      //   //immediate: true
+      // }
     }
   };
 

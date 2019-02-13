@@ -6,9 +6,9 @@
 */
 const state = {
   testData: null,
-	nodesSelected: null,
+	nodesSelected: [],
 	timeupdated: null,
-	hlnodes:null,
+	hlnodes:[],
 	hlview:null,
 	nodeTypeList:['主机','交换机','服务器'],
 	nodeAttrList:['致瘫','控制','正常'],

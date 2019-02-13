@@ -195,13 +195,14 @@ export default {
   },
   watch: {
     nodesSelected: function(newVal, oldVal) {
+		/*
 	  this.curnodes=newVal;
 	  if(this.curnodes.length==0){
 		this.attributes_g.selectAll("g").remove();
 		this.svg_label.selectAll("g").remove();
 	  }else{
 		  this.getattr();
-	  }
+	  }*/
     },
 	timeupdated: function(newVal, oldVal) {
 	  /*

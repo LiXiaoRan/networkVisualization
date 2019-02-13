@@ -2,33 +2,16 @@
 	<div id="subgraph-panel" class="outer-div">
 		<app-title v-bind:icon="icon" v-bind:msgs="msgs"></app-title>
 		<div id="subgraph-inner">
-			<div id="subgraph_left">
-				<table border="0" width="100%">
-					<tr>
-						<td><span id="left_btn" @click="handleleft"><font-awesome-icon icon="chevron-left" size="xs" :style="{ color: 'grey' }"/></span></td>
-					</tr>
-					<tr>
-						<td><span id="leftmax_btn" @click="handleleftmax"><font-awesome-icon icon="backward" size="xs" :style="{ color: 'grey' }"/></span></td>
-					</tr>
-				</table>
-			</div>
 			<div id="subgraph_svg"></div>
-			<div id="subgraph_right">
-				<table border="0" width="100%">
-					<tr>
-						<td><span id="right_btn" @click="handleright"><font-awesome-icon icon="chevron-right" size="xs" :style="{ color: 'grey' }"/></span></td>
-					</tr>
-					<tr>
-						<td><span id="rightmax_btn" @click="handlerightmax"><font-awesome-icon icon="forward" size="xs" :style="{ color: 'grey' }"/></span></td>
-					</tr>
-				</table>
-			</div>
 		</div>
 	</div>
 </template>
 <script>
 
 import AppTitle from "./AppTitle.vue";
+import hostImg from "../assets/host.png";
+import switchImg from "../assets/switch.png";
+import serverImg from "../assets/server.png";
 const d3 = require("d3");
 const $ = require("jquery");
 const _ = require("underscore");
@@ -41,26 +24,14 @@ export default {
       width: null,
       height: null,
 	  svg: null,
-      padding_w: 20,
-      padding_h: 40,
-	  none0tree1sub2:0,
-	  links_dom:null,
-	  nodes_dom:null,
-	  texts:null,
-	  sub_Gs:[],
-	  subg_nodes_g:[],
-	  subg_edges_g:[],
-	  subg_texts_g:[],
-	  timelinetext:null,
-	  cuttingline:null,
-	  maxshownnum:3,
-	  curstartnum:0,
-	  subGwidth:0,
-	  subGheight:0,
 	  highlightnodes:[],
-	  highlightnodes_sel:[],
+	  selectednodes:[],
+	  showntype:-1,
 	  d3tree:null,
-	  d3cluster:null
+	  d3cluster:null,
+	  nodesImgList: [hostImg, switchImg, serverImg],
+	  padding:{top: 20, bottom: 20, left: 50, right: 50},
+	  timeset:{"starttime": 1468561795, "curtime": 1468561795, "endtime": 1468633627, "timestep": 60,"timewindow": 60}
     };
   },
   components: { AppTitle },
@@ -73,16 +44,15 @@ export default {
 			.append("svg")
 			.attr("width", self.width)
 			.attr("height", self.height);
-	self.links_dom= self.svg.append("g").attr("transform", "translate(" + 40 + "," + 15 + ")");
-	self.nodes_dom= self.svg.append("g").attr("transform", "translate(" + 40 + "," + 15 + ")");
-	self.timelinetext=self.svg.append("g");
-	self.cuttingline=self.svg.append("g");
-	self.subGwidth=(self.width-2*self.padding_w-(self.maxshownnum-1)*self.padding_w)/self.maxshownnum;
-	self.subGheight=self.height-2*self.padding_h;
 	self.d3tree = d3.tree()
-		.size([self.height - 30, self.width - 80]);
+		.size([self.height-self.padding.top-self.padding.bottom, (self.width-self.padding.left-self.padding.right)*0.25]);
 	self.d3cluster = d3.cluster()
-		.size([self.height, self.width - 80]);
+		.size([self.height-self.padding.top-self.padding.bottom, (self.width-self.padding.left-self.padding.right)*0.25]);
+	this.start_angle = 0;
+    this.end_angle = 180 * (Math.PI / 180);
+	this.arcs_width = 2;
+	this.collapsed_color_0 = ["#b72626", "#cd4d40", "#d37053", "#da9155", "#dac385"];
+    this.control_color_0 = ["#008475", "#00ba8a", "#4dcf8b", "#9ce28d", "#dff68e"];
   },
   methods: {
 	diagonal(d) {
@@ -91,392 +61,324 @@ export default {
 		  + " " + (d.parent.y + 100) + "," + d.parent.x
 		  + " " + d.parent.y + "," + d.parent.x;
 	},
-	updatetree(source,root){
-		let duration=500;
-		let nodesdata=root.descendants().reverse();
-		let linkdata=root.descendants().slice(1);
-		this.d3tree(root);
-		nodesdata.forEach((d)=> {
-			d.x0 = d.x;
-			d.y0 = d.y;
-		});
-		let nodes = this.nodes_dom.selectAll(".node")
-			.data(nodesdata, (d)=>{ return d.id ; });
-		// Enter any new nodes at the parent's previous position.
-		let nodeEnter = nodes.enter().append("g")
-			.attr("class", "node")
-			.attr("transform", (d)=>{ return "translate(" + source.y0 + "," + source.x0 + ")"; })
-			.on("click", (d)=>{
-				if(d.depth!=0){
-					d.children = d.children ? null : d._children;
-					this.updatetree(d,root);
-				}
-			});
-		nodeEnter.append("circle")
-			.attr("r", (d)=>{return this.circlefill(parseInt(d.id),1);})
-			.attr("fill",(d)=>{return this.circlefill(parseInt(d.id),0);})
-			.on("mouseover",(d)=>{
-				this.$store.state.hlnodes = [parseInt(d.id)];
-				this.$store.state.hlview = "subgraph";
-			}).on("mouseout",(d)=>{
-				this.$store.state.hlnodes = [];
-				this.$store.state.hlview = "subgraph";
-			});
-			
-		nodeEnter.append("text")
-			.attr("font-family", "sans-serif")
-			.attr("font-size", 12)
-			.attr("dy", 3)
-			.attr("x", (d)=>{ return d.children || d._children ? -15 : 15; })
-			.style("text-anchor", (d)=>{ return (d.children || d._children) ? "end" : "start"; })
-			.text((d)=>{ return d.id.substring(d.id.lastIndexOf(".") + 1); });
-		
-		// Transition nodes to their new position.
-		let nodeUpdate = nodes.merge(nodeEnter)
-				.transition().duration(duration)
-				.attr("transform", (d)=>{ return "translate(" + d.y + "," + d.x + ")"; });
-		// Stash the old positions for transition.
-		let nodeExit = nodes.exit()
-			.transition().duration(duration).remove()
-			.attr("transform", (d)=>{ return "translate(" + source.y + "," + source.x + ")"; });
-		
-		let links=this.links_dom.selectAll(".treelink")
-			.data(linkdata);
-		let linkEnter=links.enter().append("path")
-			.attr("class", "treelink")
-			.attr("d", this.diagonal)
-			.attr("fill","none");
-		links.merge(linkEnter).transition().duration(duration)
-			.attr("d", this.diagonal);
-		links.exit().transition().duration(duration).remove()
-			.attr("d", d => {
-			  return this.diagonal({parent: {x: source.x, y: source.y}, x: source.x, y: source.y});
-			});
-		this.svg.selectAll(".treelink").attr("stroke","grey").attr("fill","none");
-		this.svg.selectAll("text").attr("fill","grey");
-	},
-	handleleft(){
-		if(this.sub_Gs.length>this.maxshownnum){
-			if(this.curstartnum>0){
-				this.curstartnum=this.curstartnum-1;
-				this.turnleft();
-				this.adjust_positions();
-				this.drawsubgraph(this.subg_edges_g[0],this.subg_nodes_g[0],this.subg_texts_g[0],this.sub_Gs[this.curstartnum][1],this.sub_Gs[this.curstartnum][0],this.subGwidth,this.subGheight);
-			}
-		}
-	},
-	handleright(){
-		if(this.sub_Gs.length>this.maxshownnum){
-			if(this.curstartnum<this.maxshownnum-1){
-				this.curstartnum=this.curstartnum+1;
-				this.turnright();
-				this.adjust_positions();
-				let tmplen=this.subg_nodes_g.length;
-				this.drawsubgraph(this.subg_edges_g[tmplen-1],this.subg_nodes_g[tmplen-1],this.subg_texts_g[tmplen-1],this.sub_Gs[this.curstartnum+this.maxshownnum-1][1],this.sub_Gs[this.curstartnum+this.maxshownnum-1][0],this.subGwidth,this.subGheight);
-			}
-		}
-	},
-	handleleftmax(){
-		if(this.sub_Gs.length>this.maxshownnum){
-			if(this.curstartnum>0){
-				if(this.curstartnum-this.maxshownnum+1<=0){
-					//有重叠
-					for(let i=0;i<this.curstartnum;i++){
-						this.turnleft();
-						this.drawsubgraph(this.subg_edges_g[0],this.subg_nodes_g[0],this.subg_texts_g[0],this.sub_Gs[this.curstartnum-i-1][1],this.sub_Gs[this.curstartnum-i-1][0],this.subGwidth,this.subGheight);
-					}
-					curstartnum=0;
-				}else{
-					console.log("redraw all subgraph");
-					for(let i=0;i<this.subg_nodes_g.length;i++){
-						this.subg_nodes_g[i].selectAll("circle").remove();
-						this.subg_edges_g[i].selectAll("line").remove();
-						this.subg_texts_g[i].selectAll("text").remove();
-					}
-					this.subg_nodes_g=[];this.subg_edges_g=[];this.subg_texts_g=[];
-					this.curstartnum=0;
-					for(let i=0;i<maxshownnum;i++){
-						this.subg_nodes_g.push(this.svg.append("g").attr("class", "nodes"));
-						this.subg_edges_g.push(this.svg.append("g").attr("class", "links"));
-						this.subg_texts_g.push(this.svg.append("g"));
-						this.drawsubgraph(this.subg_edges_g[i],this.subg_nodes_g[i],this.subg_texts_g[i],this.sub_Gs[this.curstartnum+i][1],this.sub_Gs[this.curstartnum+i][0],this.subGwidth,this.subGheight);
-					}
-				}
-				this.adjust_positions();
-			}
-		}
-	},
-	handlerightmax(){
-		if(this.sub_Gs.length>this.maxshownnum){
-			if(this.curstartnum<this.maxshownnum-1){
-				this.showsubgraph(1);
-			}
-		}
-	},
-	draw_cuttinglines(){
-		let tmpdata=[];
-		for(let i=0;i<this.maxshownnum-1;i++){
-			tmpdata.push(0);
-		}
-		this.cuttingline.selectAll("line").remove();
-		this.cuttingline.selectAll("line")
-			.data(tmpdata).enter()
-			.append("line")
-			.attr("stroke","#aaa")
-			.attr("x1", (d,i)=> { return (i+1.5)*this.padding_w+(i+1)*this.subGwidth; })
-			.attr("y1", (d,i)=> { return this.padding_h; })
-			.attr("x2", (d,i)=> { return (i+1.5)*this.padding_w+(i+1)*this.subGwidth; })
-			.attr("y2", (d,i)=> { return this.height-this.padding_h; });
-	},
-	turnleft(){
-		let tmp=this.subg_nodes_g.pop();
-		tmp.remove();
-		tmp=this.subg_edges_g.pop();
-		tmp.remove();
-		tmp=sthis.ubg_texts_g.pop();
-		tmp.remove();
-		this.subg_edges_g.unshift(this.svg.append("g").attr("class", "links"));
-		this.subg_nodes_g.unshift(this.svg.append("g").attr("class", "nodes"));
-		this.subg_texts_g.unshift(this.svg.append("g"));
-	},
-	turnright(){
-		let tmp=this.subg_nodes_g.shift();
-		tmp.remove();
-		tmp=this.subg_edges_g.shift();
-		tmp.remove();
-		tmp=this.subg_texts_g.shift();
-		tmp.remove();
-		this.subg_edges_g.push(this.svg.append("g").attr("class", "links"));
-		this.subg_nodes_g.push(this.svg.append("g").attr("class", "nodes"));
-		this.subg_texts_g.push(this.svg.append("g"));
-	},
-	circlefill(id,color0r1){
-		if(this.highlightnodes_sel.length>=3){
-			if(color0r1==0){
-				return "white";
-			}else{
-				return 3;
-			}
+	curvepath(d) {
+      let x0 = d.source[0],
+          x1 = d.target[0],
+          xi = d3.interpolateNumber(x0, x1),
+          x2 = xi(0.5),
+          x3 = xi(1 - 0.5),
+          y0 = d.source[1] ,
+          y1 = d.target[1] ;
+      return "M" + x0 + "," + y0
+           + "C" + x2 + "," + y0
+           + " " + x3 + "," + y1
+           + " " + x1 + "," + y1;
+    },
+	inttime2str(num){
+		let str;
+		let t = new Date(num*1000);
+		if (t.getMinutes()<10){
+			str=(t.getMonth()+1)+"/"+t.getDate()+" "+t.getHours()+":"+"0"+t.getMinutes();
 		}else{
-			if(_.contains(this.highlightnodes, id)){
-				if(color0r1==0){
-					return "#b8ddf3";
-				}else{
-					return 5;
-				}
-			}else if(_.contains(this.highlightnodes_sel, id)){
-				if(color0r1==0){
-					return "#87CEFA";
-				}else{
-					return 5;
-				}
-			}else{
-				if(color0r1==0){
-					return "white";
-				}else{
-					return 3;
-				}
-			}
+			str=(t.getMonth()+1)+"/"+t.getDate()+" "+t.getHours()+":"+t.getMinutes();
 		}
+		return str;
 	},
-	adjust_positions(){
-		//console.log(subg_nodes_g);
-		for(let i=0;i<this.subg_nodes_g.length;i++){
-			this.subg_nodes_g[i].attr("transform", "translate(" + ((i+1)*this.padding_w+i*this.subGwidth)+ "," + this.padding_h + ")");
-			this.subg_texts_g[i].attr("transform", "translate(" + ((i+1)*this.padding_w+i*this.subGwidth)+ "," + this.padding_h + ")");
-			this.subg_edges_g[i].attr("transform", "translate(" + ((i+1)*this.padding_w+i*this.subGwidth)+ "," + this.padding_h + ")");
-		}
-		this.drawtimelinetext();
-		this.draw_cuttinglines();
-	},
-	drawtimelinetext(){
-		let tmpdata=[];
-		for(let i=this.curstartnum;i<this.sub_Gs.length;i++){
-			tmpdata.push(i+1);
-		}
-		//console.log(tmpdata);
-		this.timelinetext.selectAll("text").remove();
-		this.timelinetext.selectAll("text").data(tmpdata)
-			.enter()
-			.append("text")
-			.attr("font-family", "sans-serif")
-			.attr("fill", "grey")
-			.attr("font-size", 12)
-			.attr("x",(d,i)=>{return (i+1)*this.padding_w+i*this.subGwidth+0.5*this.subGwidth;})
-			.attr("y",(d,i)=>{return this.height-this.padding_h;})
-			.attr("dx", 0)
-			.attr("dy", "0.35em")
-			.text((d)=>{return d;});
-	},
-	drawsubgraph(g_link1,g_node1,g_text1,data_link,data_node,w,h){
-		let simulation = d3.forceSimulation()
-			.force("link", d3.forceLink().id((d)=>{ return d.id; }))
-			.force("charge", d3.forceManyBody())
-			.force("center", d3.forceCenter(w / 2, h / 2));
-			
-		let g_link=g_link1.selectAll("line");
-		let g_node=g_node1.selectAll("circle");
-		let g_text=g_text1.selectAll("text");
-		
-		g_link = g_link.data(data_link,(d)=>{return d;});
-		g_link.exit().remove();
-		g_link=g_link.enter().append("line")
-			//.attr("stroke","#555")
-			.merge(g_link);
-			
-		g_node = g_node.data(data_node,(d)=>{return d;});
-		g_node.exit().transition().attr("r", 0).remove();
-		
-		let nodes_new=g_node.enter().append("circle")
-			.attr("r", (d)=>{return this.circlefill(d.id,1);})
-			.attr("fill",(d,i)=>{
-				return this.circlefill(d.id,0);
-			})
-			.on("mouseover",(d)=>{
-				this.$store.state.hlnodes = [d.id];
-				this.$store.state.hlview = "subgraph";
-			}).on("mouseout",(d)=>{
-				this.$store.state.hlnodes = [];
-				this.$store.state.hlview = "subgraph";
-			});
-		g_node=nodes_new.merge(g_node);
-
-		g_text1.selectAll("text").remove();
-		g_text=g_text1.selectAll("text").data(data_node,(d)=>{return d;})
-			.enter()
-			.append("text")
-			.attr("font-family", "sans-serif")
-			.attr("font-size", 12)
-			//.attr("fill", "grey")
-			.attr("dx", 12)
-			.attr("dy", "0.35em")
-			.text((d)=>{return d.id;} )
-			
-		simulation
-			.nodes(data_node)
-			.on("tick", ticked);
-		simulation.force("link")
-			.links(data_link);
-		simulation.alpha(1).restart();
-		function ticked() {
-			g_node.attr("cx", (d)=>{  return d.x = Math.max(20, Math.min(w - 20, d.x)); })
-				.attr("cy", (d)=>{ return d.y = Math.max(20, Math.min(h - 20, d.y));  });
-				
-			g_link.attr("x1", (d)=> { return d.source.x; })
-				.attr("y1", (d)=> { return d.source.y; })
-				.attr("x2", (d)=> { return d.target.x; })
-				.attr("y2", (d)=> { return d.target.y; });
-
-			g_text.attr("x", d => d.x)
-				.attr("y", d => d.y);
-		}
-		//console.log(g_text1.selectAll("text"));
-		this.svg.selectAll("line").attr("stroke","grey");
-		this.svg.selectAll("text").attr("fill","grey");
-		
-	},
-	showsubgraph(new0cur1){
-		
-		let newlen=this.sub_Gs.length;
-		if(newlen>this.maxshownnum || new0cur1==1){
-			let turnnum=newlen-this.maxshownnum-this.curstartnum;
-			if(0<turnnum && turnnum<this.maxshownnum && newlen>this.maxshownnum){
-				//console.log("overlap",turnnum);
-				for(let i=0;i<turnnum;i++){
-					this.curstartnum=this.curstartnum+1;
-					this.turnright();
-					let tmplen=this.subg_nodes_g.length;
-					this.drawsubgraph(this.subg_edges_g[tmplen-1],this.subg_nodes_g[tmplen-1],this.subg_texts_g[tmplen-1],this.sub_Gs[this.curstartnum+this.maxshownnum-1][1],this.sub_Gs[this.curstartnum+this.maxshownnum-1][0],this.subGwidth,this.subGheight);
-				}
-			}else if(new0cur1==1){
-				//console.log("update current subgraph");
-				let tmplen=this.subg_nodes_g.length;
-				this.drawsubgraph(this.subg_edges_g[tmplen-1],this.subg_nodes_g[tmplen-1],this.subg_texts_g[tmplen-1],this.sub_Gs[newlen-1][1],this.sub_Gs[newlen-1][0],this.subGwidth,this.subGheight);
-			}else{
-				//console.log("redraw all subgraph");
-				for(let i=0;i<this.subg_nodes_g.length;i++){
-					this.subg_nodes_g[i].remove();
-					this.subg_edges_g[i].remove();
-					this.subg_texts_g[i].remove();
-				}
-				this.subg_nodes_g=[];this.subg_edges_g=[];this.subg_texts_g=[];
-				this.curstartnum=newlen-this.maxshownnum;
-				for(let i=0;i<this.maxshownnum;i++){
-					this.subg_nodes_g.push(this.svg.append("g").attr("class", "nodes"));
-					this.subg_edges_g.push(this.svg.append("g").attr("class", "links"));
-					this.subg_texts_g.push(this.svg.append("g"));
-					this.drawsubgraph(this.subg_edges_g[i],this.subg_nodes_g[i],this.subg_texts_g[i],this.sub_Gs[this.curstartnum+i][1],this.sub_Gs[this.curstartnum+i][0],this.subGwidth,this.subGheight);
-				}
-			}
-		}else{
-			this.curstartnum=0;
-			this.subg_nodes_g.push(this.svg.append("g").attr("class", "nodes"));
-			this.subg_edges_g.push(this.svg.append("g").attr("class", "links"));
-			this.subg_texts_g.push(this.svg.append("g"));
-			let tmplen=this.subg_nodes_g.length;
-			//console.log("kkk");
-			this.drawsubgraph(this.subg_edges_g[tmplen-1],this.subg_nodes_g[tmplen-1],this.subg_texts_g[tmplen-1],this.sub_Gs[newlen-1][1],this.sub_Gs[newlen-1][0],this.subGwidth,this.subGheight);
-		}
-		//console.log("hhh");
-		this.adjust_positions();
-		//console.log("curstartnum",curstartnum);
-	},
-	cleartree(){
-		this.links_dom.selectAll(".treelink").remove();
-		this.nodes_dom.selectAll(".node").remove();
-		this.none0tree1sub2=0;
-	},
-	clearsubgraph(){
-		for(let i=0;i<this.subg_nodes_g.length;i++){
-			this.subg_nodes_g[i].remove();
-			this.subg_edges_g[i].remove();
-			this.subg_texts_g[i].remove();
-		}
-		this.timelinetext.selectAll("text").remove();
-		this.cuttingline.selectAll("line").remove();
-		this.sub_Gs=[];this.subg_nodes_g=[];this.subg_edges_g=[];this.subg_texts_g=[];
-		this.curstartnum=0;
-		this.none0tree1sub2=0;
-		//highlightnodes_sel=[];
-	},
-	
-	gettreedata(evt_data){
-		console.log(evt_data);
-		let tmpdata=evt_data["treeinfo"]["bfstree"];
-		let rootid=evt_data["treeinfo"]["rootid"];
-		tmpdata[rootid]["p"]="";
-		let root=_.map(tmpdata, (val, key)=>{ return {"name":parseInt(key),"parent":val["p"]}; });
-		//console.log(root);
-		root = d3.stratify()
+	singleNeighbor(rootnode,nodesappears,nodesattr){
+		let root=_.map(nodesappears, (val, key)=>{ return {"name":key,"parent":rootnode}; });
+		root.push({name: rootnode, parent: ""});
+		let treeroot = d3.stratify()
 			.id((d)=>{ return d.name; })
 			.parentId((d)=>{ return d.parent; })
 			(root);
-		this.d3cluster(root);
+		this.d3cluster(treeroot);
+		let nodesdata=treeroot.descendants().reverse();
+		let linkdata=treeroot.descendants().slice(1);
+		this.d3tree(treeroot);
 		
-		function collapse(d) {
-		  if (d.children) {
-			d._children = d.children;
-			d._children.forEach(collapse);
-			if(d.depth >1){d.children = null};
-		  }
+		let locations={};
+		
+		this.svg.selectAll("g").remove();
+		let g=this.svg.append("g")
+			.attr("transform", (d)=>{ return "translate(" + this.padding.left + "," + this.padding.top + ")"; });
+		
+		let links = g.selectAll(".treelink")
+			.data(linkdata)
+			.enter().append("path")
+			.attr("class", "treelink")
+			.attr("d", this.diagonal).attr("fill","none").attr("stroke","#999");
+		let node = g.selectAll(".node")
+			.data(nodesdata)
+			.enter().append("g")
+			.attr("transform", (d)=>{ 
+				locations[d.data.name]=d.x;
+				return "translate(" + d.y + "," + d.x + ")"; 
+			});
+		var noderadius=8;
+		node.append("circle")
+			.attr("r", noderadius)
+			.on("mouseover",(d)=>{
+				this.$store.state.hlnodes = d.data.name;
+				this.$store.state.hlview = "subgraph";
+			}).on("mouseout",(d)=>{
+				this.$store.state.hlnodes = [];
+				this.$store.state.hlview = "subgraph";
+			}).attr("fill","#282c37");
+			
+		node.append("image")
+			.attr("xlink:href", d => {
+				let tmptype=nodesattr[d.data.name]["nodeType"];
+				//console.log(tmptype);
+				if (tmptype === "主机") {
+				  return this.nodesImgList[0];
+				} else if (tmptype === "交换机") {
+				  return this.nodesImgList[1];
+				} else if (tmptype === "服务器") {
+				  return this.nodesImgList[2];
+				}
+			})
+			.attr("x", d => - noderadius)
+			.attr("y", d => - noderadius)
+			.attr("width", d => noderadius*2)
+			.attr("height", d => noderadius*2)
+			.append("title").text((d,i)=>{
+				return d.data.name;
+			});
+		node.append("path")
+			.attr("d", (d) => {
+				let tmp_r = noderadius;
+				let arcs = d3.arc().startAngle(this.start_angle).endAngle(this.end_angle)
+				  .innerRadius(tmp_r - this.arcs_width / 2).outerRadius(tmp_r + this.arcs_width / 2);
+				return arcs(d.data);
+            })
+            .attr("class", "arc_collapse")
+            .attr("fill", (d, i) => {
+                return this.collapsed_color_0[i % 5];
+            });
+		node.append("path")
+			.attr("d", (d) => {
+                let tmp_r = noderadius;
+                let arcs = d3.arc().startAngle(this.start_angle).endAngle(this.end_angle)
+                  .innerRadius(tmp_r - this.arcs_width / 2).outerRadius(tmp_r + this.arcs_width / 2);
+                return arcs(d.data);
+            }).attr("class", "arc_control")
+			.attr("transform", (d) => {
+                return "translate(" + (0) + "," + (0) + ")" + "rotate(180)"
+            })
+            .attr("fill", (d, i) => {
+                return this.control_color_0[i % 5];
+            });
+		
+		//console.log(locations);
+		
+		let innerpadding=15;
+		let timew=this.width-(this.padding.left+this.d3cluster.size()[1]+innerpadding)-this.padding.right;
+		let timenumall=Math.ceil((this.timeset["endtime"]-this.timeset["starttime"])/this.timeset["timestep"]);
+		let timerange=_.values(nodesappears);
+		let timerangemax=_.map(timerange, (d)=>{ return d[d.length-1][1]; });
+		timerangemax=_.max(timerangemax);
+		let timerangemin=_.map(timerange, (d)=>{ return d[0][0]; });
+		timerangemin=_.min(timerangemin);
+		//console.log(timerangemin,timerangemax);
+		
+		let timeScale= d3.scaleLinear()
+			  .domain([timerangemin,timerangemax])
+			  .range([0, this.width-this.d3cluster.size()[1]-this.padding.left-this.padding.right]);
+		
+		let allneighbors=_.keys(nodesappears);
+		for(let i=0;i<allneighbors.length;i++){
+			let timesg=this.svg.append("g")
+				.attr("transform", (d)=>{ return "translate(" + (this.padding.left+this.d3cluster.size()[1]+innerpadding) + "," + this.padding.top + ")"; });
+			timesg.selectAll("line").data(nodesappears[allneighbors[i]])
+				.enter().append("line")
+				.attr("class","timeappear")
+				.attr("x1",(d,ii)=>{
+					return timeScale(d[0]);
+				}).attr("y1",(d,ii)=>{
+					return locations[allneighbors[i]];
+				}).attr("x2",(d,ii)=>{
+					return timeScale(d[1]);
+				}).attr("y2",(d,ii)=>{
+					return locations[allneighbors[i]];
+				}).attr("stroke","#999").attr("stroke-width",5)
+				.attr("stroke-linecap","round")
+				.append("title").text((d,i)=>{
+					return this.inttime2str(this.timeset["starttime"]+d[0]*this.timeset["timestep"])+" - "+this.inttime2str(this.timeset["starttime"]+d[1]*this.timeset["timestep"]);
+				});
 		}
-		root.children.forEach(collapse);
-		this.updatetree(root,root);
+		
 	},
-	paths2subg(evt_data){
-		var tmpnodes=_.flatten(evt_data["paths"]);
-		tmpnodes=_.uniq(tmpnodes);
-		var tmppaths=[];
-		for(var i=0;i<evt_data["paths"].length;i++){
-			for(var j=0;j<evt_data["paths"][i].length-1;j++){
-				tmppaths.push([evt_data["paths"][i][j],evt_data["paths"][i][j+1]]);
-				//console.log();
+	multipsps(nodessps,nodesattr){
+		this.svg.selectAll("g").remove();
+		if(nodessps.length==0){
+			return;
+		}
+		let maxlen=_.map(nodessps, (d)=>{ return d[0][0].length; });
+		let lensum=0;
+		for(let i=0;i<maxlen.length;i++){
+			lensum=lensum+maxlen[i];
+		}
+
+		let corey=(this.height-this.padding.top-this.padding.bottom)/2;
+		let corex=[0];
+		for(let i=0;i<maxlen.length;i++){
+			let tmpx=(this.width-this.padding.left-this.padding.right)/lensum*maxlen[i];
+			corex.push(corex[corex.length-1]+tmpx);
+		}
+		
+		let linkdata=[];
+		let linkcntdata={};
+		let nodespos={};
+		let corenodes=[nodessps[0][0][0][0]+"_0"];
+		for(let i=0;i<nodessps.length;i++){
+			let pathnum=nodessps[i].length;	
+			let availw=corex[i+1]-corex[i];
+			for(let pi=0;pi<pathnum;pi++){
+				let cury;
+				if(pathnum==1){
+					cury=(this.height-this.padding.top-this.padding.bottom)/2;
+				}else{
+					cury=(this.height-this.padding.top-this.padding.bottom)/(pathnum-1)*(pi);
+				}
+				let pathlen=nodessps[i][pi][0].length;
+					
+				for(let ni=0;ni<pathlen-1;ni++){
+					let tmpnx1=0; let tmpny1=0;
+					let tmpnx2=0; let tmpny2=0;
+					let tmpnode1=nodessps[i][pi][0][ni];
+					let tmpnode2=nodessps[i][pi][0][ni+1];
+
+					let tmpkey1=tmpnode1+"_"+i;
+					if(i!=0 && ni==0){
+						tmpkey1=tmpnode1+"_"+(i-1);
+					}
+					if(_.indexOf(_.keys(nodespos),tmpkey1)>=0){
+						tmpnx1=nodespos[tmpkey1][0];
+						tmpny1=nodespos[tmpkey1][1];
+						
+					}else{
+						tmpnx1=(this.padding.left+corex[i])+(availw/(pathlen-1))*(ni);
+						tmpny1=cury;
+						if(ni==0){tmpny1=(this.height-this.padding.top-this.padding.bottom)/2;}
+						nodespos[tmpkey1]=[tmpnx1,tmpny1];
+					}
+					let tmpkey2=tmpnode2+"_"+i;
+					if(_.indexOf(_.keys(nodespos),tmpkey2)>=0){
+						tmpnx2=nodespos[tmpkey2][0];
+						tmpny2=nodespos[tmpkey2][1];
+					}else{
+						tmpnx2=(this.padding.left+corex[i])+(availw/(pathlen-1))*(ni+1);
+						tmpny2=cury;
+						if(ni+1==pathlen-1){
+							corenodes.push(tmpkey2);
+							tmpny2=(this.height-this.padding.top-this.padding.bottom)/2;
+						}
+						nodespos[tmpkey2]=[tmpnx2,tmpny2];
+					}
+					let tmplinkind=_.indexOf(_.keys(linkcntdata),tmpkey1+"_"+tmpkey2);
+					if(tmplinkind>=0){
+						linkcntdata[tmpkey1+"_"+tmpkey2]+=nodessps[i][pi][1];
+					}else{
+						linkcntdata[tmpkey1+"_"+tmpkey2]=nodessps[i][pi][1];
+					}
+					//console.log(tmpnode1,[tmpnx1,tmpny1],tmpnode2,[tmpnx2,tmpny2]);
+					if(ni==0 && ni+1==pathlen-1){
+						
+						linkdata.push({"source":[tmpnx1,tmpny1,tmpkey1],"target":[(tmpnx1+tmpnx2)/2,cury,tmpkey2]});
+						linkdata.push({"source":[(tmpnx1+tmpnx2)/2,cury,tmpkey1],"target":[tmpnx2,tmpny2,tmpkey2]});
+					}else{
+						linkdata.push({"source":[tmpnx1,tmpny1,tmpkey1],"target":[tmpnx2,tmpny2,tmpkey2]});
+					}
+					
+				}
 			}
 		}
-		if(tmpnodes.length==0){
-			tmpnodes=[this.highlightnodes_sel[0],this.highlightnodes_sel[1]];
-		}
-		return [tmpnodes,tmppaths];
+		
+		let widthScale=d3.scaleLinear()
+			  .domain(d3.extent(_.values(linkcntdata)))
+			  .range([1, 5]);
+		//console.log(widthScale.domain());
+		let linksdom=this.svg.append("g")
+			.attr("transform", (d)=>{ return "translate(" + (0) + "," + this.padding.top + ")"; })
+			.selectAll(".link")
+			.data(linkdata)
+			.enter().append("path")
+			.attr("class", "link")
+			.attr("d", this.curvepath)
+			.attr("stroke","#999")
+			.attr("stroke-width", (d)=>{
+				return widthScale(linkcntdata[d.source[2]+"_"+d.target[2]]);
+			})
+			.attr("fill", "none")
+			.append("title").text((d,i)=>{
+				return linkcntdata[d.source[2]+"_"+d.target[2]];
+			});
+		
+		let nodesdom=this.svg.append("g")
+			.selectAll(".node")
+			.data(_.keys(nodespos))
+			.enter().append("g")
+			.attr("transform", (d)=>{ return "translate(" + (nodespos[d][0]) + "," + (this.padding.top+nodespos[d][1]) + ")"; });
+			
+		var noderadius=8;
+		nodesdom.append("circle")
+			.attr("r", noderadius)
+			.on("mouseover",(d)=>{
+				this.$store.state.hlnodes = d.data.name;
+				this.$store.state.hlview = "subgraph";
+			}).on("mouseout",(d)=>{
+				this.$store.state.hlnodes = [];
+				this.$store.state.hlview = "subgraph";
+			}).attr("fill","#282c37");
+			
+		nodesdom.append("image")
+			.attr("xlink:href", d => {
+				let name=d.split("_");
+				name.pop();
+				name=name.join("_");
+				let tmptype=nodesattr[name]["nodeType"];
+				//console.log(tmptype);
+				if (tmptype === "主机") {
+				  return this.nodesImgList[0];
+				} else if (tmptype === "交换机") {
+				  return this.nodesImgList[1];
+				} else if (tmptype === "服务器") {
+				  return this.nodesImgList[2];
+				}
+			})
+			.attr("x", d => - noderadius)
+			.attr("y", d => - noderadius)
+			.attr("width", d => noderadius*2)
+			.attr("height", d => noderadius*2)
+			.append("title").text((d,i)=>{
+				let name=d.split("_");
+				name.pop();
+				return name.join("_");
+			});
+		nodesdom.append("path")
+			.attr("d", (d) => {
+				let tmp_r = noderadius;
+				let arcs = d3.arc().startAngle(this.start_angle).endAngle(this.end_angle)
+				  .innerRadius(tmp_r - this.arcs_width / 2).outerRadius(tmp_r + this.arcs_width / 2);
+				return arcs(d);
+            })
+            .attr("class", "arc_collapse")
+            .attr("fill", (d, i) => {
+                return this.collapsed_color_0[i % 5];
+            });
+		nodesdom.append("path")
+			.attr("d", (d) => {
+                let tmp_r = noderadius;
+                let arcs = d3.arc().startAngle(this.start_angle).endAngle(this.end_angle)
+                  .innerRadius(tmp_r - this.arcs_width / 2).outerRadius(tmp_r + this.arcs_width / 2);
+                return arcs(d);
+            }).attr("class", "arc_control")
+			.attr("transform", (d) => {
+                return "translate(" + (0) + "," + (0) + ")" + "rotate(180)"
+            })
+            .attr("fill", (d, i) => {
+                return this.control_color_0[i % 5];
+            });
 	}
   },
   
@@ -486,108 +388,57 @@ export default {
     },
 	hlnodes:function() {
       return this.$store.state.hlnodes
-    },
-	timeupdated:function() {
-      return this.$store.state.timeupdated
     }
   },
   watch: {
     nodesSelected: function(newVal, oldVal) {
-	  this.highlightnodes_sel=newVal;
-	  let obj = {nodes: this.highlightnodes_sel};
+	  this.selectednodes=newVal;
+	  let obj = {nodes: this.selectednodes};
 	  
-	  if(this.highlightnodes_sel.length==0){
-		  console.log("clear all");
-		  this.none0tree1sub2=0;
-		  this.clearsubgraph();
-		  this.cleartree();
+	  if(this.selectednodes.length==0){
+		  this.showntype=-1;
+		  this.svg.selectAll("g").remove();
 		  CommunicateWithServer('get', obj, "choosenone", ()=>{});
-	  }else if(this.highlightnodes_sel.length==1){
-		  	this.none0tree1sub2=1;
-			this.clearsubgraph();
-			//let obj = {nodes: this.highlightnodes_sel};
-			CommunicateWithServer('get', obj, 'getBFStree', (evt_data)=>{
-				this.gettreedata(evt_data);
+	  }else if(this.selectednodes.length==1){
+		  	this.showntype=0;
+			CommunicateWithServer('get', obj, 'gettree', (evt_data)=>{
+				console.log(evt_data);
+				this.singleNeighbor(evt_data["root"],evt_data["appear"],evt_data["nodes"]);
 			});
 	  }else{
-		    this.none0tree1sub2=2;
-		    //let obj = {nodes:JSON.stringify(this.highlightnodes_sel)};
-			let url="";
-			if(this.highlightnodes_sel.length==2){url="getSPs";}
-			else{url="getSubgraph";}
-			CommunicateWithServer('get', obj, url, (evt_data)=>{
+		    this.showntype=1;
+			CommunicateWithServer('get', obj, 'getSPs', (evt_data)=>{
 				console.log(evt_data);
-				let data=[];
-				if(this.highlightnodes_sel.length==2){
-					data=this.paths2subg(evt_data);
-				}else{
-					data=[evt_data["subgraph_nodes"],evt_data["subgraph_edges"]];
-				}
-				
-				console.log(data);
-				for(let i=0;i<data[0].length;i++){
-					data[0][i]={"id":data[0][i]};
-				}
-				for(let i=0;i<data[1].length;i++){
-					data[1][i]={"source":data[1][i][0],"target":data[1][i][1]};
-				}
-				//console.log(data);
-				if(this.sub_Gs.length==0){
-					this.sub_Gs.push(data);
-					this.cleartree();
-					this.showsubgraph(0);
-				}else{
-					this.sub_Gs[this.sub_Gs.length-1]=data;
-					this.showsubgraph(1);
-				}
+				this.multipsps(evt_data["paths"],evt_data["nodes"]);
 		    })
 	  }
     },
-	timeupdated:function(newVal, oldVal) {
-		//let obj = {nodes:JSON.stringify(this.highlightnodes_sel)};
-		CommunicateWithServer('get', {}, "getsubdata", (evt_data)=>{
-			if(this.highlightnodes_sel.length==0){
-			
-			}else if(this.highlightnodes_sel.length==1){
-				this.gettreedata(evt_data);
-			}else{
-				let data=[];
-				if(this.highlightnodes_sel.length==2){
-					data=this.paths2subg(evt_data);
-				}else{
-					data=[evt_data["subgraph_nodes"],evt_data["subgraph_edges"]];
-				}
-				for(var i=0;i<data[0].length;i++){
-					data[0][i]={"id":data[0][i]};
-				}
-				for(var i=0;i<data[1].length;i++){
-					data[1][i]={"source":data[1][i][0],"target":data[1][i][1]};
-				}
-				//console.log(data);
-				this.cleartree();
-				this.none0tree1sub2=2;
-				this.sub_Gs.push(data);
-				this.showsubgraph(0);
-			}
-		});
-	},
 	hlnodes: function(newVal, oldVal) {
 	  if(this.$store.state.hlview!="subgraph"){
 		this.highlightnodes=newVal;
-		//console.log(this.highlightnodes);
-		//console.log(this.highlightnodes_sel);
-		//console.log(this.none0tree1sub2);
-		if(this.highlightnodes_sel.length==1){
-			this.nodes_dom.selectAll("circle")
-				.attr("r",(d)=>{return this.circlefill(parseInt(d.id),1);})
-				.attr("fill",(d)=>{return this.circlefill(parseInt(d.id),0);});
-		}else if(this.highlightnodes_sel.length>=2){
-			for(var i=0;i<this.subg_nodes_g.length;i++){
-				this.subg_nodes_g[i].selectAll("circle")
-					.attr("r",(d,i)=>{return this.circlefill(d.id,1);})
-					.attr("fill",(d,i)=>{return this.circlefill(d.id,0);});
+		if(this.highlightnodes.length!=0){
+			if(this.showntype==0){//single node
+				this.svg.selectAll("circle").attr("opacity",(d)=>{
+					if(_.indexOf(this.highlightnodes,d.data.name)>=0){
+						return 1;
+					}else{
+						return 0.2;
+					}
+				})
+			}else if(this.showntype==1){//multi nodes
+				this.svg.selectAll("circle").attr("opacity",(d)=>{
+					let tmpname=d.split("_");
+					tmpname.pop();
+					tmpname=tmpname.join("_");
+					if(_.indexOf(this.highlightnodes,tmpname)>=0){
+						return 1;
+					}else{
+						return 0.2;
+					}
+				})
 			}
 		}
+		
 	  }
     }
   }

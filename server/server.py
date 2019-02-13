@@ -22,7 +22,7 @@ import math
 
 # import frq_path_stat
 define("port", default=22333, type=int, help="run on the given port")
-
+# define("port", default=8661, type=int, help="run on the given port")
 # client_file_root_path = os.path.join(os.path.split(__file__)[0],'../client')
 client_file_root_path = os.path.join(os.path.split(__file__)[0], '../')
 client_file_root_path = os.path.abspath(client_file_root_path)
@@ -106,7 +106,7 @@ class calLayout(tornado.web.RequestHandler):
         print("spend time for calculate layout: " + str(diff_time))
         # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", result['nodes'][0])
         self.write(result)
-        LocalGraph.updatelocaldata(result['links'], 0)
+        LocalGraph.updatelocaldata(nodes, result['links'])
 
     def post(self):
         self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
@@ -167,8 +167,8 @@ class getDim2(tornado.web.RequestHandler):
         # print(params)
         type = int(params['type'])
         # type = int(json.loads(self.get_argument('type')))
-        nodes_new, results_new = LocalGraph.getdim2(type)
-        evt_unpacked = {'nodes': nodes_new, 'nodes_embedded': results_new.tolist(), 'edges': list(LocalGraph.G.edges()),
+        nodes, results = LocalGraph.getdim2(type)
+        evt_unpacked = {'nodes': nodes, 'nodes_embedded': results.tolist(), 'edges': list(LocalGraph.G.edges()),
                         'outlier': LocalGraph.outlierrecord}
         evt = json.dumps(evt_unpacked)
         self.write(evt)
@@ -195,11 +195,9 @@ class getAttr(tornado.web.RequestHandler):
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
         self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
         params = json.loads(self.get_argument('params'))
-        type = int(params['type'])
         nodes = json.loads(params['nodes'])
-        # print(type,nodes)
-        tmpattr = LocalGraph.getAttr(type, nodes)
-        evt_unpacked = {"attr": tmpattr}
+        tmpattr,nodesattr = LocalGraph.getAttr(nodes)
+        evt_unpacked = {"attr": tmpattr,'nodes':nodesattr}
         evt = json.dumps(evt_unpacked)
         self.write(evt)
 
@@ -216,7 +214,7 @@ class choosenone(tornado.web.RequestHandler):
         self.write(evt)
 
 
-class getBFStree(tornado.web.RequestHandler):
+class gettree(tornado.web.RequestHandler):
     # 获取指定节点的指定属性变化记录
     def get(self):
         self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
@@ -224,8 +222,7 @@ class getBFStree(tornado.web.RequestHandler):
         self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
         params = json.loads(self.get_argument('params'))
         nodes = params['nodes']
-        # nodes=[list(LocalGraph.G.nodes())[0]]
-        evt_unpacked = LocalGraph.getBFStree(nodes)
+        evt_unpacked = LocalGraph.singlesel(nodes)
         evt = json.dumps(evt_unpacked)
         self.write(evt)
 
@@ -238,35 +235,8 @@ class getSPs(tornado.web.RequestHandler):
         self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
         params = json.loads(self.get_argument('params'))
         nodes = params['nodes']
-        # nodes = [list(LocalGraph.G.nodes())[0],list(LocalGraph.G.nodes())[1]]
-        evt_unpacked = LocalGraph.getSPs(nodes)
+        evt_unpacked = LocalGraph.multisel(nodes)
         # print(evt_unpacked)
-        evt = json.dumps(evt_unpacked)
-        self.write(evt)
-
-
-class getSubgraph(tornado.web.RequestHandler):
-    # 获取指定节点的指定属性变化记录
-    def get(self):
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
-        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
-        params = json.loads(self.get_argument('params'))
-        nodes = params['nodes']
-        # nodes = [list(LocalGraph.G.nodes())[0], list(LocalGraph.G.nodes())[1], list(LocalGraph.G.nodes())[2]]
-        evt_unpacked = LocalGraph.getSubgraph(nodes)
-        # print(evt_unpacked)
-        evt = json.dumps(evt_unpacked)
-        self.write(evt)
-
-
-class getsubdata(tornado.web.RequestHandler):
-    # 获取指定节点的指定属性变化记录
-    def get(self):
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
-        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
-        evt_unpacked = LocalGraph.getsubdata()
         evt = json.dumps(evt_unpacked)
         self.write(evt)
 
@@ -370,10 +340,8 @@ if __name__ == "__main__":
             (r'/changeOutlierType', changeOutlierType),
             (r'/getAttr', getAttr),
             (r'/choosenone', choosenone),
-            (r'/getBFStree', getBFStree),
+            (r'/gettree', gettree),
             (r'/getSPs', getSPs),
-            (r'/getSubgraph', getSubgraph),
-            (r'/getsubdata', getsubdata),
             (r'/getData', getData),
             (r'/getData2', getData2),
             (r'/(.*)', tornado.web.StaticFileHandler, {'path': client_file_root_path,

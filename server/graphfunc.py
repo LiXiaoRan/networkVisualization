@@ -2,206 +2,161 @@
 
 import numpy as np
 import networkx as nx
+import time
+import pickle
+import os
+import math
+import datetime
 from dimension2 import *
 from outlier import *
-from dynamicBFS import *
+
+
+def linuxtimestamp(timestr):
+    timestr=timestr[:14]
+    timeArray = time.strptime(timestr, "%Y%m%d%H%M%S")
+    return int(time.mktime(timeArray))
+
+
 
 class LocalGraph:
     def __init__ (self):
         self.initVars()
     def initVars(self):
-        self.startnum = 0
-        self.updatenum = 0
-        self.updatestep = 1
+
+        times = "20160715134955000000"
+        timee = "20160716094707500000"
+        self.timeset = {"starttime": linuxtimestamp(times), "curtime": linuxtimestamp(times),
+                   "endtime": linuxtimestamp(timee),
+                   "timestep": 60, "timewindow": 60}
+
+        self.filepath = "../data/"
+        indata = open(self.filepath + "nodesattri.pkl", 'rb')
+        self.nodesattri = pickle.load(indata)
+        indata.close()
+
+        indata = open(self.filepath + "nodessps.pkl", 'rb')
+        self.nodessps = pickle.load(indata)
+        indata.close()
 
         self.G = nx.Graph()
-        #self.none0tree1sub2=0
         self.nodesselected=[]
-        self.treeinfo = {"rootid": -1, "bfstree": {}, "nodes": []}
-
-        self.nodesattribute = {}
-        self.nodesattribute_pre = {}
 
         self.outliertype = 0
         self.outlierrecord = {}
 
-        self.remain_edges = []
-        self.nodes_degree = {}  # {nodeid:{timestamp1:x1,timestamp2:x2},...}
-        self.nodes_clustering = {}
-        self.nodes_kcore = {}
-        self.nodes_eigen = {}
-        self.nodes_reachable = {}
+        self.nodesattribute={}
+        self.nodesappears={}
+        self.spspaths={}
 
-        self.add_edges = []
-        self.del_edges = []
 
-    def initgraph(self):
-        # 初始化节点高维属性
-        # 更新节点degree属性
-        tmpnodes = list(self.G.nodes())
-        for n in tmpnodes:
-            self.nodes_degree[n] = {self.startnum: 0}
-            self.nodes_clustering[n] = {self.startnum: 0}
-            self.nodes_kcore[n] = {self.startnum: 0}
-            self.nodes_eigen[n] = {self.startnum: 0}
-            self.nodes_reachable[n] = {self.startnum: 0}
-        edges = list(self.G.edges())
-        for (a, b) in edges:
-            self.nodes_degree[a][self.startnum] = self.nodes_degree[a][self.startnum] + 1
-            self.nodes_degree[b][self.startnum] = self.nodes_degree[b][self.startnum] + 1
-        for n in self.nodes_degree:
-            # 度为零，孤立点，去除
-            if self.nodes_degree[n][self.startnum] == 0:
-                self.G.remove_node(n)
-        # 获取节点其他属性
-        self.nodesattribute = nodes2highdim(self.G)
-        self.nodesattribute_pre = self.nodesattribute.copy()
-        # 更新节点其他属性
-        tmpnodes = list(self.G.nodes())
-        for n in tmpnodes:
-            self.nodes_clustering[n] = {self.startnum: self.nodesattribute[n][1]}
-            self.nodes_kcore[n] = {self.startnum: self.nodesattribute[n][2]}
-            self.nodes_eigen[n] = {self.startnum: self.nodesattribute[n][3]}
-            self.nodes_reachable[n] = {self.startnum: self.nodesattribute[n][4]}
-
-    def getupdatededges(self, linksnew):
-        # 获取旧graph->新graph的增加边和删除边
-        links = list(self.G.edges())
-        addedges = [val for val in linksnew if val not in links]
-        deledges = [val for val in links if val not in linksnew]
-        return addedges, deledges
-
-    def updateG(self,addedges, deledges, lasttime, newtime):
-        #更新G和degree记录
-        global G,nodes_degree
-        for n in list(self.nodes_degree.keys()):
-            self.nodes_degree[n][newtime] = self.nodes_degree[n][lasttime]
-        for (a, b) in addedges:
-            if not a in list(self.nodes_degree.keys()):
-                self.nodes_degree[a] = {newtime: 0}
-            if not b in list(self.nodes_degree.keys()):
-                self.nodes_degree[b] = {newtime: 0}
-            self.nodes_degree[a][newtime] = self.nodes_degree[a][newtime] + 1
-            self.nodes_degree[b][newtime] = self.nodes_degree[b][newtime] + 1
-            self.G.add_edge(a, b)
-        for (a, b) in deledges:
-            self.nodes_degree[a][newtime] = self.nodes_degree[a][newtime] - 1
-            self.nodes_degree[b][newtime] = self.nodes_degree[b][newtime] - 1
-            self.G.remove_edge(a, b)
-        nodes=list(self.G.nodes())
-        for n in self.nodes_degree:
-            #度为零，孤立点，去除
-            if self.nodes_degree[n][newtime]==0 and n in nodes:
-                self.G.remove_node(n)
-
-    def updateattributes(self,newtime):
-        # 更新degree记之外的其他属性记录
-        prenodes = list(self.nodes_clustering.keys())
-        newnodes = list(self.nodesattribute.keys())
-        tmpnodes = list(set(prenodes) | set(newnodes))
-        for n in tmpnodes:
-            if n in prenodes and n in newnodes:
-                self.nodes_clustering[n][newtime] = self.nodesattribute[n][1]
-                self.nodes_kcore[n][newtime] = self.nodesattribute[n][2]
-                self.nodes_eigen[n][newtime] = self.nodesattribute[n][3]
-                self.nodes_reachable[n][newtime] = self.nodesattribute[n][4]
-            elif n in newnodes:
-                # 之前从未出现过的节点
-                self.nodes_clustering[n] = {newtime: 0}
-                self.nodes_kcore[n] = {newtime: 0}
-                self.nodes_eigen[n] = {newtime: 0}
-                self.nodes_reachable[n] = {newtime: 0}
-            elif n in prenodes:
-                # 消失的节点
-                self.nodes_clustering[n][newtime] = 0
-                self.nodes_kcore[n][newtime] = 0
-                self.nodes_eigen[n][newtime] = 0
-                self.nodes_reachable[n][newtime] = 0
-
-    def updatelocaldata(self, links_p, calltimes):
-        linksnew=[]
+    def updatelocaldata(self, nodes_p,links_p):
+        self.G = nx.Graph()
         for l in links_p:
             tmpsrc=l["source"]
-            tmpsrc=int(tmpsrc.split("_")[2])
             tmpdst=l["target"]
-            tmpdst=int(tmpdst.split("_")[2])
-            linksnew.append((tmpsrc,tmpdst))
-        #linksnew = igraphobj.get_edgelist()
-        linksnew = list(set(linksnew))
-        if calltimes==0:
-            self.initVars()
-            self.G=nx.Graph(linksnew)
-            self.G.remove_edges_from(self.G.selfloop_edges())
-            self.initgraph()
-        else:
-            self.add_edges,self.del_edges=self.getupdatededges(linksnew)
-            # 更新graph和degree记录
-            self.updateG(self.add_edges, self.del_edges, self.startnum + (self.updatenum) * self.updatestep, self.startnum + (self.updatenum + 1) * self.updatestep)
-            self.G.remove_edges_from(self.G.selfloop_edges())
-            # 更新节点高维属性
-            self.nodesattribute_pre = self.nodesattribute.copy()
-            nodes2highdim_update(self.G, self.add_edges, self.del_edges, self.nodesattribute)
-            # 更新outlier结果
-            self.outlierrecord = detectoutliers(self.outliertype, self.nodesattribute_pre, self.nodesattribute)
-            # 更新degree以外的记录
-            self.updateattributes(self.startnum + (self.updatenum+1) * self.updatestep)
+            tmpflow=l["flow"]
+            if tmpsrc!=tmpdst:
+                self.G.add_edge(tmpsrc,tmpdst,flow=tmpflow)
+        for l in range(len(nodes_p)):
+            self.G.nodes[nodes_p[l]['id']]['nodeType']=nodes_p[l]['nodeType']
+        self.nodesattribute=nodes2highdim_update(self.G)
+        # 更新outlier结果
+        #self.outlierrecord = detectoutliers(self.outliertype, self.nodesattribute_pre, self.nodesattribute)
 
-            self.updatenum = self.updatenum + 1
-            print(self.nodesselected)
-            if len(self.nodesselected) != 0:
-                if len(self.nodesselected) == 1:
-                    for e in self.add_edges:
-                        insertEdge_BFS(self.treeinfo, e)
-                    for e in self.del_edges:
-                        deleteEdge_BFS(self.treeinfo, e)
-                    # return {'nodes': list(self.G.nodes()), 'edges': list(self.G.edges()), 'treeinfo': self.treeinfo}
-                    return {'treeinfo': self.treeinfo}
-                elif len(self.nodesselected) == 2:
-                    paths = biBFS(self.G, self.nodesselected[0], self.nodesselected[1], [])
-                    # return {'nodes': list(self.G.nodes()), 'edges': list(self.G.edges()), 'paths': paths}
-                    return {'paths': paths}
-                else:
-                    subgraph = self.G.subgraph(self.nodesselected)
-                    # return {'nodes': list(self.G.nodes()), 'edges': list(self.G.edges()),'subgraph_nodes': list(subgraph.nodes()), 'subgraph_edges': list(subgraph.edges())}
-                    return {'subgraph_nodes': list(subgraph.nodes()), 'subgraph_edges': list(subgraph.edges())}
+        print(self.nodesselected)
+        if len(self.nodesselected) != 0:
+            if len(self.nodesselected) == 1:
+                return self.nodesappears
+            else:
+                return self.spspaths
+
+    def nodesappear(self,nodes):
+        nodesappear = {}
+        for n in nodes:
+            nodesappear[n] = []
+            startind = 0
+            for timeind in range(len(self.nodesattri[n]) - 1):
+                len1 = len(self.nodesattri[n][timeind])
+                len2 = len(self.nodesattri[n][timeind + 1])
+                if (len1 == 0 and len2 != 0):  # start appear
+                    startind = timeind + 1
+                elif (len1 != 0 and len2 == 0):  # end appear
+                    nodesappear[n].append([startind, timeind + 1])
+        return nodesappear
 
     def getdim2(self,type):
         return dim2(self.nodesattribute, type)
-    def getAttr(self,type,nodes):
-        print(nodes,type)
-        tmpattrall = [self.nodes_degree, self.nodes_clustering, self.nodes_kcore, self.nodes_eigen, self.nodes_reachable]
-        tmpattr = {}
+
+    def getAttr(self,nodes):
+        tmpattr={}
         for n in nodes:
-            tmpattr[n] = tmpattrall[type][n]
-        return tmpattr
+            tmpattr[n]=self.nodesattri[n]
+        nodesattr = self.getnodesattr(nodes)
+        return tmpattr,nodesattr
 
     def choosenone(self):
         self.nodesselected=[]
-    def getBFStree(self,nodes):
+
+    def getnodesattr(self,nodes):
+        nodesattr = {}
+        for n in nodes:
+            nodesattr[n] = {'nodeType': self.G.nodes[n]['nodeType'], 'degree': self.G.degree(n)}
+        return nodesattr
+
+    def singlesel(self,nodes):
         self.nodesselected = nodes
-        print(self.nodesselected)
-        nodeid=nodes[0]
-        if self.treeinfo["rootid"] != nodeid:
-            self.treeinfo = initBFStree(self.G, nodeid)
-        return {'treeinfo': self.treeinfo}
-    def getSPs(self, nodes):
+        nodeid = nodes[0]
+        nodesnei=list(self.G.neighbors(nodeid))
+        nodesappears=self.nodesappear(nodesnei)
+        nodesshown=set(nodesnei) | {nodeid}
+        nodesattr = self.getnodesattr(nodesshown)
+        self.nodesappears={'root': nodeid,'appear':nodesappears,'nodes':nodesattr}
+        return self.nodesappears
+
+    def mergepath(self,paths):
+        if len(paths)==0:
+            return []
+        pathsmerged=[]
+        for path in paths:
+            ind=-1
+            for i in range(len(pathsmerged)):
+                if pathsmerged[i][0]==path:
+                    ind=i
+                    break
+            if ind==-1:
+                pathsmerged.append([path,1])
+            else:
+                pathsmerged[ind][1]=pathsmerged[ind][1]+1
+        return pathsmerged
+
+    def spsoverlap(self,source, target):
+        availpaths = []
+        for timeind in range(len(self.nodessps)):
+            if type(self.nodessps[timeind]) != type(-1):
+                if source in self.nodessps[timeind].keys():
+                    if target in self.nodessps[timeind][source].keys():
+                        availpaths.append(self.nodessps[timeind][source][target])
+        availpaths = self.mergepath(availpaths)
+        availpaths.sort(key=lambda d: d[1], reverse=True)
+        return availpaths
+
+    def multisel(self,nodes):
+        spspaths=[]
+        nodesshown=set()
         self.nodesselected = nodes
-        node1 = nodes[0]
-        node2 = nodes[1]
-        paths = biBFS(self.G, node1, node2, [])
-        return {'paths': paths}
-    def getSubgraph(self,nodes):
-        self.nodesselected = nodes
-        subgraph = self.G.subgraph(nodes)
-        return {'subgraph_nodes': list(subgraph.nodes()),
-                        'subgraph_edges': list(subgraph.edges())}
+        for i in range(len(nodes)-1):
+            paths=self.spsoverlap(nodes[i],nodes[i+1])
+            spspaths.append(paths)
+            for p in paths:
+                nodesshown=nodesshown | set(p[0])
+        nodesattr=self.getnodesattr(nodesshown)
+        self.spspaths={'paths': spspaths,'nodes':nodesattr}
+        return self.spspaths
 
     def getsubdata(self):
         print(self.nodesselected)
         if len(self.nodesselected)!=0:
             if len(self.nodesselected) == 1:
-                return self.getBFStree(self.nodesselected)
-            elif(len(self.nodesselected) == 2):
-                return self.getSPs(self.nodesselected)
+                return self.singlesel(self.nodesselected)
             else:
-                return self.getSubgraph(self.nodesselected)
+                return self.multisel(self.nodesselected)

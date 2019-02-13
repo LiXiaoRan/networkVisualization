@@ -352,10 +352,20 @@
         let zoom = d3.zoom().scaleExtent([1, 10]).on("zoom", () => {
           this.nodesLinksG.attr("transform", d3.event.transform);
           /*g放大的时候其子节点不放大*/
-          // if (d3.event.transform.k > 1) {
-          //   this.allNodesG.attr("transform", "scale(" + (1 / d3.event.transform.k) + ")");
-          //   this.allLinksG.selectAll('line').attr("stroke-width", d => this.linkScale(d.flow) / d3.event.transform.k);
-          // }
+          console.log(d3.event.transform)
+          if (d3.event.transform.k > 1) {
+            this.allNodesG.selectAll("image").attr("width", d => this.nodeScale(d.degree) / d3.event.transform.k)
+              .attr("height", d => this.nodeScale(d.degree) / d3.event.transform.k)
+              .attr("x", d => (this.xScale(d.x) - this.nodeScale(d.degree) / 2 / d3.event.transform.k))
+              .attr("y", d => (this.yScale(d.y) - this.nodeScale(d.degree) / 2 / d3.event.transform.k));
+            this.allNodesG.selectAll("path").attr("d", (d) => {
+              let tmp_r = this.nodeScale(d.degree) / 2 / d3.event.transform.k;
+              let arcs = d3.arc().startAngle(this.start_angle).endAngle(this.end_angle)
+                .innerRadius(tmp_r - this.arcs_width / 2 / d3.event.transform.k).outerRadius(tmp_r + this.arcs_width / 2 / d3.event.transform.k);
+              return arcs(d);
+            });
+            this.allLinksG.selectAll("line").attr("stroke-width", d => this.linkScale(d.flow) / d3.event.transform.k);
+          }
         });
         this.svg.call(zoom);
         this.nodesLinksG = this.svg.append("g");
@@ -412,14 +422,14 @@
           .attr("width", d => this.nodeScale(d.degree))
           .attr("height", d => this.nodeScale(d.degree))
           .on("click", (d) => {
-			  //console.log(d.id);
-			  let tmpind=this.$store.state.nodesSelected.indexOf(d.id);
-			  if(tmpind>=0){
-				this.$store.state.nodesSelected.splice(tmpind,1);
-			  }else{
-				this.$store.state.nodesSelected.push(d.id);
-			  }
-			  //console.log(this.$store.state.nodesSelected);
+            //console.log(d.id);
+            let tmpind = this.$store.state.nodesSelected.indexOf(d.id);
+            if (tmpind >= 0) {
+              this.$store.state.nodesSelected.splice(tmpind, 1);
+            } else {
+              this.$store.state.nodesSelected.push(d.id);
+            }
+            //console.log(this.$store.state.nodesSelected);
           }).on("mouseout", (d) => {
 
         });

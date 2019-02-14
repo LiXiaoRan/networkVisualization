@@ -342,6 +342,7 @@
       drawGraph(result) {
         let nodeType = this.nodeTypeList_get;
         let nodeAttrType = this.nodeAttrList_get;
+        let self = this;
         this.layoutData = {'links': result.links, "nodes": result.nodes};
         this.layoutData.nodes.forEach(d => {
           if (d.nodeType === "主机") {
@@ -356,7 +357,6 @@
         let zoom = d3.zoom().scaleExtent([1, 10]).on("zoom", () => {
           this.nodesLinksG.attr("transform", d3.event.transform);
           /*g放大的时候其子节点不放大*/
-          console.log(d3.event.transform)
           if (d3.event.transform.k > 1) {
             this.allNodesG.selectAll("image").attr("width", d => this.nodeScale(d.degree) / d3.event.transform.k)
               .attr("height", d => this.nodeScale(d.degree) / d3.event.transform.k)
@@ -398,7 +398,8 @@
         this.allLinksG = this.layoutLinksG.selectAll("g")
           .data(result.links)
           .enter()
-          .append("g");
+          .append("g")
+          .attr("id", (d, i) => "link_" + i);
         this.allLinksG.append("line")
           .attr("stroke", "#999999")
           .attr("stroke-width", d => this.linkScale(d.flow))
@@ -410,7 +411,8 @@
         this.allNodesG = this.layoutNodesG.selectAll("g")
           .data(result.nodes)
           .enter()
-          .append("g");
+          .append("g")
+          .attr("id", d => "node_" + d.id);
         this.allNodesG.append("image")
           .attr("xlink:href", d => {
             if (d.nodeType === "主机") {
@@ -433,10 +435,82 @@
             } else {
               this.$store.state.nodesSelected.push(d.id);
             }
-            //console.log(this.$store.state.nodesSelected);
-          }).on("mouseout", (d) => {
-
-        });
+          }).on("mouseover", function (d) {
+          d3.select(this).attr("xlink:href", () => {
+            if (d.nodeType === "主机") {
+              return self.nodeSelectedList[0];
+            } else if (d.nodeType === "交换机") {
+              return self.nodeSelectedList[1];
+            } else if (d.nodeType === "服务器") {
+              return self.nodeSelectedList[2];
+            }
+          });
+          self.layoutData.links.forEach((t, i) => {
+            if (t.source === d.id) {
+              d3.select("#link_" + i + " line").attr("stroke", "#00FFFF");
+              d3.select("#node_" + t.target + " image").attr("xlink:href", () => {
+                let connect = self.layoutData.nodes.find(item => (item.id === t.target));
+                if (connect.nodeType === "主机") {
+                  return self.nodeSelectedList[0];
+                } else if (connect.nodeType === "交换机") {
+                  return self.nodeSelectedList[1];
+                } else if (connect.nodeType === "服务器") {
+                  return self.nodeSelectedList[2];
+                }
+              });
+            } else if (t.target === d.id) {
+              d3.select("#link_" + i + " line").attr("stroke", "#00FFFF");
+              d3.select("#node_" + t.source + " image").attr("xlink:href", () => {
+                let connect = self.layoutData.nodes.find(item => (item.id === t.source));
+                if (connect.nodeType === "主机") {
+                  return self.nodeSelectedList[0];
+                } else if (connect.nodeType === "交换机") {
+                  return self.nodeSelectedList[1];
+                } else if (connect.nodeType === "服务器") {
+                  return self.nodeSelectedList[2];
+                }
+              });
+            }
+          })
+        })
+          .on("mouseout", function (d) {
+            d3.select(this).attr("xlink:href", () => {
+              if (d.nodeType === "主机") {
+                return self.nodesImgList[0];
+              } else if (d.nodeType === "交换机") {
+                return self.nodesImgList[1];
+              } else if (d.nodeType === "服务器") {
+                return self.nodesImgList[2];
+              }
+            });
+            self.layoutData.links.forEach((t, i) => {
+              if (t.source === d.id) {
+                d3.select("#link_" + i + " line").attr("stroke", "#999999");
+                d3.select("#node_" + t.target + " image").attr("xlink:href", () => {
+                  let connect = self.layoutData.nodes.find(item => (item.id === t.target));
+                  if (connect.nodeType === "主机") {
+                    return self.nodesImgList[0];
+                  } else if (connect.nodeType === "交换机") {
+                    return self.nodesImgList[1];
+                  } else if (connect.nodeType === "服务器") {
+                    return self.nodesImgList[2];
+                  }
+                });
+              } else if (t.target === d.id) {
+                d3.select("#link_" + i + " line").attr("stroke", "#999999");
+                d3.select("#node_" + t.source + " image").attr("xlink:href", () => {
+                  let connect = self.layoutData.nodes.find(item => (item.id === t.source));
+                  if (connect.nodeType === "主机") {
+                    return self.nodesImgList[0];
+                  } else if (connect.nodeType === "交换机") {
+                    return self.nodesImgList[1];
+                  } else if (connect.nodeType === "服务器") {
+                    return self.nodesImgList[2];
+                  }
+                });
+              }
+            })
+          });
 
         this.allNodesG.append("path").attr("d", (d) => {
           let tmp_r = this.nodeScale(d.degree) / 2;

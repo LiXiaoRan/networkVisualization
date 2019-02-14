@@ -1,5 +1,5 @@
 <template>
-  <div>
+  <div id="dim2">
   <div id="dim2-panel">
     <app-title v-bind:icon="icon" v-bind:msgs="msgs"></app-title>
     <!--<div id="dimension2_btn" class="btn-div">
@@ -111,6 +111,7 @@ export default {
 	this.arcs_width = 2;
 	this.collapsed_color_0 = ["#b72626", "#cd4d40", "#d37053", "#da9155", "#dac385"];
     this.control_color_0 = ["#008475", "#00ba8a", "#4dcf8b", "#9ce28d", "#dff68e"];
+	$("#dim2").hide();
   },
   methods: {
 	handledim(){
@@ -279,6 +280,7 @@ export default {
 			self.latestdata=evt_data;
 			self.setscale(evt_data["nodes"]);
 			self.drawgraph(evt_data);
+			$("#dim2").show()
 		});
 	},
 	drawhlnodes(hlnodes,dom){

@@ -244,6 +244,7 @@
         "分布式递归布局",
         "层次化布局",
         "力导向布局",
+		"降维布局"
       ]);
       let linkAllShow = f1.add(obj, '显示所有边').listen();
       linkAllShow.onFinishChange(() => {
@@ -285,41 +286,46 @@
       });
 
       layoutText.onChange(value => {
-        switch (value) {
-          case "力导向布局":
-            this.nowLayoutType = "kk";
-            break;
-          case "随机布局":
-            this.nowLayoutType = "random";
-            break;
-          case "椭圆布局":
-            this.nowLayoutType = "circle";
-            break;
-          case "graphopt布局":
-            this.nowLayoutType = "graphopt";
-            break;
-          case "多元尺度布局":
-            this.nowLayoutType = "mds";
-            break;
-          case "网格布局":
-            this.nowLayoutType = "grid";
-            break;
-          case "大图布局":
-            this.nowLayoutType = "lgl";
-            break;
-          case "分布式递归布局":
-            this.nowLayoutType = "drl";
-            break;
-          case "层次化布局":
-            this.nowLayoutType = "sugiyama";
-            break;
-          case "环状RT树布局":
-            this.nowLayoutType = "rt_circular";
-            break;
-          default:
-            break;
-        }
-        this.drawSwitchGraph();
+		if(value=="降维布局"){
+			this.$store.state.init_dim2 = Math.random();
+			this.$store.state.timeupdated = Math.random();
+		}else{
+			switch (value) {
+			  case "力导向布局":
+				this.nowLayoutType = "kk";
+				break;
+			  case "随机布局":
+				this.nowLayoutType = "random";
+				break;
+			  case "椭圆布局":
+				this.nowLayoutType = "circle";
+				break;
+			  case "graphopt布局":
+				this.nowLayoutType = "graphopt";
+				break;
+			  case "多元尺度布局":
+				this.nowLayoutType = "mds";
+				break;
+			  case "网格布局":
+				this.nowLayoutType = "grid";
+				break;
+			  case "大图布局":
+				this.nowLayoutType = "lgl";
+				break;
+			  case "分布式递归布局":
+				this.nowLayoutType = "drl";
+				break;
+			  case "层次化布局":
+				this.nowLayoutType = "sugiyama";
+				break;
+			  case "环状RT树布局":
+				this.nowLayoutType = "rt_circular";
+				break;
+			  default:
+				break;
+			}
+			this.drawSwitchGraph();
+		}
       });
       document.getElementById("layContainer").appendChild(gui.domElement);
       graphLayout();
@@ -541,8 +547,8 @@
 
         this.secondFilter(nodeType, nodeAttrType);
 
-        this.$store.state.init_dim2 = Math.random();
-        this.$store.state.timeupdated = Math.random();
+        //this.$store.state.init_dim2 = Math.random();
+        //this.$store.state.timeupdated = Math.random();
         if (d3.select("#miniMap").select("svg")) d3.select("#miniMap").select("svg").remove();
         this.miniMap = d3.select("#miniMap").append("svg")
           .attr("width", d3.select("#miniMap").style("width"))

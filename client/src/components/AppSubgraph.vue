@@ -222,6 +222,12 @@ export default {
 		if(nodessps.length==0){
 			return;
 		}
+		for(let i=0;i<nodessps.length;i++){
+			if(nodessps[i].length==0){
+				nodessps[i]=[[[this.selectednodes[i],this.selectednodes[i+1]],-1]];
+			}
+		}
+		//console.log(nodessps);
 		let maxlen=_.map(nodessps, (d)=>{ return d[0][0].length; });
 		let lensum=0;
 		for(let i=0;i<maxlen.length;i++){
@@ -302,9 +308,10 @@ export default {
 				}
 			}
 		}
-		
+		//console.log(linkdata);
+		let linkcntvalue=_.filter(_.values(linkcntdata), function(num){ return num>0; });
 		let widthScale=d3.scaleLinear()
-			  .domain(d3.extent(_.values(linkcntdata)))
+			  .domain(d3.extent(linkcntvalue))
 			  .range([1, 5]);
 		//console.log(widthScale.domain());
 		let linksdom=this.svg.append("g")
@@ -316,13 +323,15 @@ export default {
 			.attr("d", this.curvepath)
 			.attr("stroke","#999")
 			.attr("stroke-width", (d)=>{
-				return widthScale(linkcntdata[d.source[2]+"_"+d.target[2]]);
+				if(linkcntdata[d.source[2]+"_"+d.target[2]]<0){return 0;}
+				else{return widthScale(linkcntdata[d.source[2]+"_"+d.target[2]]);}
 			})
 			.attr("fill", "none")
 			.append("title").text((d,i)=>{
 				return linkcntdata[d.source[2]+"_"+d.target[2]];
 			});
-		
+		//console.log(_.keys(nodespos));
+		//console.log(nodespos);
 		let nodesdom=this.svg.append("g")
 			.selectAll(".nodeg")
 			.data(_.keys(nodespos))

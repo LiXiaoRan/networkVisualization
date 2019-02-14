@@ -165,7 +165,7 @@ class LocalGraph:
 
     def multisel(self,nodes):
         spspaths=[]
-        nodesshown=set()
+        nodesshown=set(nodes)
         self.nodesselected = nodes
         for i in range(len(nodes)-1):
             paths=self.spsoverlap(nodes[i],nodes[i+1])

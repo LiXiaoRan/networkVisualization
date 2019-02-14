@@ -1,5 +1,5 @@
 <template>
-  <div id='nodetree-panel'>
+  <div id='nodetree-panel' style="display: none;">
     <app-title v-bind:icon='icon' v-bind:msgs='msgs'></app-title>
     <div id='Panel' class='view'>
     </div>

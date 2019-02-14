@@ -1,7 +1,7 @@
 <template>
   <div id="dim2">
   <div id="dim2-panel">
-    <app-title v-bind:icon="icon" v-bind:msgs="msgs"></app-title>
+    <!--<app-title v-bind:icon="icon" v-bind:msgs="msgs"></app-title>-->
     <!--<div id="dimension2_btn" class="btn-div">
 		DimReduce:&nbsp;&nbsp;
 		<select id="st_dim_redu_func" @click="handledim">
@@ -152,8 +152,9 @@ export default {
 			}
 		}
 		console.log(nodesselected);
-		self.$store.state.hlnodes = nodesselected;
-		self.$store.state.hlview = "dim2";
+		//self.$store.state.hlnodes = nodesselected;
+		//self.$store.state.hlview = "dim2";
+		this.$store.state.nodesSelected=nodesselected;
 	},
 	setscale(data){
 		let nodesall=_.keys(data);
@@ -208,13 +209,21 @@ export default {
 				let tmpx=Math.max(0, Math.min(self.x_scale(locationdata[0])+self.RandomNum(-0.02*self.width,0.02*self.width), self.width));
 				let tmpy=Math.max(0, Math.min(self.y_scale(locationdata[1])+self.RandomNum(-0.02*self.height,0.02*self.height), self.height));
 				return "translate(" + tmpx + "," + tmpy + ")"; 
-			})
+			})/*
 			.on("mouseover",(d,i)=>{
 				this.$store.state.hlnodes = [d];
 				this.$store.state.hlview = "dim2";
 			}).on("mouseout",(d)=>{
 				this.$store.state.hlnodes = [];
 				this.$store.state.hlview = "dim2";
+			})*/
+			.on("click",(d)=>{
+				let tmpind = this.$store.state.nodesSelected.indexOf(d);
+				if (tmpind >= 0) {
+				  this.$store.state.nodesSelected.splice(tmpind, 1);
+				} else {
+				  this.$store.state.nodesSelected.push(d);
+				}
 			})
 		
 		let noderadius=8;
@@ -353,10 +362,10 @@ export default {
     },
 	hlnodes:function() {
       return this.$store.state.hlnodes
-    },
+    }/*,
 	nodesSelected:function() {
       return this.$store.state.nodesSelected
-    }
+    }*/
   },
   watch: {
     timeupdated: function(newVal, oldVal) {
@@ -372,7 +381,7 @@ export default {
 			  this.drawhlnodes(this.hlnodes_hl,this.nodedom_hl);
 		  }
 	  }
-    },
+    }/*,
 	nodesSelected: function(newVal, oldVal) {
 	  this.hlnodes_sel=newVal;
 	  if(newVal.length==0){
@@ -381,7 +390,7 @@ export default {
 		  this.nodedom.selectAll(".nodeg").attr("opacity",0.1);
 		  this.drawhlnodes(this.hlnodes_sel,this.nodedom_sel);
 	  }
-	}
+	}*/
   }
 };
 

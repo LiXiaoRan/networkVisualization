@@ -2,7 +2,7 @@
 # @Author: wakouboy
 # @Date:   2018-08-12 20:16:26
 # @Last Modified by:   wakouboy
-# @Last Modified time: 2019-02-12 20:37:11
+# @Last Modified time: 2019-02-14 13:14:44
 import pymysql
 import time
 import json
@@ -10,11 +10,11 @@ import time
 from datetime import datetime, timedelta
 
 # connect to the db
-#conn = pymysql.connect(host='192.168.10.9', db='transit_network', user = 'transitnet', password = 'pkuvistransit', cursorclass=pymysql.cursors.DictCursor)
+conn = pymysql.connect(host='192.168.10.9', db='transit_network', user = 'transitnet', password = 'pkuvistransit', cursorclass=pymysql.cursors.DictCursor)
 # conn = pymysql.connect(host='127.0.0.1', db='transit_network', user='root', password='584007',
 #                        cursorclass=pymysql.cursors.DictCursor)
-conn = pymysql.connect(host='127.0.0.1', db='transit_network', user='root', password='root',
-                        cursorclass=pymysql.cursors.DictCursor)
+# conn = pymysql.connect(host='127.0.0.1', db='transit_network', user='root', password='root',
+#                         cursorclass=pymysql.cursors.DictCursor)
 
 tablename = 'EVENT'
 
@@ -49,7 +49,7 @@ class NetworkData:
         end = time.clock()
         diff_time = end - start
         print("spend time for search database: " + str(diff_time))
-        print(data)
+        # print(data)
         return data
 
     def getDataByRecentTime(self, params):

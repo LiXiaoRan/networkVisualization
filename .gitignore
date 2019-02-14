@@ -3,3 +3,4 @@ index.html
 /static
 /server/__pycache__/
 *.pyc
+data/

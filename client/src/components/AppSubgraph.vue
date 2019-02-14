@@ -20,7 +20,7 @@ export default {
   data() {
     return {
       icon: 'joomla', //需要再main.js 中注册
-      msgs: "树/路径/子图",
+      msgs: "邻居节点/最短路径",
       width: null,
       height: null,
 	  svg: null,
@@ -107,23 +107,25 @@ export default {
 			.enter().append("path")
 			.attr("class", "treelink")
 			.attr("d", this.diagonal).attr("fill","none").attr("stroke","#999");
-		let node = g.selectAll(".node")
+		let node = g.selectAll(".nodeg")
 			.data(nodesdata)
 			.enter().append("g")
+			.attr("class","nodeg")
 			.attr("transform", (d)=>{ 
 				locations[d.data.name]=d.x;
 				return "translate(" + d.y + "," + d.x + ")"; 
-			});
-		var noderadius=8;
-		node.append("circle")
-			.attr("r", noderadius)
+			})
 			.on("mouseover",(d)=>{
-				this.$store.state.hlnodes = d.data.name;
+				this.$store.state.hlnodes = [d.data.name];
 				this.$store.state.hlview = "subgraph";
 			}).on("mouseout",(d)=>{
 				this.$store.state.hlnodes = [];
 				this.$store.state.hlview = "subgraph";
-			}).attr("fill","#282c37");
+			})
+		var noderadius=8;
+		node.append("circle")
+			.attr("r", noderadius)
+			.attr("fill","#282c37");
 			
 		node.append("image")
 			.attr("xlink:href", d => {
@@ -168,7 +170,10 @@ export default {
             .attr("fill", (d, i) => {
                 return this.control_color_0[i % 5];
             });
-		
+		g.append("text").attr("x",-this.padding.left)
+			.attr("y",this.height/2-this.padding.top-2*noderadius)
+			.text(nodesdata[0].data.name)
+			.attr("fill","grey").attr("font-size","14px");
 		//console.log(locations);
 		
 		let innerpadding=15;
@@ -186,6 +191,10 @@ export default {
 			  .range([0, this.width-this.d3cluster.size()[1]-this.padding.left-this.padding.right]);
 		
 		let allneighbors=_.keys(nodesappears);
+		let strokewidth=5;
+		if((this.height-this.padding.top-this.padding.bottom)/allneighbors.length-2<strokewidth){
+			strokewidth=(this.height-this.padding.top-this.padding.bottom)/allneighbors.length-2;
+		}
 		for(let i=0;i<allneighbors.length;i++){
 			let timesg=this.svg.append("g")
 				.attr("transform", (d)=>{ return "translate(" + (this.padding.left+this.d3cluster.size()[1]+innerpadding) + "," + this.padding.top + ")"; });
@@ -200,7 +209,7 @@ export default {
 					return timeScale(d[1]);
 				}).attr("y2",(d,ii)=>{
 					return locations[allneighbors[i]];
-				}).attr("stroke","#999").attr("stroke-width",5)
+				}).attr("stroke","#999").attr("stroke-width",strokewidth)
 				.attr("stroke-linecap","round")
 				.append("title").text((d,i)=>{
 					return this.inttime2str(this.timeset["starttime"]+d[0]*this.timeset["timestep"])+" - "+this.inttime2str(this.timeset["starttime"]+d[1]*this.timeset["timestep"]);
@@ -315,11 +324,20 @@ export default {
 			});
 		
 		let nodesdom=this.svg.append("g")
-			.selectAll(".node")
+			.selectAll(".nodeg")
 			.data(_.keys(nodespos))
 			.enter().append("g")
-			.attr("transform", (d)=>{ return "translate(" + (nodespos[d][0]) + "," + (this.padding.top+nodespos[d][1]) + ")"; });
-			
+			.attr("class","nodeg")
+			.attr("transform", (d)=>{ return "translate(" + (nodespos[d][0]) + "," + (this.padding.top+nodespos[d][1]) + ")"; })
+			.on("mouseover",(d)=>{
+				let name=d.split("_");
+				name.pop();
+				this.$store.state.hlnodes = [name.join("_")];
+				this.$store.state.hlview = "subgraph";
+			}).on("mouseout",(d)=>{
+				this.$store.state.hlnodes = [];
+				this.$store.state.hlview = "subgraph";
+			})
 		var noderadius=8;
 		nodesdom.append("circle")
 			.attr("r", noderadius)
@@ -379,6 +397,15 @@ export default {
             .attr("fill", (d, i) => {
                 return this.control_color_0[i % 5];
             });
+		nodesdom.append("text")
+			.attr("dy",-2*noderadius).attr("dx",-this.padding.left)
+			.text((d)=>{
+				if(_.indexOf(corenodes,d)>=0){
+					let name=d.split("_");
+					name.pop();
+					return name.join("_");
+				}else{return null;}
+			}).attr("fill","grey").attr("font-size","14px");
 	}
   },
   
@@ -418,7 +445,7 @@ export default {
 		this.highlightnodes=newVal;
 		if(this.highlightnodes.length!=0){
 			if(this.showntype==0){//single node
-				this.svg.selectAll("circle").attr("opacity",(d)=>{
+				this.svg.selectAll(".nodeg").attr("opacity",(d)=>{
 					if(_.indexOf(this.highlightnodes,d.data.name)>=0){
 						return 1;
 					}else{
@@ -426,7 +453,7 @@ export default {
 					}
 				})
 			}else if(this.showntype==1){//multi nodes
-				this.svg.selectAll("circle").attr("opacity",(d)=>{
+				this.svg.selectAll(".nodeg").attr("opacity",(d)=>{
 					let tmpname=d.split("_");
 					tmpname.pop();
 					tmpname=tmpname.join("_");
@@ -437,6 +464,8 @@ export default {
 					}
 				})
 			}
+		}else{
+			this.svg.selectAll(".nodeg").attr("opacity",1);
 		}
 		
 	  }

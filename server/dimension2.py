@@ -24,7 +24,7 @@ def nodes2highdim_update(G):
 
 
     time_end = time.time()
-    print('k_core', time_end - time_start)
+    #print('get nodes attributes', time_end - time_start)
 
     time_start = time.time()
 
@@ -36,7 +36,7 @@ def nodes2highdim_update(G):
                 nodesattribute[n][4] = float(len(connectednum[i]))/len(nodesall)
                 break
     time_end = time.time()
-    print('update', time_end - time_start)
+    #print('update', time_end - time_start)
     return nodesattribute
 
 
@@ -52,5 +52,5 @@ def dim2(nodesattribute,type):
     elif type == 2:
         nodes_embedded = TSNE(n_components=2, perplexity=30, learning_rate=100,init="pca").fit_transform(nodesattris)
     time_end = time.time()
-    print('dimension reduction', time_end - time_start)
+    #print('dimension reduction', time_end - time_start)
     return nodes,nodes_embedded

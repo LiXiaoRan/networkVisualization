@@ -167,8 +167,9 @@ class getDim2(tornado.web.RequestHandler):
         # print(params)
         type = int(params['type'])
         # type = int(json.loads(self.get_argument('type')))
-        nodes, results = LocalGraph.getdim2(type)
-        evt_unpacked = {'nodes': nodes, 'nodes_embedded': results.tolist(), 'edges': list(LocalGraph.G.edges()),
+        nodesobj = LocalGraph.getdim2(type)
+        evt_unpacked = {'nodes': nodesobj,
+                        #'edges': list(LocalGraph.G.edges()),
                         'outlier': LocalGraph.outlierrecord}
         evt = json.dumps(evt_unpacked)
         self.write(evt)
@@ -197,7 +198,7 @@ class getAttr(tornado.web.RequestHandler):
         params = json.loads(self.get_argument('params'))
         nodes = json.loads(params['nodes'])
         tmpattr,nodesattr = LocalGraph.getAttr(nodes)
-        evt_unpacked = {"attr": tmpattr,'nodes':nodesattr}
+        evt_unpacked = {"attr": tmpattr,'nodes':nodesattr,"start":LocalGraph.rangestart,"end":LocalGraph.rangeend}
         evt = json.dumps(evt_unpacked)
         self.write(evt)
 
@@ -311,6 +312,9 @@ class getData(tornado.web.RequestHandler):
         evt_unpacked = {'message': 'timeRangeData', 'data': newdata, 'timeLineData': data }
         evt = json.dumps(evt_unpacked)
         self.write(evt)
+
+        LocalGraph.rangestart=mintimeS
+        LocalGraph.rangeend=maxtimeS
 
 class getData2(tornado.web.RequestHandler):
     def get(self):

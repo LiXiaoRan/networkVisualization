@@ -48,6 +48,9 @@ class LocalGraph:
         self.nodesappears={}
         self.spspaths={}
 
+        self.rangestart=0
+        self.rangeend=0
+
 
     def updatelocaldata(self, nodes_p,links_p):
         self.G = nx.Graph()
@@ -63,7 +66,7 @@ class LocalGraph:
         # 更新outlier结果
         #self.outlierrecord = detectoutliers(self.outliertype, self.nodesattribute_pre, self.nodesattribute)
 
-        print(self.nodesselected)
+        #print(self.nodesselected)
         if len(self.nodesselected) != 0:
             if len(self.nodesselected) == 1:
                 return self.nodesappears
@@ -85,12 +88,31 @@ class LocalGraph:
         return nodesappear
 
     def getdim2(self,type):
-        return dim2(self.nodesattribute, type)
+        nodes,nodes_embedded=dim2(self.nodesattribute, type)
+        nodes_embedded=nodes_embedded.tolist()
+        tmpobj={}
+        for i in range(len(nodes)):
+            n=nodes[i]
+            tmpobj[n]={
+                'nodeType': self.G.nodes[n]['nodeType'],
+                 'embedded':nodes_embedded[i]
+            }
+        return tmpobj
 
     def getAttr(self,nodes):
         tmpattr={}
+        attrnum=5
         for n in nodes:
             tmpattr[n]=self.nodesattri[n]
+            '''
+            for t in range(len(tmpattr[n])):
+                if len(tmpattr[n][t])==0:
+                    tmpattr[n][t]=np.array([0]*attrnum).tolist()
+                else:
+                    tmpattr[n][t] = np.array(tmpattr[n][t]).tolist()
+            tmpattr[n] = np.array(tmpattr[n])
+            tmpattr[n]=np.transpose(tmpattr[n]).tolist()
+            '''
         nodesattr = self.getnodesattr(nodes)
         return tmpattr,nodesattr
 
@@ -100,7 +122,8 @@ class LocalGraph:
     def getnodesattr(self,nodes):
         nodesattr = {}
         for n in nodes:
-            nodesattr[n] = {'nodeType': self.G.nodes[n]['nodeType'], 'degree': self.G.degree(n)}
+            #nodesattr[n] = {'nodeType': self.G.nodes[n]['nodeType'], 'degree': self.G.degree(n)}
+            nodesattr[n] = {'nodeType': self.G.nodes[n]['nodeType']}
         return nodesattr
 
     def singlesel(self,nodes):
@@ -154,7 +177,7 @@ class LocalGraph:
         return self.spspaths
 
     def getsubdata(self):
-        print(self.nodesselected)
+        #print(self.nodesselected)
         if len(self.nodesselected)!=0:
             if len(self.nodesselected) == 1:
                 return self.singlesel(self.nodesselected)

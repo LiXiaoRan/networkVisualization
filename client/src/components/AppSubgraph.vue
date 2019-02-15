@@ -217,16 +217,12 @@ export default {
 		}
 		
 	},
-	multipsps(nodessps,nodesattr){
+	multipsps(nodessps,nodesrecord,nodesattr){
 		this.svg.selectAll("g").remove();
 		if(nodessps.length==0){
 			return;
 		}
-		for(let i=0;i<nodessps.length;i++){
-			if(nodessps[i].length==0){
-				nodessps[i]=[[[this.selectednodes[i],this.selectednodes[i+1]],-1]];
-			}
-		}
+		
 		//console.log(nodessps);
 		let maxlen=_.map(nodessps, (d)=>{ return d[0][0].length; });
 		let lensum=0;
@@ -242,9 +238,9 @@ export default {
 		}
 		
 		let linkdata=[];
-		let linkcntdata={};
+		var nodesrecord_new=[];
 		let nodespos={};
-		let corenodes=[nodessps[0][0][0][0]+"_0"];
+		let corenodes=[nodessps[0][0][0]+"_0"];
 		for(let i=0;i<nodessps.length;i++){
 			let pathnum=nodessps[i].length;	
 			let availw=corex[i+1]-corex[i];
@@ -255,13 +251,15 @@ export default {
 				}else{
 					cury=(this.height-this.padding.top-this.padding.bottom)/(pathnum-1)*(pi);
 				}
-				let pathlen=nodessps[i][pi][0].length;
+				let pathlen=nodessps[i][pi].length;
 					
 				for(let ni=0;ni<pathlen-1;ni++){
+					nodesrecord_new.push(nodesrecord[i][pi][ni]);
+					
 					let tmpnx1=0; let tmpny1=0;
 					let tmpnx2=0; let tmpny2=0;
-					let tmpnode1=nodessps[i][pi][0][ni];
-					let tmpnode2=nodessps[i][pi][0][ni+1];
+					let tmpnode1=nodessps[i][pi][ni];
+					let tmpnode2=nodessps[i][pi][ni+1];
 
 					let tmpkey1=tmpnode1+"_"+i;
 					if(i!=0 && ni==0){
@@ -290,55 +288,53 @@ export default {
 						}
 						nodespos[tmpkey2]=[tmpnx2,tmpny2];
 					}
-					let tmplinkind=_.indexOf(_.keys(linkcntdata),tmpkey1+"_"+tmpkey2);
-					if(tmplinkind>=0){
-						linkcntdata[tmpkey1+"_"+tmpkey2]+=nodessps[i][pi][1];
-					}else{
-						linkcntdata[tmpkey1+"_"+tmpkey2]=nodessps[i][pi][1];
-					}
-					//console.log(tmpnode1,[tmpnx1,tmpny1],tmpnode2,[tmpnx2,tmpny2]);
-					if(ni==0 && ni+1==pathlen-1){
-						
-						linkdata.push({"source":[tmpnx1,tmpny1,tmpkey1],"target":[(tmpnx1+tmpnx2)/2,cury,tmpkey2]});
-						linkdata.push({"source":[(tmpnx1+tmpnx2)/2,cury,tmpkey1],"target":[tmpnx2,tmpny2,tmpkey2]});
-					}else{
-						linkdata.push({"source":[tmpnx1,tmpny1,tmpkey1],"target":[tmpnx2,tmpny2,tmpkey2]});
-					}
-					
+					linkdata.push({"source":[tmpnx1,tmpny1,tmpkey1],"target":[tmpnx2,tmpny2,tmpkey2]});
 				}
 			}
 		}
 		//console.log(linkdata);
-		let linkcntvalue=_.filter(_.values(linkcntdata), function(num){ return num>0; });
-		let widthScale=d3.scaleLinear()
-			  .domain(d3.extent(linkcntvalue))
-			  .range([1, 5]);
-		//console.log(widthScale.domain());
-		let linksdom=this.svg.append("g")
-			.attr("transform", (d)=>{ return "translate(" + (0) + "," + this.padding.top + ")"; })
-			.selectAll(".link")
-			.data(linkdata)
-			.enter().append("path")
-			.attr("class", "link")
-			.attr("d", this.curvepath)
-			.attr("stroke","#999")
-			.attr("stroke-width", (d)=>{
-				if(linkcntdata[d.source[2]+"_"+d.target[2]]<0){return 0;}
-				else{return widthScale(linkcntdata[d.source[2]+"_"+d.target[2]]);}
-			})
-			.attr("fill", "none")
-			.append("title").text((d,i)=>{
-				return linkcntdata[d.source[2]+"_"+d.target[2]];
-			});
-		//console.log(_.keys(nodespos));
+		//console.log(nodesrecord_new);
+		
+		for(let i=0;i<linkdata.length;i++){
+			let tmpleft=linkdata[i]["source"][0];
+			let tmpwidth=linkdata[i]["target"][0]-tmpleft;
+			let tmpsrctop=linkdata[i]["source"][1];
+			let tmpdsttop=linkdata[i]["target"][1];
+			this.svg.append("g")
+				.attr("transform", (d)=>{ return "translate(" + (0) + "," + this.padding.top + ")"; })
+				.selectAll("line").data(nodesrecord_new[i])
+				.enter().append("line")
+				.attr("class", "link")
+				.attr("x1",(dd,ii)=>{
+					return tmpleft+tmpwidth/nodesrecord_new[i].length*ii;
+				}).attr("x2",(dd,ii)=>{
+					return tmpleft+tmpwidth/nodesrecord_new[i].length*(ii+1);
+				}).attr("y1",(dd,ii)=>{
+					return tmpsrctop+(tmpdsttop-tmpsrctop)/nodesrecord_new[i].length*ii;
+				}).attr("y2",(dd,ii)=>{
+					return tmpsrctop+(tmpdsttop-tmpsrctop)/nodesrecord_new[i].length*(ii+1);
+				}).attr("stroke",(dd,ii)=>{
+					if(dd>0){return "#999";}
+					else{return "#616161";}
+				})
+				.attr("stroke-width",2)
+				.attr("stroke-dasharray",(dd,ii)=>{
+					if(dd>0){return null;}
+					else{return 5;}
+				})
+				.append("title").text((dd,ii)=>{
+					return this.inttime2str(this.timeset["starttime"]+ii*this.timeset["timestep"])+" - "+this.inttime2str(this.timeset["starttime"]+(ii+1)*this.timeset["timestep"]);
+				});
+		}
 		//console.log(nodespos);
+		
 		let nodesdom=this.svg.append("g")
 			.selectAll(".nodeg")
 			.data(_.keys(nodespos))
 			.enter().append("g")
 			.attr("class","nodeg")
 			.attr("transform", (d)=>{ return "translate(" + (nodespos[d][0]) + "," + (this.padding.top+nodespos[d][1]) + ")"; })
-			.on("mouseover",(d)=>{
+			/*.on("mouseover",(d)=>{
 				let name=d.split("_");
 				name.pop();
 				this.$store.state.hlnodes = [name.join("_")];
@@ -346,6 +342,18 @@ export default {
 			}).on("mouseout",(d)=>{
 				this.$store.state.hlnodes = [];
 				this.$store.state.hlview = "subgraph";
+			})*/
+			.on("click",(d)=>{
+				let name=d.split("_");
+				name.pop()
+				let nodeid=name.join("_");
+				let tmpind = this.$store.state.nodesSelected.indexOf(nodeid);
+				if (tmpind >= 0) {
+				  this.$store.state.nodesSelected.splice(tmpind, 1);
+				} else {
+				  this.$store.state.nodesSelected.push(nodeid);
+				}
+				//console.log(this.$store.state.nodesSelected);
 			})
 		var noderadius=8;
 		nodesdom.append("circle")
@@ -445,7 +453,7 @@ export default {
 		    this.showntype=1;
 			CommunicateWithServer('get', obj, 'getSPs', (evt_data)=>{
 				console.log(evt_data);
-				this.multipsps(evt_data["paths"],evt_data["nodes"]);
+				this.multipsps(evt_data["paths"],evt_data["records"],evt_data["nodes"]);
 		    })
 	  }
     },

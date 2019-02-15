@@ -95,7 +95,7 @@ export default {
 	self.svg=d3.select("#dimension2_svg")
 			.append("svg")
 			.attr("width", self.width)
-			.attr("height", self.height);
+			.attr("height", self.height).append("g");
 			
 	self.brush = d3.brush().on("end", self.brushended);
 	self.svg.append("g")
@@ -372,15 +372,18 @@ export default {
       this.getdim2results();
     },
 	hlnodes: function(newVal, oldVal) {
-	  if(this.$store.state.hlview!="dim2"){
-		  this.hlnodes_hl=newVal;
-		  if(newVal.length==0){
-			  this.nodedom.selectAll(".nodeg").attr("opacity",1);
-		  }else{
-			  this.nodedom.selectAll(".nodeg").attr("opacity",0.1);
-			  this.drawhlnodes(this.hlnodes_hl,this.nodedom_hl);
+	  if(this.latestdata!=null){
+		  if(this.$store.state.hlview!="dim2"){
+			  this.hlnodes_hl=newVal;
+			  if(newVal.length==0){
+				  this.nodedom.selectAll(".nodeg").attr("opacity",1);
+			  }else{
+				  this.nodedom.selectAll(".nodeg").attr("opacity",0.1);
+				  this.drawhlnodes(this.hlnodes_hl,this.nodedom_hl);
+			  }
 		  }
 	  }
+	  
     }/*,
 	nodesSelected: function(newVal, oldVal) {
 	  this.hlnodes_sel=newVal;

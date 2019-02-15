@@ -136,44 +136,57 @@ class LocalGraph:
         self.nodesappears={'root': nodeid,'appear':nodesappears,'nodes':nodesattr}
         return self.nodesappears
 
-    def mergepath(self,paths):
-        if len(paths)==0:
-            return []
-        pathsmerged=[]
-        for path in paths:
-            ind=-1
-            for i in range(len(pathsmerged)):
-                if pathsmerged[i][0]==path:
-                    ind=i
-                    break
-            if ind==-1:
-                pathsmerged.append([path,1])
-            else:
-                pathsmerged[ind][1]=pathsmerged[ind][1]+1
-        return pathsmerged
 
-    def spsoverlap(self,source, target):
-        availpaths = []
-        for timeind in range(len(self.nodessps)):
-            if type(self.nodessps[timeind]) != type(-1):
-                if source in self.nodessps[timeind].keys():
-                    if target in self.nodessps[timeind][source].keys():
-                        availpaths.append(self.nodessps[timeind][source][target])
-        availpaths = self.mergepath(availpaths)
-        availpaths.sort(key=lambda d: d[1], reverse=True)
-        return availpaths
+    def getspshist(self,source, target):
+        timeindstart = int(math.ceil(float(self.rangestart-self.timeset["starttime"])/self.timeset["timestep"]))
+        timeindend = int(math.ceil(float(self.rangeend-self.timeset["starttime"])/self.timeset["timestep"]))
+
+        try:
+            cursps = [p for p in nx.all_shortest_paths(self.G, source=source, target=target)]
+            curspsrecord = []
+            for i in range(len(cursps)):
+                curspsrecord.append([])
+                cursp = cursps[i]
+                for nodeind in range(len(cursp) - 1):
+                    curspsrecord[i].append([-1] * (timeindend - timeindstart))
+
+                for timeind in range(timeindend-timeindstart):
+                    tmpspsall = self.nodessps[timeind]
+                    if type(tmpspsall)==type(-1):
+                        continue
+                    if source in tmpspsall.keys():
+                        if target in tmpspsall[source].keys():
+                            tmpsps = tmpspsall[source][target]
+                            for spind in range(len(tmpsps)):
+                                tmpsp = tmpsps[spind]
+                                for nodeind in range(len(cursp) - 1):
+                                    curnode1 = cursp[nodeind]
+                                    curnode2 = cursp[nodeind + 1]
+
+                                    for nodeind2 in range(len(tmpsp) - 1):
+                                        if tmpsp[nodeind2] == curnode1 and tmpsp[nodeind2 + 1] == curnode2:
+                                            curspsrecord[i][nodeind][timeind] = 1
+                                            continue
+            return cursps,curspsrecord
+        except nx.exception.NetworkXNoPath:
+            return [[source,target]],[[-1] * (timeindend - timeindstart)]
 
     def multisel(self,nodes):
         spspaths=[]
-        nodesshown=set(nodes)
+        spspathsrecord=[]
+        nodesshown=[]
         self.nodesselected = nodes
         for i in range(len(nodes)-1):
-            paths=self.spsoverlap(nodes[i],nodes[i+1])
+            paths,pathsrecord=self.getspshist(nodes[i],nodes[i+1])
             spspaths.append(paths)
+            spspathsrecord.append(pathsrecord)
             for p in paths:
-                nodesshown=nodesshown | set(p[0])
+                #nodesshown=nodesshown | set(p[0])
+                for n in p:
+                    nodesshown.append(n)
+        nodesshown=list(set(nodesshown))
         nodesattr=self.getnodesattr(nodesshown)
-        self.spspaths={'paths': spspaths,'nodes':nodesattr}
+        self.spspaths={'paths': spspaths,'nodes':nodesattr,'records':spspathsrecord}
         return self.spspaths
 
     def getsubdata(self):

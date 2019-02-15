@@ -15,15 +15,6 @@
     z-index: 100;
   }
 
-  #miniMap {
-    width: 20%;
-    height: 30%;
-    position: absolute;
-    bottom: 0;
-    right: 0;
-    z-index: 100;
-  }
-
   .view {
     width: 100%;
     height: calc(100% - 44.8px);
@@ -84,14 +75,6 @@
 
   .legend {
     width: 255px;
-    height: calc(100% - 44.8px);
-    flex: 1;
-    display: -moz-box;
-    display: -webkit-box;
-    display: box;
-    -moz-box-orient: vertical;
-    -webkit-box-orient: vertical;
-    box-orient: vertical;
 
     table td {
       vertical-align: middle;
@@ -102,47 +85,42 @@
     }
 
     #time_legend {
-      position:absolute;
-      height: 20%;
-      // min-height: 80px;
       border-bottom: 1px dashed #8e6bc4;
     }
 
     #nodes_legend {
-      position:absolute;
-      top: 20%;
-      height: 60%;
-      -moz-box-flex: 1;
-      -webkit-box-flex: 1;
-      box-flex: 1;
       border-bottom: 1px dashed #8e6bc4;
-      min-height: 185px;
+    }
+
+    #control_legend {
+      color: white;
+      border-bottom: 1px dashed #8e6bc4;
+
+      .layout-btn {
+        height: 20px;
+        text-align: center;
+        width: 29%;
+        line-height: 15px;
+        vertical-align: middle;
+        border-radius: 5px;
+        background-color: gray;
+        margin: 2px 2px;
+      }
+
+      .active {
+        background-color: #00bcd4;
+      }
     }
 
     #level_legend {
-      position:absolute;
-      top: 80%;
-      height: 20%;
-      // min-height: 50px;
       .levelText {
         color: #959595;
       }
     }
 
-    .levelText {
-      fill: #959595;
-      font-family: Microsoft YaHei;
-      font-size: 20px;
-    }
-
-    #time_legend, #nodes_legend, #level_legend {
+    #time_legend, #nodes_legend, #control_legend, #level_legend {
       padding: 5px 0;
       margin: 0 30px;
-      display: -moz-box;
-      display: -webkit-box;
-      display: box;
-      -webkit-box-align: center;
-      -moz-box-align: center;
     }
 
     .network_text1 {
@@ -161,10 +139,6 @@
     .network_text3 {
       color: white;
       font-family: Microsoft YaHei, serif;
-    }
-
-    .graph_tabel_padding {
-      height: 5px;
     }
 
     .network_text4 {

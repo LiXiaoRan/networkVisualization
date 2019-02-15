@@ -6,7 +6,6 @@
         <svg class='view-svg'>
         </svg>
         <div id="layContainer"></div>
-        <div id="miniMap"></div>
       </div>
     </div>
     <div id="legend-index">
@@ -31,57 +30,59 @@
         <div id="nodes_legend">
           <table border="0" width="100%">
             <tr class="network_text3">
-              <td valign="middle" vertical-align="middle" class="graph_nodelegend_svg"></td>
+              <td class="graph_nodelegend_svg"></td>
               <td>主机</td>
-              <td></td>
             </tr>
-            <tr class="network_text2">
-              <td></td>
-              <td>{{hostNum}}</td>
-              <td>0%</td>
+            <tr>
+              <td class="network_text2">{{hostNum}}</td>
+              <td class="network_text1">当前数量</td>
             </tr>
-            <tr class="network_text1">
-              <td></td>
-              <td>当前数量 &nbsp;</td>
-              <td>占所有主机比例</td>
-            </tr>
-            <tr class="graph_tabel_padding">
-              <td></td>
+            <tr>
+              <td class="network_text2">0%</td>
+              <td class="network_text1">占所有主机比例</td>
             </tr>
             <tr class="network_text3">
               <td class="graph_nodelegend_svg"></td>
               <td>交换机</td>
-              <td></td>
             </tr>
-            <tr class="network_text2">
-              <td></td>
-              <td>{{switchNum}}</td>
-              <td>0%</td>
+            <tr>
+              <td class="network_text2">{{switchNum}}</td>
+              <td class="network_text1">当前数量</td>
             </tr>
-            <tr class="network_text1">
-              <td></td>
-              <td>当前数量 &nbsp;</td>
-              <td>占所有交换机比例</td>
-            </tr>
-            <tr class="graph_tabel_padding">
-              <td></td>
+            <tr>
+              <td class="network_text2">0%</td>
+              <td class="network_text1">占所有交换机比例</td>
             </tr>
             <tr class="network_text3">
               <td class="graph_nodelegend_svg"></td>
               <td>服务器</td>
-              <td></td>
             </tr>
-            <tr class="network_text2">
-              <td></td>
-              <td>{{serverNum}}</td>
-              <td>0%</td>
+            <tr>
+              <td class="network_text2">{{serverNum}}</td>
+              <td class="network_text1">当前数量</td>
             </tr>
-            <tr class="network_text1">
-              <td></td>
-              <td>当前数量 &nbsp;</td>
-              <td>占所有服务器比例</td>
+            <tr>
+              <td class="network_text2">0%</td>
+              <td class="network_text1">占所有服务器比例</td>
             </tr>
           </table>
+        </div>
+        <div id="control_legend">
+          <div width="100%">网络层次
+            <div>
+              <span v-for="item in levelList" style="width: 25%; padding-right: 5px">
+                <input type="radio" name="networkLevel" :value="item.value" :checked="item.isChecked"
+                       @change="changeLevel(item)">{{item.name}}
+              </span>
+            </div>
+          </div>
+          <div width="100%">布局方式
+            <div>
+              <button class="layout-btn" :class="{active: item.selected}"
+                      v-for="item in layoutList" @click="switchLayout(item)">{{item.name}}
+              </button>
+            </div>
+          </div>
         </div>
         <div id="level_legend">
           <table border="0" width="100%">
@@ -89,9 +90,6 @@
               <td class="graph_level_svg" width="12%"></td>
               <td class="network_text4" width="30%">致瘫级别</td>
               <td class="legend_color" width="58%"></td>
-            </tr>
-            <tr class="graph_tabel_padding">
-              <td></td>
             </tr>
             <tr>
               <td class="graph_level_svg" width="12%"></td>
@@ -107,7 +105,6 @@
 </template>
 <script>
   import AppTitle from "./AppTitle.vue";
-  import * as dat from "dat.gui"
   import {mapGetters} from 'vuex';
   import hostImg from "../assets/host.png";
   import switchImg from "../assets/switch.png";
@@ -132,6 +129,19 @@
         linkAllShow: true,
         mainMiniMap: null,
         viewSize: {},
+        levelList: [{value: 0, isChecked: true, name: "全部"},
+          {value: 1, isChecked: false, name: "链路"},
+          {value: 2, isChecked: false, name: "网络"},
+          {value: 3, isChecked: false, name: "应用"}],
+        layoutList: [{name: "RT树", value: "rt_circular", selected: true},
+          {name: "力导", value: "kk", selected: false},
+          {name: "降维", value: "reduce", selected: false},
+          {name: "椭圆", value: "circle", selected: false},
+          {name: "尺度", value: "mds", selected: false},
+          {name: "网格", value: "grid", selected: false},
+          {name: "大图", value: "lgl", selected: false},
+          {name: "递归", value: "drl", selected: false},
+          {name: "层次", value: "sugiyama", selected: false}],
         nodesImgList: [hostImg, switchImg, serverImg],
         nodeSelectedList: [hostSelectedImg, switchSelectedImg, serverSelectedImg],
         hostNum: 0,
@@ -140,7 +150,9 @@
         nowLevel: 0,
       };
     },
-    components: {AppTitle},
+    components: {
+      AppTitle
+    },
     mounted() {
       let self = this;
       let node_legend_svg = d3.selectAll(".graph_nodelegend_svg").append("svg")
@@ -225,34 +237,14 @@
       let maxNodeR = 30 * rateWH;
       let minNodeR = 6 * rateWH;
       this.nodeScale = d3.scaleLog().range([minNodeR, maxNodeR]);
-      const gui = new dat.GUI();
-      let obj = {
-        网络层次: "全部层级",
-        网络布局: "环状RT树布局",
-        显示所有边: true
-      };
-      let f1 = gui.addFolder('控制');
-      let levelText = f1.add(obj, "网络层次", ["全部层级", "链路层", "网络层", "应用层"]);
-      let layoutText = f1.add(obj, "网络布局", [
-        "环状RT树布局",
-        "随机布局",
-        "椭圆布局",
-        "graphopt布局",
-        "多元尺度布局",
-        "网格布局",
-        "大图布局",
-        "分布式递归布局",
-        "层次化布局",
-        "力导向布局",
-        "降维布局"
-      ]);
-      let linkAllShow = f1.add(obj, '显示所有边').listen();
-      linkAllShow.onFinishChange(() => {
-        this.linkAllShow = !this.linkAllShow;
-        this.switchLinkShow();
-      });
 
-      let graphLayout = function () {
+      // // let linkAllShow = f1.add(obj, '显示所有边').listen();
+      // // linkAllShow.onFinishChange(() => {
+      // //   this.linkAllShow = !this.linkAllShow;
+      // //   this.switchLinkShow();
+      // // });
+      //
+      this.graphLayout = function () {
         self.getDataWithParams({
           where: {
             val: {
@@ -265,77 +257,7 @@
           level: self.nowLevel
         });
       };
-
-      levelText.onChange(value => {
-        //向后台传输所需层次数据
-        switch (value) {
-          case "全部层级":
-            this.nowLevel = 0;
-            break;
-          case "链路层":
-            this.nowLevel = 1;
-            break;
-          case "网络层":
-            this.nowLevel = 2;
-            break;
-          case "应用层":
-            this.nowLevel = 3;
-            break;
-        }
-       // graphLayout();
-        let data = [].concat(this.selectData_get);
-        let nowData = this.nodeLevelFilter(data, this.nowLevel)
-        if(nowData.length === 0){
-          alert("此层次上无节点")
-        }
-        this.layoutData = this.transformData(nowData);
-        this.drawSwitchGraph();
-      });
-
-      layoutText.onChange(value => {
-        if (value === "降维布局") {
-          this.$store.state.init_dim2 = Math.random();
-          this.$store.state.timeupdated = Math.random();
-        } else {
-          switch (value) {
-            case "力导向布局":
-              this.nowLayoutType = "kk";
-              break;
-            case "随机布局":
-              this.nowLayoutType = "random";
-              break;
-            case "椭圆布局":
-              this.nowLayoutType = "circle";
-              break;
-            case "graphopt布局":
-              this.nowLayoutType = "graphopt";
-              break;
-            case "多元尺度布局":
-              this.nowLayoutType = "mds";
-              break;
-            case "网格布局":
-              this.nowLayoutType = "grid";
-              break;
-            case "大图布局":
-              this.nowLayoutType = "lgl";
-              break;
-            case "分布式递归布局":
-              this.nowLayoutType = "drl";
-              break;
-            case "层次化布局":
-              this.nowLayoutType = "sugiyama";
-              break;
-            case "环状RT树布局":
-              this.nowLayoutType = "rt_circular";
-              break;
-            default:
-              break;
-          }
-          this.drawSwitchGraph();
-        }
-      });
-      document.getElementById("layContainer").appendChild(gui.domElement);
-      graphLayout();
+      this.graphLayout();
     },
     methods: {
       drawSwitchGraph() {
@@ -346,6 +268,25 @@
         };
         let Url = "get-layout-data";
         CommunicateWithServer('post', paramsObj, Url, this.drawGraph)
+      },
+
+      changeLevel(item) {
+        this.levelList.forEach(obj => obj.isChecked = false);
+        item.isChecked = true;
+        this.nowLevel = item.value;
+        this.graphLayout();
+      },
+
+      switchLayout(item) {
+        this.layoutList.forEach(obj => obj.selected = false);
+        item.selected = true;
+        if (item.value === "reduce") {
+          this.$store.state.init_dim2 = Math.random();
+          this.$store.state.timeupdated = Math.random();
+        } else {
+          this.nowLayoutType = item.value;
+          this.drawSwitchGraph();
+        }
       },
 
       getDataWithParams(paramsObj) {
@@ -556,49 +497,6 @@
           });
 
         this.secondFilter(nodeType, nodeAttrType);
-
-        //this.$store.state.init_dim2 = Math.random();
-        //this.$store.state.timeupdated = Math.random();
-        if (d3.select("#miniMap").select("svg")) d3.select("#miniMap").select("svg").remove();
-        this.miniMap = d3.select("#miniMap").append("svg")
-          .attr("width", d3.select("#miniMap").style("width"))
-          .attr("height", d3.select("#miniMap").style("height"));
-      },
-
-      drawMiniMap: function (res) {
-        //绘制小地图
-        if (miniMapG) miniMapG.remove();
-        let miniMapG = this.miniMap.append("g");
-
-        miniMapG.selectAll(".m_links")
-          .data(res.links)
-          .enter()
-          .append("line")
-          .attr("stroke", "#fff")
-          .attr("stroke-width", 0.5)
-          .attr("x1", d => this.posMiniX(this.xScale(d.x1)))
-          .attr("y1", d => this.posMiniY(this.yScale(d.y1)))
-          .attr("x2", d => this.posMiniX(this.xScale(d.x2)))
-          .attr("y2", d => this.posMiniY(this.yScale(d.y2)));
-
-        miniMapG.selectAll(".m_nodes")
-          .data(res.nodes)
-          .enter()
-          .append("circle")
-          .attr("r", 1)
-          .attr("opacity", 0.9)
-          .attr("fill", "#C4C9CF")
-          .attr("cx", d => this.posMiniX(this.xScale(d.x)))
-          .attr("cy", d => this.posMiniY(this.yScale(d.y)));
-
-      },
-
-      posMiniX: function (x) {
-        return this.viewSize.width * $("#miniMap").width();
-      },
-
-      posMiniY: function (Y) {
-        return this.viewSize.height * $("#miniMap").height();
       },
 
       switchLinkShow: function () {
@@ -629,6 +527,7 @@
           else return "block";
         });
       },
+
       transformData: function (data) {
         //转化为后台需要的布局
         let typeArray = ["主机", "交换机", "服务器"];
@@ -660,7 +559,6 @@
           }
         });
 
-
         //按格式处理nodes
         nodes.forEach(function (d) {
           let obj = {
@@ -677,19 +575,6 @@
         let formatData = {nodes: formatData_node, links: formatData_link};
 
         return formatData;
-      },
-      nodeLevelFilter:function (nodeData, level) {
-        // 根据节点的层级筛选数据
-        if (level != 0){
-          let startLevel = level*100;
-          let endLevel = startLevel + 100;
-          return nodeData.filter(function (d) {
-            return (d.net_level >= startLevel && d.net_level < endLevel);
-          })
-        } else {
-          return nodeData
-        }
-
       }
     },
     computed: {
@@ -709,22 +594,18 @@
       },
       testData: function (newVal, oldVal) {
 
-      },
-      'selectTime_get.start': {
-        handler: function (val) {
-          //根据时间轴的筛选进行布局
-          //  if(this.run==false) return
-          let data = [].concat(this.selectData_get);
-          let nowData = this.nodeLevelFilter(data, this.nowLevel)
-          if(nowData.length === 0){
-            alert("此层次上无节点")
-          }
-          this.layoutData = this.transformData(nowData);
-          this.drawSwitchGraph();
-
-        },
-        //immediate: true
       }
+      // ,
+      // 'selectTime_get.start': {
+      //   handler: function (val) {
+      //     //根据时间轴的筛选进行布局
+      //     let data = [].concat(this.selectData_get);
+      //     this.layoutData = this.transformData(data);
+      //     this.drawSwitchGraph();
+      //
+      //   },
+      //   //immediate: true
+      // }
     }
   };
 

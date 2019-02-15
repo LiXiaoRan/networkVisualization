@@ -536,8 +536,8 @@
         let nodes = [], links = [];
         let source = '', target = '';
         data.forEach(function (d) {
-          source = d.send_node_global_id.trim();
-          target = d.receive_node_global_id.trim();
+          source = d.trans_node_global_no.trim();
+          target = d.recv_node_golbal_no.trim();
           nodes.push(source);
           nodes.push(target);
           links.push({source: source, target: target, flow: +d.val});
@@ -575,6 +575,19 @@
         let formatData = {nodes: formatData_node, links: formatData_link};
 
         return formatData;
+      },
+      nodeLevelFilter:function (nodeData, level) {
+        // 根据节点的层级筛选数据
+        if (level != 0){
+          let startLevel = level*100;
+          let endLevel = startLevel + 100;
+          return nodeData.filter(function (d) {
+            return (d.net_level >= startLevel && d.net_level < endLevel);
+          })
+        } else {
+          return nodeData
+        }
+
       }
     },
     computed: {
@@ -594,19 +607,22 @@
       },
       testData: function (newVal, oldVal) {
 
+      },
+      'selectTime_get.start': {
+        handler: function (val) {
+          //根据时间轴的筛选进行布局
+          //  this.selectData_get为所选时间段的数据（可用于各种筛选）
+          let data = [].concat(this.selectData_get);
+          let nowData = this.nodeLevelFilter(data, this.nowLevel)
+          if(nowData.length === 0){
+            alert("此层次上无节点")
+          }
+          this.layoutData = this.transformData(nowData);
+          this.drawSwitchGraph();
+
+        },
+        //immediate: true
       }
-      // ,
-      // 'selectTime_get.start': {
-      //   handler: function (val) {
-      //     //根据时间轴的筛选进行布局
-      //     let data = [].concat(this.selectData_get);
-      //     this.layoutData = this.transformData(data);
-      //     this.drawSwitchGraph();
-      //
-      //   },
-      //   //immediate: true
-      // }
-    }
   };
 
 </script>

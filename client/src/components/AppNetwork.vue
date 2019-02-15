@@ -3,9 +3,7 @@
     <div id='layout-panel'>
       <app-title v-bind:icon="icon" v-bind:msgs="msgs"></app-title>
       <div class='view'>
-        <svg class='view-svg'>
-        </svg>
-        <div id="layContainer"></div>
+        <svg class='view-svg'></svg>
       </div>
     </div>
     <div id="legend-index">
@@ -281,9 +279,11 @@
         this.layoutList.forEach(obj => obj.selected = false);
         item.selected = true;
         if (item.value === "reduce") {
+          d3.select("#dim2-panel").style("display", "block");
           this.$store.state.init_dim2 = Math.random();
           this.$store.state.timeupdated = Math.random();
         } else {
+          d3.select("#dim2-panel").style("display", "none");
           this.nowLayoutType = item.value;
           this.drawSwitchGraph();
         }
@@ -385,7 +385,6 @@
           .attr("width", d => this.nodeScale(d.degree))
           .attr("height", d => this.nodeScale(d.degree))
           .on("click", (d) => {
-            //console.log(d.id);
             let tmpind = this.$store.state.nodesSelected.indexOf(d.id);
             if (tmpind >= 0) {
               this.$store.state.nodesSelected.splice(tmpind, 1);
@@ -576,10 +575,10 @@
 
         return formatData;
       },
-      nodeLevelFilter:function (nodeData, level) {
+      nodeLevelFilter: function (nodeData, level) {
         // 根据节点的层级筛选数据
-        if (level != 0){
-          let startLevel = level*100;
+        if (level != 0) {
+          let startLevel = level * 100;
           let endLevel = startLevel + 100;
           return nodeData.filter(function (d) {
             return (d.net_level >= startLevel && d.net_level < endLevel);
@@ -614,7 +613,7 @@
           //  this.selectData_get为所选时间段的数据（可用于各种筛选）
           let data = [].concat(this.selectData_get);
           let nowData = this.nodeLevelFilter(data, this.nowLevel)
-          if(nowData.length === 0){
+          if (nowData.length === 0) {
             alert("此层次上无节点")
           }
           this.layoutData = this.transformData(nowData);
@@ -623,7 +622,8 @@
         },
         //immediate: true
       }
-  };
+    }
+  }
 
 </script>
 <style lang="less" scoped>

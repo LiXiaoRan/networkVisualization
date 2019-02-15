@@ -1,35 +1,35 @@
 const d3 = require('d3')
 export default class TimeLine2 {
-   constructor(){
-     let self = this;
-     self.select_time = "";
-     self.Timeline();
-   }
-   Timeline() {
-     let self = this
-     var timeline_data = [];//获取下面整体时间段中的所有数据
-     var select_data = [];//brush选中时间段的数据
-     let hoursData = {};
-     let distinguish_time = 30; //默认值为半小时
-     Date.prototype.Format = function(fmt) {
-       var o = {
-         "M+": this.getMonth() + 1, //月份
-         "d+": this.getDate(), //日
-         "h+": this.getHours(), //小时
-         "m+": this.getMinutes(), //分
-         "s+": this.getSeconds(), //秒
-         "q+": Math.floor((this.getMonth() + 3) / 3), //季度
-         "S": this.getMilliseconds() //毫秒
-       };
-       if (/(y+)/.test(fmt))
-         fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
-       for (var k in o) {
-         if (new RegExp("(" + k + ")").test(fmt)) {
-           fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
-         }
-       }
-       return fmt;
-     }
+  constructor(){
+    let self = this;
+    self.select_time = "";
+    self.Timeline();
+  }
+  Timeline() {
+    let self = this
+    var timeline_data = [];//获取下面整体时间段中的所有数据
+    var select_data = [];//brush选中时间段的数据
+    let hoursData = {};
+    let distinguish_time = 30; //默认值为半小时
+    Date.prototype.Format = function(fmt) {
+      var o = {
+        "M+": this.getMonth() + 1, //月份
+        "d+": this.getDate(), //日
+        "h+": this.getHours(), //小时
+        "m+": this.getMinutes(), //分
+        "s+": this.getSeconds(), //秒
+        "q+": Math.floor((this.getMonth() + 3) / 3), //季度
+        "S": this.getMilliseconds() //毫秒
+      };
+      if (/(y+)/.test(fmt))
+        fmt = fmt.replace(RegExp.$1, (this.getFullYear() + "").substr(4 - RegExp.$1.length));
+      for (var k in o) {
+        if (new RegExp("(" + k + ")").test(fmt)) {
+          fmt = fmt.replace(RegExp.$1, (RegExp.$1.length == 1) ? (o[k]) : (("00" + o[k]).substr(("" + o[k]).length)));
+        }
+      }
+      return fmt;
+    }
 
     var Center = {};
     var timeline = {};
@@ -176,9 +176,9 @@ export default class TimeLine2 {
       var lowerparseTime = d3.timeParse("%Y-%m-%e %H:%M:%S");
     } {
       var lower_timeminsplite = 30; //lower timeline axis tick, default:60
-      var upper_timeminsplite = 15; //upper timeline axis tick, default:30
+      var upper_timeminsplite = 5; //upper timeline axis tick, default:30
       var lower_timeminspan = 30; //global time range, default:60
-      var upper_timemin_gran = 5; //upper time granulariy, default:5
+      var upper_timemin_gran = 1; //upper time granulariy, default:5
 
       var lowertimerange = []; //lower time range
       var lowertimebrushed = []; //upper time range
@@ -195,11 +195,12 @@ export default class TimeLine2 {
       }
     }
     function redrawTimeLineD(evt_data) {
-        hoursData[lower_timeminspan] = evt_data
-        lower_data= evt_data.data;
-        timeline_data = evt_data.timeLineData;//获取下面整体时间段中的所有数据
-        drawLowerTimeLine(lower_data);
-        drawUpperTimeLine(lower_data);
+      hoursData[lower_timeminspan] = evt_data
+      lower_data= evt_data.data;
+      console.log("getdata+++++++++++++++++++++", evt_data.timeLineData)
+      timeline_data = evt_data.timeLineData;//获取下面整体时间段中的所有数据
+      drawLowerTimeLine(lower_data);
+      drawUpperTimeLine(lower_data);
     }
     function newdatestr(strdate) {
       newstr = strdate[0] + strdate[1] + strdate[2] + strdate[3] + "-" + strdate[4] + strdate[5] + "-" + strdate[6] + strdate[7] + " " + strdate[8] + strdate[9] + ":" + strdate[10] + strdate[11] + ":" + strdate[12] + strdate[13]
@@ -399,7 +400,7 @@ export default class TimeLine2 {
       }).on("mouseleave", function() {
         focus_mousemove.attr("display", "none");
       }).on("click", function() {
-       //暂停动画
+        //暂停动画
         document.getElementById("timeline_play").innerHTML = '<i class="fa fa-play"></i>&nbsp;&nbsp;开始动画'
         autoplaytimer = window.clearInterval(autoplaytimer);
 
@@ -489,14 +490,14 @@ export default class TimeLine2 {
       /*********
        * 这里获取到brush选择的时间段的数据
        * *********/
-     var brush_startTime = date2str(uppertimewindow[0]);
-     var brush_endTime = date2str(uppertimewindow[1]);
-     var brush_data = [];
-     timeline_data.forEach(function (item) {
-       if(item.start_time >= brush_startTime && item.end_time <= brush_endTime){
-         brush_data.push(item);
-       }
-     })
+      var brush_startTime = date2str(uppertimewindow[0]);
+      var brush_endTime = date2str(uppertimewindow[1]);
+      var brush_data = [];
+      timeline_data.forEach(function (item) {
+        if(item.event_begintime >= brush_startTime && item.event_endtime <= brush_endTime){
+          brush_data.push(item);
+        }
+      })
       select_data = [].concat(brush_data);//看作为一层的深拷贝
       //console.log(brush_startTime, brush_endTime)
 
@@ -520,5 +521,3 @@ export default class TimeLine2 {
 
   }
 }
-
-

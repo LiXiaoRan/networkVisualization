@@ -82,7 +82,7 @@ class NetworkData:
         return 1
 
     def getTimeRangeData(self, begin, end):
-        sql = "select * from transitnet0515s where start_time >= %s and end_time <= %s order by start_time"
+        sql = "select * from " + tablename + " where event_begintime >= %s and event_endtime <= %s order by event_begintime"
         data = ''
         with conn.cursor() as cursor:
             cursor.execute(sql, [begin, end])

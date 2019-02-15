@@ -260,9 +260,9 @@ class getData(tornado.web.RequestHandler):
         newdata=[]
         i=0
         while i<len(data)-1:
-            sttime=data[i]["start_time"]
+            sttime=data[i]["event_begintime"]
             sttime=sttime[0:14]
-            sttime2 = data[i+1]["start_time"]
+            sttime2 = data[i+1]["event_begintime"]
             sttime2 = sttime2[0:14]
             sttimeStamp = int(time.mktime(time.strptime(sttime, "%Y%m%d%H%M%S")))
             sttimeStamp2 = int(time.mktime(time.strptime(sttime2, "%Y%m%d%H%M%S")))
@@ -270,8 +270,8 @@ class getData(tornado.web.RequestHandler):
             sttime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(sttimeStamp))
             sttime2 = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(sttimeStamp2))
 
-            value1=int(float(data[i]["val"]))
-            value2 = int(float(data[i+1]["val"]))
+            value1=int(float(data[i]["flow"]))
+            value2 = int(float(data[i+1]["flow"]))
 
             if((sttimeStamp2-sttimeStamp)>1000):
                 buckets=int((sttimeStamp2-sttimeStamp))
@@ -294,9 +294,9 @@ class getData(tornado.web.RequestHandler):
         timerange1S = int(time.mktime(time.strptime(timerange1, "%Y%m%d%H%M%S")))
         timerange1 = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timerange1S))
 
-        mintime = data[0]["start_time"][0:14]
+        mintime = data[0]["event_begintime"][0:14]
         mintimeS = int(time.mktime(time.strptime(mintime, "%Y%m%d%H%M%S")))
-        maxtime = data[(len(data)-1)]["start_time"][0:14]
+        maxtime = data[(len(data)-1)]["event_begintime"][0:14]
         maxtimeS = int(time.mktime(time.strptime(maxtime, "%Y%m%d%H%M%S")))
 
         print(mintime,maxtime)

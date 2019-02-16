@@ -100,10 +100,13 @@ class LocalGraph:
         return tmpobj
 
     def getAttr(self,nodes):
-        tmpattr={}
-        attrnum=5
+
+        timeindstart = int(math.ceil(float(self.rangestart - self.timeset["starttime"]) / self.timeset["timestep"]))
+        timeindend = int(math.ceil(float(self.rangeend - self.timeset["starttime"]) / self.timeset["timestep"]))
+
+        attrchange = {}
         for n in nodes:
-            tmpattr[n]=self.nodesattri[n]
+            attrchange[n]=self.nodesattri[n][timeindstart:timeindend]
             '''
             for t in range(len(tmpattr[n])):
                 if len(tmpattr[n][t])==0:
@@ -114,16 +117,21 @@ class LocalGraph:
             tmpattr[n]=np.transpose(tmpattr[n]).tolist()
             '''
         nodesattr = self.getnodesattr(nodes)
-        return tmpattr,nodesattr
+
+        return attrchange,nodesattr
 
     def choosenone(self):
         self.nodesselected=[]
 
     def getnodesattr(self,nodes):
         nodesattr = {}
+        tmpnodesall=set(self.G.nodes())
         for n in nodes:
-            #nodesattr[n] = {'nodeType': self.G.nodes[n]['nodeType'], 'degree': self.G.degree(n)}
-            nodesattr[n] = {'nodeType': self.G.nodes[n]['nodeType']}
+            if n in tmpnodesall:
+                #nodesattr[n] = {'nodeType': self.G.nodes[n]['nodeType'], 'degree': self.G.degree(n)}
+                nodesattr[n] = {'nodeType': self.G.nodes[n]['nodeType']}
+            else:
+                nodesattr[n] = {'nodeType': -1}
         return nodesattr
 
     def singlesel(self,nodes):
@@ -169,6 +177,8 @@ class LocalGraph:
                                             continue
             return cursps,curspsrecord
         except nx.exception.NetworkXNoPath:
+            return [[source,target]],[[-1] * (timeindend - timeindstart)]
+        except nx.NodeNotFound:
             return [[source,target]],[[-1] * (timeindend - timeindstart)]
 
     def multisel(self,nodes):

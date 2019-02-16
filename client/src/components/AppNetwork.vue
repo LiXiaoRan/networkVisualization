@@ -76,10 +76,14 @@
           </div>
           <div width="100%">布局方式
             <div>
-              <button class="layout-btn" :class="{active: item.selected}"
+              <button class="layout_btn" :class="{active: item.selected}"
                       v-for="item in layoutList" @click="switchLayout(item)">{{item.name}}
               </button>
             </div>
+          </div>
+          <div width="100%">
+            <span>显示边</span>
+            <span class="switch_btn" :class="{'switch_btn_on' : linkAllShow}" @click="showLinks"></span>
           </div>
         </div>
         <div id="level_legend">
@@ -287,6 +291,12 @@
           this.nowLayoutType = item.value;
           this.drawSwitchGraph();
         }
+      },
+
+      showLinks() {
+        this.linkAllShow = !this.linkAllShow;
+        this.switchLinkShow();
+
       },
 
       getDataWithParams(paramsObj) {

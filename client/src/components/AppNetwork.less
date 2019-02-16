@@ -96,7 +96,7 @@
       color: white;
       border-bottom: 1px dashed #8e6bc4;
 
-      .layout-btn {
+      .layout_btn {
         height: 20px;
         text-align: center;
         width: 29%;
@@ -109,6 +109,56 @@
 
       .active {
         background-color: #00bcd4;
+      }
+
+      .switch_btn {
+        margin-left: 10px;
+        position: relative;
+        width: 33px;
+        height: 20px;
+        outline: 0;
+        border-radius: 10px;
+        box-sizing: border-box;
+        background-color: #DFDFDF;
+        transition: background-color 0.1s, border 0.1s;
+        cursor: pointer;
+      }
+
+      .switch_btn:before {
+        content: " ";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 32px;
+        height: 19px;
+        border-radius: 9px;
+        background-color: #FDFDFD;
+        transition: transform 0.35s cubic-bezier(0.45, 1, 0.4, 1);
+      }
+
+      .switch_btn:after {
+        content: " ";
+        position: absolute;
+        top: 0;
+        left: 0;
+        width: 19px;
+        height: 19px;
+        border-radius: 9px;
+        background-color: #bce8f1;
+        box-shadow: 0 1px 3px rgba(0, 0, 0, 0.4);
+        transition: transform 0.35s cubic-bezier(0.4, 0.4, 0.25, 1.35);
+      }
+
+      .switch_btn_on {
+        background-color: #00bcd4;
+      }
+
+      .switch_btn_on:before {
+        background-color: #00bcd4;
+      }
+
+      .switch_btn_on:after {
+        transform: translateX(12px);
       }
     }
 

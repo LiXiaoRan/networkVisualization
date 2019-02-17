@@ -115,7 +115,7 @@
   import switchSelectedImg from "../assets/switch_selected.png";
   import serverSelectedImg from "../assets/server_selected.png";
   import * as d3 from "d3";
-
+  import * as dat from "dat.gui"
   export default {
     data() {
       return {
@@ -150,6 +150,10 @@
         serverNum: 0,
         switchNum: 0,
         nowLevel: 0,
+        obj:{},
+        selectedNode:'', // 选择单个节点
+        selectedNodes:[], // 选择多个节点
+        selectedFlag:false
       };
     },
     components: {
@@ -163,7 +167,6 @@
         .attr("xlink:href", (d, i) => this.nodesImgList[i])
         .attr("x", 0).attr("y", 4)
         .attr("width", 16).attr("height", 16);
-
       this.start_angle = 0;
       this.end_angle = 180 * (Math.PI / 180);
       let legend_r = 3;
@@ -227,7 +230,6 @@
             return d + 1;
           });
       });
-
       this.svg = d3.select(".view-svg");
       this.viewSize = {width: parseFloat(this.svg.style("width")), height: parseFloat(this.svg.style("height"))};
       this.padding = {top: 50, bottom: 50, left: 50, right: 50};
@@ -239,13 +241,94 @@
       let maxNodeR = 30 * rateWH;
       let minNodeR = 6 * rateWH;
       this.nodeScale = d3.scaleLog().range([minNodeR, maxNodeR]);
-
       // // let linkAllShow = f1.add(obj, '显示所有边').listen();
       // // linkAllShow.onFinishChange(() => {
       // //   this.linkAllShow = !this.linkAllShow;
       // //   this.switchLinkShow();
       // // });
       //
+
+      const gui = new dat.GUI();
+       this.obj = {
+        节点类型:"",
+        致瘫级别:1,
+        控制级别:1
+      };
+      let f1 = gui.addFolder('控制');
+
+      // 节点类型
+      let nodeType = f1.add(this.obj, '节点类型',[
+        "主机",
+        "交换机",
+        "服务器"
+      ]).listen();
+      let nodeTypeFun = function(item,value){
+        d3.select('#node_' + item)
+          .attr('fill',(d)=> {
+                 d.nodeType = value
+               })
+          .select('image')
+          .attr("xlink:href", () => {
+            if (value === "主机") {
+              return self.nodesImgList[0];
+            } else if (value === "交换机") {
+              return self.nodesImgList[1];
+            } else if (value === "服务器") {
+              return self.nodesImgList[2];
+            }
+          })
+      }
+      nodeType.onFinishChange((value) => {
+        if(this.selectedFlag){
+          this.selectedNodes.forEach(item=>{
+            nodeTypeFun(item,value)
+          })
+        }else {
+          nodeTypeFun(this.selectedNode,value)
+        }
+      });
+
+      // 控制级别
+      let controlLevel = f1.add(this.obj, '控制级别').min(1).max(5).step(1).listen();
+      let controlLevelFun = function(item,value){
+         d3.select('#node_' + item)
+              .attr('fill',(d)=> {
+                 d.control = value
+               })
+            .select('.arc_control')
+            .attr("fill", () => self.control_color_0[value-1])
+      }
+      controlLevel.onFinishChange((value) => {
+        if(this.selectedFlag){
+          this.selectedNodes.forEach(item=>{
+            controlLevelFun(item,value)
+          })
+        }else {
+           controlLevelFun(this.selectedNode,value)
+         }
+      });
+
+      // 致瘫级别
+      let collapsedLevel = f1.add(this.obj, '致瘫级别').min(1).max(5).step(1).listen();
+      let collapsedLevelFun = function(item,value){
+          d3.select('#node_' + item)
+              .attr('fill',(d)=>{
+                d.collapsed = value
+               })
+            .select('.arc_collapse')
+            .attr("fill", () => self.collapsed_color_0[value-1])
+      }
+      collapsedLevel.onFinishChange((value) => {
+        if(this.selectedFlag){
+         this.selectedNodes.forEach(item=>{
+            controlLevelFun(item,value)
+          })
+        }else {
+         collapsedLevelFun(this.selectedNode,value)
+        }
+      });
+    document.getElementById("layout-panel").appendChild(gui.domElement);
+
       this.graphLayout = function () {
         self.getDataWithParams({
           where: {
@@ -271,14 +354,12 @@
         let Url = "get-layout-data";
         CommunicateWithServer('post', paramsObj, Url, this.drawGraph)
       },
-
       changeLevel(item) {
         this.levelList.forEach(obj => obj.isChecked = false);
         item.isChecked = true;
         this.nowLevel = item.value;
         this.graphLayout();
       },
-
       switchLayout(item) {
         this.layoutList.forEach(obj => obj.selected = false);
         item.selected = true;
@@ -292,17 +373,13 @@
           this.drawSwitchGraph();
         }
       },
-
       showLinks() {
         this.linkAllShow = !this.linkAllShow;
         this.switchLinkShow();
-
       },
-
       getDataWithParams(paramsObj) {
         CommunicateWithServer('get', paramsObj, 'cal-layout', this.drawGraph)
       },
-
       drawGraph(result) {
         let nodeType = this.nodeTypeList_get;
         let nodeAttrType = this.nodeAttrList_get;
@@ -340,28 +417,22 @@
         });
         this.svg.call(zoom);
         this.nodesLinksG = this.svg.append("g");
-
         this.layoutLinksG = this.nodesLinksG.append("g").attr("class", "links");
         this.layoutNodesG = this.nodesLinksG.append("g").attr("class", "nodes");
-
         this.xScale = d3.scaleLinear()
           .domain(d3.extent(result.nodes, d => d.x))
           .range([this.padding.left, this.viewSize.width - this.padding.right]);
-
         this.yScale = d3.scaleLinear()
           .domain(d3.extent(result.nodes, d => d.y))
           .range([this.padding.top, this.viewSize.height - this.padding.bottom]);
-
         this.linkScale.domain(d3.extent(result.links, d => d.flow));
         this.nodeScale.domain(d3.extent(result.nodes, d => d.degree));
-
         this.svg.on("mouseup", () => {
           if (event.target.nodeName === "svg") {
             this.nodesSelected = [];
             this.$store.state.nodesSelected = this.nodesSelected;
           }
         });
-
         this.allLinksG = this.layoutLinksG.selectAll("g")
           .data(result.links)
           .enter()
@@ -374,7 +445,6 @@
           .attr("y1", d => this.yScale(d.y1))
           .attr("x2", d => this.xScale(d.x2))
           .attr("y2", d => this.yScale(d.y2));
-
         this.allNodesG = this.layoutNodesG.selectAll("g")
           .data(result.nodes)
           .enter()
@@ -395,6 +465,16 @@
           .attr("width", d => this.nodeScale(d.degree))
           .attr("height", d => this.nodeScale(d.degree))
           .on("click", (d) => {
+            if(d3.event.ctrlKey){// 多选
+              this.selectedNodes.push(d.id)
+              this.selectedFlag = true;
+            }else{ // 单选
+              this.selectedNodes = []
+              this.selectedNode = d.id
+              this.selectedFlag = false;
+            }
+            this.updated(d);
+
             let tmpind = this.$store.state.nodesSelected.indexOf(d.id);
             if (tmpind >= 0) {
               this.$store.state.nodesSelected.splice(tmpind, 1);
@@ -477,7 +557,6 @@
               }
             })
           });
-
         this.allNodesG.append("path").attr("d", (d) => {
           let tmp_r = this.nodeScale(d.degree) / 2;
           let arcs = d3.arc().startAngle(this.start_angle).endAngle(this.end_angle)
@@ -489,9 +568,9 @@
             return "translate(" + (this.xScale(d.x)) + "," + (this.yScale(d.y)) + ")"
           })
           .attr("fill", (d, i) => {
+            d.collapsed = i%5 + 1
             return this.collapsed_color_0[i % 5];
           });
-
         this.allNodesG.append("path").attr("d", (d) => {
           let tmp_r = this.nodeScale(d.degree) / 2;
           let arcs = d3.arc().startAngle(this.start_angle).endAngle(this.end_angle)
@@ -502,12 +581,11 @@
             return "translate(" + (this.xScale(d.x)) + "," + (this.yScale(d.y)) + ")" + "rotate(180)"
           })
           .attr("fill", (d, i) => {
+            d.control = i%5 + 1
             return this.control_color_0[i % 5];
           });
-
         this.secondFilter(nodeType, nodeAttrType);
       },
-
       switchLinkShow: function () {
         //切换边显示状态
         if (this.layoutLinksG) {
@@ -518,7 +596,6 @@
           }
         }
       },
-
       secondFilter: function (typeList, attributeList) {
         //二级过滤
         let disappearNodes = new Set();
@@ -536,7 +613,6 @@
           else return "block";
         });
       },
-
       transformData: function (data) {
         //转化为后台需要的布局
         let typeArray = ["主机", "交换机", "服务器"];
@@ -551,15 +627,11 @@
           nodes.push(target);
           links.push({source: source, target: target, flow: +d.val});
         });
-
-
         //去重
         nodes = [...new Set(nodes)];
-
         let strObj = {};
         links.forEach(function (item) {
           let str = JSON.stringify({source: item.source, target: item.target})
-
           if (!strObj[str]) {
             strObj[str] = item;//第一次出现
             //formatData_link.push({ source: item.source, target: item.target, flow: 0 });//不含重复项
@@ -567,7 +639,6 @@
             strObj[str].flow += item.flow;//重复出现
           }
         });
-
         //按格式处理nodes
         nodes.forEach(function (d) {
           let obj = {
@@ -582,7 +653,6 @@
           formatData_link.push(strObj[link]);
         }
         let formatData = {nodes: formatData_node, links: formatData_link};
-
         return formatData;
       },
       nodeLevelFilter: function (nodeData, level) {
@@ -596,7 +666,11 @@
         } else {
           return nodeData
         }
-
+      },
+      updated(item){
+        this.obj['节点类型'] = item.nodeType;
+        this.obj.控制级别 = item.control;
+        this.obj.致瘫级别 = item.collapsed;
       }
     },
     computed: {
@@ -615,7 +689,6 @@
         this.secondFilter(this.nodeTypeList_get, val)
       },
       testData: function (newVal, oldVal) {
-
       },
       'selectTime_get.start': {
         handler: function (val) {
@@ -628,15 +701,18 @@
           }
           this.layoutData = this.transformData(nowData);
           this.drawSwitchGraph();
-
         },
         //immediate: true
       }
     }
   }
-
 </script>
 <style lang="less" scoped>
   @import "./AppNetwork.less";
-
+  div /deep/ .c {
+    line-height: normal !important;
+  }
+  div /deep/ .dg.main.a{
+   position: absolute;
+  }
 </style>

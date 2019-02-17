@@ -143,6 +143,14 @@ export default {
 			.attr("y", d => - noderadius)
 			.attr("width", d => noderadius*2)
 			.attr("height", d => noderadius*2)
+			.on("click",(d,i)=>{
+				let tmpind = this.$store.state.nodesSelected.indexOf(d.data.name);
+				if (tmpind >= 0) {
+				  this.$store.state.nodesSelected.splice(tmpind, 1);
+				} else {
+				  this.$store.state.nodesSelected.push(d.data.name);
+				}
+			})
 			.append("title").text((d,i)=>{
 				return d.data.name;
 			});
@@ -172,7 +180,7 @@ export default {
             });
 		g.append("text").attr("x",-this.padding.left)
 			.attr("y",this.height/2-this.padding.top-2*noderadius)
-			.text(nodesdata[0].data.name)
+			.text(rootnode)
 			.attr("fill","grey").attr("font-size","14px");
 		//console.log(locations);
 		

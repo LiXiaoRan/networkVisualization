@@ -40,18 +40,17 @@ export default class TimeLine2 {
     Center.startTime = newdatestr(startTime)
     Center.endTime = newdatestr(maxendtime)
     obj.data = JSON.stringify([startTime, maxendtime]);
+    obj.name = 'timeLineData_halfhour';
 
     var globalSpan = [
       { "id": "global_tl_real", "text": "最近半小时", "minCnt": 30 },
       { "id": "global_tl_day", "text": "最近1小时", "minCnt": 60 },
       { "id": "global_tl_week", "text": "最近3小时", "minCnt": 3 * 60 },
-      { "id": "global_tl_month", "text": "最近5小时", "minCnt": 5 * 60 }
     ];
     var timelineGranulariy = [
       { "id": "granulariy_tl_5", "text": "1分钟", "minCnt": 1 },
       { "id": "granulariy_tl_15", "text": "5分钟", "minCnt": 5 },
       { "id": "granulariy_tl_30", "text": "10分钟", "minCnt": 10 },
-      { "id": "granulariy_tl_60", "text": "15分钟", "minCnt": 15 },
     ];
 
     function globalBtnFunc(mincnt) {
@@ -63,9 +62,28 @@ export default class TimeLine2 {
         startTime=date2str(timestart);
         Center.startTime = newdatestr(startTime);
         obj.data = JSON.stringify([startTime, maxendtime]);
-        console.log(obj.data);
+        obj.name = name(mincnt);
+        console.log(obj.data, obj.name, '+++++++++');
         redrawTimeline();
       }
+    }
+
+    function name(mincnt) {
+      let  filename = '';
+      switch (mincnt){
+        case 30:
+          filename =  'timeLineData_halfhour';
+          break;
+        case 60:
+          filename = 'timeLineData_onehour';
+          break;
+        case 180:
+          filename = 'timeLineData_threehours';
+          break;
+        default:
+          filename = '';
+      }
+      return filename;
     }
 
     function granulariyBtnFunc(mincnt) {
@@ -189,7 +207,7 @@ export default class TimeLine2 {
 
     function redrawTimeline(){
       if(!hoursData[lower_timeminspan]){
-        CommunicateWithServer('get',obj,'getData',redrawTimeLineD);
+        CommunicateWithServer('get',obj,'get-timeLine-json',redrawTimeLineD);
       }else{
         redrawTimeLineD(hoursData[lower_timeminspan])//将数据缓存下来，重复的直接利用，不用再次对数据库进行请求
       }

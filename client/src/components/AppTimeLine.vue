@@ -17,7 +17,6 @@
 						  <li id="global_tl_real"><a >最近半小时</a></li>
 						  <li id="global_tl_day"><a >最近1小时</a></li>
 						  <li id="global_tl_week"><a >最近3小时</a></li>
-						  <li id="global_tl_month"><a >最近5小时</a></li>
 						</ul>
 					</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp; 时间粒度:&nbsp;
           <span class="button-dropdown button-dropdown-plain" data-buttons="dropdown" id="time_span2">
@@ -30,7 +29,6 @@
 						  <li id="granulariy_tl_5"><a >1分钟</a></li>
 						  <li id="granulariy_tl_15"><a >5分钟</a></li>
 						  <li id="granulariy_tl_30"><a >10分钟</a></li>
-						  <li id="granulariy_tl_60"><a >15分钟</a></li>
 						</ul>
 					</span>
         </div>

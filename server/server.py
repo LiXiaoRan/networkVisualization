@@ -19,6 +19,7 @@ import networkx as nx
 import json
 import numpy as np
 import math
+import codecs
 
 # import frq_path_stat
 define("port", default=22333, type=int, help="run on the given port")
@@ -243,7 +244,7 @@ class getSPs(tornado.web.RequestHandler):
 
 
 class getData(tornado.web.RequestHandler):
-    #获取timeline指定时间段的数据
+    #获取timeline指定时间段的数据（不再使用此方法，改为下方的getTimeLineJson获取本地json数据）
     def get(self):
         self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
@@ -331,6 +332,21 @@ class getData2(tornado.web.RequestHandler):
         evt = json.dumps(evt_unpacked)
         self.write(evt)
 
+
+class getTimeLineJson(tornado.web.RequestHandler):
+    #从预先计算好的json文件中，获取timeline指定时间段的数据
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        params = json.loads(self.get_argument('params'))
+        print('params', params)
+        fileName = '../client/src/assets/' + params['name'] + '.json'
+        with codecs.open(fileName,'r','utf-8') as load_f:
+            load_dict = json.load(load_f)
+        evt = json.dumps(load_dict)
+        self.write(evt)
+
 if __name__ == "__main__":
     tornado.options.parse_command_line()
     print('server running at 127.0.0.1:%d ...' % (tornado.options.options.port))
@@ -348,6 +364,7 @@ if __name__ == "__main__":
             (r'/getSPs', getSPs),
             (r'/getData', getData),
             (r'/getData2', getData2),
+            (r'/get-timeLine-json', getTimeLineJson),
             (r'/(.*)', tornado.web.StaticFileHandler, {'path': client_file_root_path,
                                                        'default_filename': 'index.html'})  # fetch client files
         ],

@@ -358,7 +358,16 @@
         this.levelList.forEach(obj => obj.isChecked = false);
         item.isChecked = true;
         this.nowLevel = item.value;
-        this.graphLayout();
+        //this.graphLayout();
+        //前端筛选节点的层级情况
+        let data = [].concat(this.selectData_get);
+        let nowData = this.nodeLevelFilter(data, this.nowLevel)
+        if (nowData.length === 0) {
+          alert("此层次上无节点")
+        }
+        this.layoutData = this.transformData(nowData);
+        this.drawSwitchGraph();
+
       },
       switchLayout(item) {
         this.layoutList.forEach(obj => obj.selected = false);

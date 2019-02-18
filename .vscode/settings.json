@@ -1,5 +1,6 @@
 {
     "python.linting.pylintArgs": [
         "--disable=E0602"
-    ]
+    ],
+    "vetur.validation.template": false
 }

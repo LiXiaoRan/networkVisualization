@@ -16,36 +16,50 @@
       </div>
     </div>
     <div class="filter2">
+        <div id="palsy_control">
           <span class="filtermsg">致瘫级别</span>
-          <span class="button-dropdown button-dropdown-plain" data-buttons="dropdown" >
-						<button class="button button-caution button-pill pasly_button" id="global_time_span_btn">
-						  5级
-              <!-- <i class="fa fa-caret-down"></i> -->
-              <font-awesome-icon icon="caret-down" />
-						</button>
-						<ul class="button-dropdown-list is-below">
-              <li id="global_tl_fourth"><a @click="switchPaslyLevel(5)">5级</a></li>
-						  <li id="global_tl_fourth"><a @click="switchPaslyLevel(4)">4级</a></li>
-						  <li id="global_tl_three"><a @click="switchPaslyLevel(3)">3级</a></li>
-						  <li id="global_tl_two"><a @click="switchPaslyLevel(2)">2级</a></li>
-						  <li id="global_tl_one"><a @click="switchPaslyLevel(1)">1级</a></li>
-						</ul>
-					</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;
-          <span class="filtermsg">控制级别</span>
-          <span class="button-dropdown button-dropdown-plain" data-buttons="dropdown">
-						<button class="button button-caution button-pill control_button" id="global_time_span_btn">
-						  5级
-              <!-- <i class="fa fa-caret-down"></i> -->
-              <font-awesome-icon icon="caret-down" />
-						</button>
-						<ul class="button-dropdown-list is-below" >
-						  <li id="global_tl_fourthc"><a @click="switchControlLevel(5)">5级</a></li>
-						  <li id="global_tl_fourthc"><a @click="switchControlLevel(4)">4级</a></li>
-						  <li id="global_tl_threec"><a @click="switchControlLevel(4)">3级</a></li>
-						  <li id="global_tl_twoc"><a @click="switchControlLevel(4)">2级</a></li>
-						  <li id="global_tl_onec"><a @click="switchControlLevel(4)">1级</a></li>
-						</ul>
-					</span> &nbsp;&nbsp;&nbsp;&nbsp;&nbsp;&nbsp;  
+          <div class="fcheckbox">
+            <div class="f_select1">
+              <input type="checkbox" value="5级" v-model="filterLevel" id="node4" /><label for="node4"></label><span>{{ palsy5 }}</span>
+            </div>
+            <div class="f_select2">
+              <input type="checkbox" value="4级" v-model="filterLevel" id="node5" /><label for="node5"></label><span>{{ palsy4 }}</span>
+            </div>
+            <div class="f_select3">
+              <input type="checkbox" value="3级" v-model="filterLevel" id="node6" /><label for="node6"></label><span>{{ palsy3 }}</span>
+            </div>
+            <div class="f_select4">
+              <input type="checkbox" value="2级" v-model="filterLevel" id="node7" /><label for="node7"></label><span>{{ palsy2 }}</span>
+            </div>
+            <div class="f_select5">
+              <input type="checkbox" value="1级" v-model="filterLevel"  id="node8"/><label for="node8"></label><span>{{ palsy1 }}</span>
+            </div>
+          </div>  
+        </div>
+
+        <div id="control">
+          <span class="control_filtermsg">控制级别</span>
+          <div class="fcheckbox">
+            <div class="f_select1">
+              <input type="checkbox" value="5级" v-model="controlFilterLevel" id="node9" /><label for="node9"></label><span>{{ control5 }}</span>
+            </div>
+            <div class="f_select2">
+              <input type="checkbox" value="4级" v-model="controlFilterLevel" id="node10" /><label for="node10"></label><span>{{ control4 }}</span>
+            </div>
+            <div class="f_select3">
+              <input type="checkbox" value="3级" v-model="controlFilterLevel" id="node11" /><label for="node11"></label><span>{{ control3 }}</span>
+            </div>
+            <div class="f_select4">
+              <input type="checkbox" value="2级" v-model="controlFilterLevel" id="node12" /><label for="node12"></label><span>{{ control2 }}</span>
+            </div>
+            <div class="f_select5">
+              <input type="checkbox" value="1级" v-model="controlFilterLevel"  id="node13"/><label for="node13"></label><span>{{ control1 }}</span>
+            </div>
+          </div>  
+        </div>  
+          <!-- </br> -->
+          <!-- <span class="filtermsg">控制级别</span> -->
+            
     </div>
     <div class="filtergraph">
       <span class="filtermsg-0">节点数量</span>
@@ -79,6 +93,10 @@ export default {
       span6: '正常',
       nodeType: ['主机','交换机','服务器'],
       nodeAttr: ['致瘫','控制','正常'],
+      filterLevel:['5级','4级','3级','2级','1级'],
+      controlFilterLevel:['5级','4级','3级','2级','1级'],
+      palsy1:'1级',palsy2:'2级',palsy3:'3级',palsy4:'4级',palsy5:'5级',
+      control1:'1级',control2:'2级',control3:'3级',control4:'4级',control5:'5级',
       items: [{ text: '总流量', value: '总流量' }, { text: '流入量', value: '流入量' }, { text: '流出量', value: '流出量' }],
       selected: '总流量'
     }

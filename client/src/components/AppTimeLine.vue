@@ -84,7 +84,6 @@
       getDataWithParams(paramsObj) {
         let self = this
         let Url = 'recent-data'
-
         CommunicateWithServer('get', paramsObj, Url, data => {
           self.networkData = data['data']
           self.loadedData = Math.random()

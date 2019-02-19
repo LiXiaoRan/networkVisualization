@@ -334,15 +334,15 @@ class getData2(tornado.web.RequestHandler):
 
 
 class getTimeLineJson(tornado.web.RequestHandler):
-    #从预先计算好的json文件中，获取timeline指定时间段的数据
+    #从预先计算好的json文件中，获取timeline全局流量
     def get(self):
         self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
         self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
         params = json.loads(self.get_argument('params'))
         print('params', params)
-        fileName = '../data/' + params['name'] + '.json'
-        with codecs.open(fileName,'r','utf-8') as load_f:
+        filePath = '../data/timeLineData_all.json'
+        with codecs.open(filePath,'r','utf-8') as load_f:
             load_dict = json.load(load_f)
         evt = json.dumps(load_dict)
         self.write(evt)

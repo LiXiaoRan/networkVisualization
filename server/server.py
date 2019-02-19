@@ -341,7 +341,7 @@ class getTimeLineJson(tornado.web.RequestHandler):
         self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
         params = json.loads(self.get_argument('params'))
         print('params', params)
-        fileName = '../client/src/assets/' + params['name'] + '.json'
+        fileName = '../data/' + params['name'] + '.json'
         with codecs.open(fileName,'r','utf-8') as load_f:
             load_dict = json.load(load_f)
         evt = json.dumps(load_dict)

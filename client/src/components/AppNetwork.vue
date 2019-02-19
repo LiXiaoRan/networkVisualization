@@ -116,6 +116,7 @@
   import serverSelectedImg from "../assets/server_selected.png";
   import * as d3 from "d3";
   import * as dat from "dat.gui"
+
   export default {
     data() {
       return {
@@ -150,10 +151,10 @@
         serverNum: 0,
         switchNum: 0,
         nowLevel: 0,
-        obj:{},
-        selectedNode:'', // 选择单个节点
-        selectedNodes:[], // 选择多个节点
-        selectedFlag:false
+        obj: {},
+        selectedNode: '', // 选择单个节点
+        selectedNodes: [], // 选择多个节点
+        selectedFlag: false
       };
     },
     components: {
@@ -231,8 +232,11 @@
           });
       });
       this.svg = d3.select(".view-svg");
-      this.viewSize = {width: parseFloat(this.svg.style("width")), height: parseFloat(this.svg.style("height"))};
-      this.padding = {top: 50, bottom: 50, left: 50, right: 50};
+      let width = parseFloat(this.svg.style("width"));
+      let height = parseFloat(this.svg.style("height"));
+      this.viewSize = {width: width, height: height};
+
+      this.padding = {top: 20, bottom: 20, left: (width - height) / 2, right: (width - height) / 2};
       let rateWH = Math.sqrt(this.viewSize.width * this.viewSize.height / 1200 / 400);
       this.arcs_width = rateWH * 2;
       let maxLinkWidth = 3 * rateWH;
@@ -241,32 +245,26 @@
       let maxNodeR = 30 * rateWH;
       let minNodeR = 6 * rateWH;
       this.nodeScale = d3.scaleLog().range([minNodeR, maxNodeR]);
-      // // let linkAllShow = f1.add(obj, '显示所有边').listen();
-      // // linkAllShow.onFinishChange(() => {
-      // //   this.linkAllShow = !this.linkAllShow;
-      // //   this.switchLinkShow();
-      // // });
-      //
 
       const gui = new dat.GUI();
-       this.obj = {
-        节点类型:"",
-        致瘫级别:1,
-        控制级别:1
+      this.obj = {
+        节点类型: "",
+        致瘫级别: 1,
+        控制级别: 1
       };
       let f1 = gui.addFolder('控制');
 
       // 节点类型
-      let nodeType = f1.add(this.obj, '节点类型',[
+      let nodeType = f1.add(this.obj, '节点类型', [
         "主机",
         "交换机",
         "服务器"
       ]).listen();
-      let nodeTypeFun = function(item,value){
+      let nodeTypeFun = function (item, value) {
         d3.select('#node_' + item)
-          .attr('fill',(d)=> {
-                 d.nodeType = value
-               })
+          .attr('fill', (d) => {
+            d.nodeType = value
+          })
           .select('image')
           .attr("xlink:href", () => {
             if (value === "主机") {
@@ -277,72 +275,57 @@
               return self.nodesImgList[2];
             }
           })
-      }
+      };
       nodeType.onFinishChange((value) => {
-        if(this.selectedFlag){
-          this.selectedNodes.forEach(item=>{
-            nodeTypeFun(item,value)
+        if (this.selectedFlag) {
+          this.selectedNodes.forEach(item => {
+            nodeTypeFun(item, value)
           })
-        }else {
-          nodeTypeFun(this.selectedNode,value)
+        } else {
+          nodeTypeFun(this.selectedNode, value)
         }
       });
 
       // 控制级别
       let controlLevel = f1.add(this.obj, '控制级别').min(1).max(5).step(1).listen();
-      let controlLevelFun = function(item,value){
-         d3.select('#node_' + item)
-              .attr('fill',(d)=> {
-                 d.control = value
-               })
-            .select('.arc_control')
-            .attr("fill", () => self.control_color_0[value-1])
-      }
-      controlLevel.onFinishChange((value) => {
-        if(this.selectedFlag){
-          this.selectedNodes.forEach(item=>{
-            controlLevelFun(item,value)
+      let controlLevelFun = function (item, value) {
+        d3.select('#node_' + item)
+          .attr('fill', (d) => {
+            d.control = value
           })
-        }else {
-           controlLevelFun(this.selectedNode,value)
-         }
+          .select('.arc_control')
+          .attr("fill", () => self.control_color_0[value - 1])
+      };
+      controlLevel.onFinishChange((value) => {
+        if (this.selectedFlag) {
+          this.selectedNodes.forEach(item => {
+            controlLevelFun(item, value)
+          })
+        } else {
+          controlLevelFun(this.selectedNode, value)
+        }
       });
 
       // 致瘫级别
       let collapsedLevel = f1.add(this.obj, '致瘫级别').min(1).max(5).step(1).listen();
-      let collapsedLevelFun = function(item,value){
-          d3.select('#node_' + item)
-              .attr('fill',(d)=>{
-                d.collapsed = value
-               })
-            .select('.arc_collapse')
-            .attr("fill", () => self.collapsed_color_0[value-1])
-      }
-      collapsedLevel.onFinishChange((value) => {
-        if(this.selectedFlag){
-         this.selectedNodes.forEach(item=>{
-            controlLevelFun(item,value)
+      let collapsedLevelFun = function (item, value) {
+        d3.select('#node_' + item)
+          .attr('fill', (d) => {
+            d.collapsed = value
           })
-        }else {
-         collapsedLevelFun(this.selectedNode,value)
+          .select('.arc_collapse')
+          .attr("fill", () => self.collapsed_color_0[value - 1])
+      };
+      collapsedLevel.onFinishChange((value) => {
+        if (this.selectedFlag) {
+          this.selectedNodes.forEach(item => {
+            controlLevelFun(item, value)
+          })
+        } else {
+          collapsedLevelFun(this.selectedNode, value)
         }
       });
-    document.getElementById("layout-panel").appendChild(gui.domElement);
-
-      this.graphLayout = function () {
-        self.getDataWithParams({
-          where: {
-            val: {
-              start: self.start,
-              end: self.end
-            }
-          },
-          limit: self.limit,
-          layout_type: self.nowLayoutType,
-          level: self.nowLevel
-        });
-      };
-      this.graphLayout();
+      document.getElementById("layout-panel").appendChild(gui.domElement);
     },
     methods: {
       drawSwitchGraph() {
@@ -358,10 +341,9 @@
         this.levelList.forEach(obj => obj.isChecked = false);
         item.isChecked = true;
         this.nowLevel = item.value;
-        //this.graphLayout();
         //前端筛选节点的层级情况
         let data = [].concat(this.selectData_get);
-        let nowData = this.nodeLevelFilter(data, this.nowLevel)
+        let nowData = this.nodeLevelFilter(data, this.nowLevel);
         if (nowData.length === 0) {
           alert("此层次上无节点")
         }
@@ -474,12 +456,12 @@
           .attr("width", d => this.nodeScale(d.degree))
           .attr("height", d => this.nodeScale(d.degree))
           .on("click", (d) => {
-            if(d3.event.ctrlKey){// 多选
-              this.selectedNodes.push(d.id)
+            if (d3.event.ctrlKey) {// 多选
+              this.selectedNodes.push(d.id);
               this.selectedFlag = true;
-            }else{ // 单选
-              this.selectedNodes = []
-              this.selectedNode = d.id
+            } else { // 单选
+              this.selectedNodes = [];
+              this.selectedNode = d.id;
               this.selectedFlag = false;
             }
             this.updated(d);
@@ -577,7 +559,7 @@
             return "translate(" + (this.xScale(d.x)) + "," + (this.yScale(d.y)) + ")"
           })
           .attr("fill", (d, i) => {
-            d.collapsed = i%5 + 1
+            d.collapsed = i % 5 + 1
             return this.collapsed_color_0[i % 5];
           });
         this.allNodesG.append("path").attr("d", (d) => {
@@ -590,7 +572,7 @@
             return "translate(" + (this.xScale(d.x)) + "," + (this.yScale(d.y)) + ")" + "rotate(180)"
           })
           .attr("fill", (d, i) => {
-            d.control = i%5 + 1
+            d.control = i % 5 + 1;
             return this.control_color_0[i % 5];
           });
         this.secondFilter(nodeType, nodeAttrType);
@@ -676,7 +658,7 @@
           return nodeData
         }
       },
-      updated(item){
+      updated(item) {
         this.obj['节点类型'] = item.nodeType;
         this.obj.控制级别 = item.control;
         this.obj.致瘫级别 = item.collapsed;
@@ -704,7 +686,7 @@
           //根据时间轴的筛选进行布局
           //  this.selectData_get为所选时间段的数据（可用于各种筛选）
           let data = [].concat(this.selectData_get);
-          let nowData = this.nodeLevelFilter(data, this.nowLevel)
+          let nowData = this.nodeLevelFilter(data, this.nowLevel);
           if (nowData.length === 0) {
             alert("此层次上无节点")
           }
@@ -718,10 +700,12 @@
 </script>
 <style lang="less" scoped>
   @import "./AppNetwork.less";
+
   div /deep/ .c {
     line-height: normal !important;
   }
-  div /deep/ .dg.main.a{
-   position: absolute;
+
+  div /deep/ .dg.main.a {
+    position: absolute;
   }
 </style>

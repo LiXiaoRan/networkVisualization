@@ -83,9 +83,9 @@ class getLayoutData(tornado.web.RequestHandler):
         for item in temp_nodes:
             # 0 主机, 1 交换机, 2 服务器
             type_int = random.randint(0, 2)
-            # 0 致瘫, 1 控制, 2 正常
-            attribute_int = random.randint(0, 2)
-            node = {'id': item, 'nodeType': type_int, 'nodeAttribute': attribute_int}
+            control = random.randint(0, 4)
+            palsy = random.randint(0, 4)
+            node = {'id': item, 'nodeType': type_int, 'control': control, 'palsy': palsy}
             nodes.append(node)
 
         tmp_links = []

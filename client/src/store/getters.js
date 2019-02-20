@@ -1,4 +1,3 @@
-
 export const testData = function (state) {
   return state.testData
 }
@@ -19,8 +18,12 @@ export const nodeTypeList_get = function (state) {
   return state.nodeTypeList
 }
 
-export const nodeAttrList_get = function (state) {
-  return state.nodeAttrList
+export const palsyList_get = function (state) {
+  return state.palsyLevelList
+}
+
+export const controlList_get = function (state) {
+  return state.controlLevelList
 }
 
 export const selectTime_get = function (state) {

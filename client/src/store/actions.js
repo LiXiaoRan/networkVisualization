@@ -1,12 +1,15 @@
 const actions = {
-    
-    modifyNodeTypeList_sync(context,obj){
-        context.commit('modifyNodeTypeList',obj)
-    },
-    
-    modifyNodeAttrList_sync(context,obj){
-        context.commit('modifyNodeAttrList',obj)
-    }
+
+  modifyNodeTypeList_sync(context, obj) {
+    context.commit('modifyNodeTypeList', obj)
+  },
+
+  modifyPalsyList_sync(context, obj) {
+    context.commit('modifyPalsyList', obj)
+  },
+  modifyControlList_sync(context, obj) {
+    context.commit('modifyControlList', obj)
+  }
 
 }
 

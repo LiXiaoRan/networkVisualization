@@ -4,6 +4,7 @@
       <app-title v-bind:icon="icon" v-bind:msgs="msgs"></app-title>
       <div class='view'>
         <svg class='view-svg'></svg>
+        <div id="lay-container"></div>
       </div>
     </div>
     <div id="legend-index">
@@ -15,13 +16,13 @@
               <td class="network_text1">起时间</td>
             </tr>
             <tr>
-              <td id='start_text_time' class="network_text2">2015.00.00 00:00:00</td>
+              <td class="network_text2">{{startTime}}</td>
             </tr>
             <tr>
               <td class="network_text1">讫时间</td>
             </tr>
             <tr>
-              <td id='end_text_time' class="network_text2">2015.00.00 00:00:00</td>
+              <td class="network_text2">{{endTime}}</td>
             </tr>
           </table>
         </div>
@@ -114,6 +115,9 @@
   import hostSelectedImg from "../assets/host_selected.png";
   import switchSelectedImg from "../assets/switch_selected.png";
   import serverSelectedImg from "../assets/server_selected.png";
+  import hostClickImg from "../assets/host_click.png";
+  import swithClickImg from "../assets/switch_click.png";
+  import serverClickImg from "../assets/server_click.png";
   import * as d3 from "d3";
   import * as dat from "dat.gui"
 
@@ -126,9 +130,8 @@
         legendMsgs: "图例与指示",
         nowLayoutType: "rt_circular",
         layoutData: {},
-        limit: 500,
-        start: 0,
-        end: 1000000000,
+        startTime: "2016-07-15 15.52:12",
+        endTime: "2016-07-15 15.53:12",
         linkAllShow: true,
         mainMiniMap: null,
         viewSize: {},
@@ -147,6 +150,7 @@
           {name: "层次", value: "sugiyama", selected: false}],
         nodesImgList: [hostImg, switchImg, serverImg],
         nodeSelectedList: [hostSelectedImg, switchSelectedImg, serverSelectedImg],
+        nodeClickList: [hostClickImg, swithClickImg, serverClickImg],
         hostNum: 0,
         serverNum: 0,
         switchNum: 0,
@@ -172,8 +176,8 @@
       this.end_angle = 180 * (Math.PI / 180);
       let legend_r = 3;
       let legend_level_height = parseFloat(d3.select("#level_legend .network_text4").style("height"));
-      let collapsed_color = ["white", "#b72626"];
-      let control_color = ["#008475", "white"];
+      let collapsed_color = ["#dac385", "#b72626"];
+      let control_color = ["#008475", "#dff68e"];
       this.collapsed_color_0 = ["#b72626", "#cd4d40", "#d37053", "#da9155", "#dac385"];
       this.control_color_0 = ["#008475", "#00ba8a", "#4dcf8b", "#9ce28d", "#dff68e"];
       let arcs_level = d3.arc()
@@ -262,9 +266,7 @@
       ]).listen();
       let nodeTypeFun = function (item, value) {
         d3.select('#node_' + item)
-          .attr('fill', (d) => {
-            d.nodeType = value
-          })
+          .attr('fill', (d) => d.nodeType = value)
           .select('image')
           .attr("xlink:href", () => {
             if (value === "主机") {
@@ -325,7 +327,7 @@
           collapsedLevelFun(this.selectedNode, value)
         }
       });
-      document.getElementById("layout-panel").appendChild(gui.domElement);
+      document.getElementById("lay-container").appendChild(gui.domElement);
     },
     methods: {
       drawSwitchGraph() {
@@ -361,19 +363,18 @@
         this.switchLinkShow();
       },
       drawGraph(result) {
-        let nodeType = this.nodeTypeList_get;
-        let nodeAttrType = this.nodeAttrList_get;
         let self = this;
         this.hostNum = 0;
         this.switchNum = 0;
         this.serverNum = 0;
+        this.nowClickNode = null;
         this.layoutData = result;
         this.layoutData.nodes.forEach(d => {
-          if (d.nodeType === "主机") {
+          if (d.nodeType === 0) {
             this.hostNum++;
-          } else if (d.nodeType === "交换机") {
+          } else if (d.nodeType === 1) {
             this.switchNum++;
-          } else if (d.nodeType === "服务器") {
+          } else if (d.nodeType === 2) {
             this.serverNum++;
           }
         });
@@ -431,111 +432,96 @@
           .append("g")
           .attr("id", d => "node_" + d.id);
         this.allNodesG.append("image")
-          .attr("xlink:href", d => {
-            if (d.nodeType === "主机") {
-              return this.nodesImgList[0];
-            } else if (d.nodeType === "交换机") {
-              return this.nodesImgList[1];
-            } else if (d.nodeType === "服务器") {
-              return this.nodesImgList[2];
-            }
-          })
+          .attr("xlink:href", d => this.nodesImgList[d.nodeType])
           .attr("x", d => this.xScale(d.x) - this.nodeScale(d.degree) / 2)
           .attr("y", d => this.yScale(d.y) - this.nodeScale(d.degree) / 2)
           .attr("width", d => this.nodeScale(d.degree))
           .attr("height", d => this.nodeScale(d.degree))
-          .on("click", (d) => {
+          .classed("clicked", false)
+          .on("click", function (d) {
             if (d3.event.ctrlKey) {// 多选
-              this.selectedNodes.push(d.id);
-              this.selectedFlag = true;
+              // let index = self.selectedNodes.findIndex(item => item === d.id);
+              // if (index !== -1) {
+              //   self.selectedNodes.splice(index, 1)
+              //   d3.select(this).attr("xlink:href", d => {
+              //     if (d.nodeType === "主机") {
+              //       return self.nodesImgList[0];
+              //     } else if (d.nodeType === "交换机") {
+              //       return self.nodesImgList[1];
+              //     } else if (d.nodeType === "服务器") {
+              //       return self.nodesImgList[2];
+              //     }
+              //   }).classed("clicked", false);
+              // } else {
+              //   self.selectedNodes.push(d.id);
+              //   d3.select(this).attr("xlink:href", d => {
+              //     if (d.nodeType === "主机") {
+              //       return self.nodeClickList[0];
+              //     } else if (d.nodeType === "交换机") {
+              //       return self.nodeClickList[1];
+              //     } else if (d.nodeType === "服务器") {
+              //       return self.nodeClickList[2];
+              //     }
+              //   }).classed("clicked", true);
+              // }
+              self.selectedFlag = true;
             } else { // 单选
-              this.selectedNodes = [];
-              this.selectedNode = d.id;
-              this.selectedFlag = false;
-            }
-            this.updated(d);
-
-            let tmpind = this.$store.state.nodesSelected.indexOf(d.id);
-            if (tmpind >= 0) {
-              this.$store.state.nodesSelected.splice(tmpind, 1);
-            } else {
-              this.$store.state.nodesSelected.push(d.id);
-            }
-          }).on("mouseover", function (d) {
-          d3.select(this).attr("xlink:href", () => {
-            if (d.nodeType === "主机") {
-              return self.nodeSelectedList[0];
-            } else if (d.nodeType === "交换机") {
-              return self.nodeSelectedList[1];
-            } else if (d.nodeType === "服务器") {
-              return self.nodeSelectedList[2];
-            }
-          });
-          self.layoutData.links.forEach((t, i) => {
-            if (t.source === d.id) {
-              d3.select("#link_" + i + " line").attr("stroke", "#00FFFF");
-              d3.select("#node_" + t.target + " image").attr("xlink:href", () => {
-                let connect = self.layoutData.nodes.find(item => (item.id === t.target));
-                if (connect.nodeType === "主机") {
-                  return self.nodeSelectedList[0];
-                } else if (connect.nodeType === "交换机") {
-                  return self.nodeSelectedList[1];
-                } else if (connect.nodeType === "服务器") {
-                  return self.nodeSelectedList[2];
-                }
-              });
-            } else if (t.target === d.id) {
-              d3.select("#link_" + i + " line").attr("stroke", "#00FFFF");
-              d3.select("#node_" + t.source + " image").attr("xlink:href", () => {
-                let connect = self.layoutData.nodes.find(item => (item.id === t.source));
-                if (connect.nodeType === "主机") {
-                  return self.nodeSelectedList[0];
-                } else if (connect.nodeType === "交换机") {
-                  return self.nodeSelectedList[1];
-                } else if (connect.nodeType === "服务器") {
-                  return self.nodeSelectedList[2];
-                }
-              });
-            }
-          })
-        })
-          .on("mouseout", function (d) {
-            d3.select(this).attr("xlink:href", () => {
-              if (d.nodeType === "主机") {
-                return self.nodesImgList[0];
-              } else if (d.nodeType === "交换机") {
-                return self.nodesImgList[1];
-              } else if (d.nodeType === "服务器") {
-                return self.nodesImgList[2];
+              self.selectedNodes = [];
+              self.selectedNode = d.id;
+              if (self.nowClickNode === null) {
+                self.nowClickNode = d3.select(this);
+              } else {
+                self.nowClickNode.attr("xlink:href", (l) => self.nodesImgList[l.nodeType]).classed("clicked", false);
+                self.nowClickNode = d3.select(this);
               }
-            });
+              d3.select(this).attr("xlink:href", () => self.nodeClickList[d.nodeType]).classed("clicked", true);
+              self.selectedFlag = false;
+            }
+            self.updated(d);
+            // let tmpId = this.$store.state.nodesSelected.indexOf(d.id);
+            // if (tmpId >= 0) {
+            //   this.$store.state.nodesSelected.splice(tmpId, 1);
+            // } else {
+            //   this.$store.state.nodesSelected.push(d.id);
+            // }
+          })
+          .on("mouseover", function (d) {
+            d3.select(this).attr("xlink:href", () => self.nodeSelectedList[d.nodeType]);
+            self.layoutData.links.forEach((t, i) => {
+              if (t.source === d.id) {
+                d3.select("#link_" + i + " line").attr("stroke", "#00FFFF");
+                d3.select("#node_" + t.target + " image").attr("xlink:href", () => {
+                  let connect = self.layoutData.nodes.find(item => (item.id === t.target));
+                  return self.nodeSelectedList[connect.nodeType];
+                });
+              } else if (t.target === d.id) {
+                d3.select("#link_" + i + " line").attr("stroke", "#00FFFF");
+                d3.select("#node_" + t.source + " image").attr("xlink:href", () => {
+                  let connect = self.layoutData.nodes.find(item => (item.id === t.source));
+                  return self.nodeSelectedList[connect.nodeType];
+                });
+              }
+            })
+          })
+          .on("mouseout", function (d) {
+            d3.select(this).attr("xlink:href", () => self.nodesImgList[d.nodeType]);
             self.layoutData.links.forEach((t, i) => {
               if (t.source === d.id) {
                 d3.select("#link_" + i + " line").attr("stroke", "#999999");
                 d3.select("#node_" + t.target + " image").attr("xlink:href", () => {
                   let connect = self.layoutData.nodes.find(item => (item.id === t.target));
-                  if (connect.nodeType === "主机") {
-                    return self.nodesImgList[0];
-                  } else if (connect.nodeType === "交换机") {
-                    return self.nodesImgList[1];
-                  } else if (connect.nodeType === "服务器") {
-                    return self.nodesImgList[2];
-                  }
+                  return self.nodesImgList[connect.nodeType];
                 });
               } else if (t.target === d.id) {
                 d3.select("#link_" + i + " line").attr("stroke", "#999999");
                 d3.select("#node_" + t.source + " image").attr("xlink:href", () => {
                   let connect = self.layoutData.nodes.find(item => (item.id === t.source));
-                  if (connect.nodeType === "主机") {
-                    return self.nodesImgList[0];
-                  } else if (connect.nodeType === "交换机") {
-                    return self.nodesImgList[1];
-                  } else if (connect.nodeType === "服务器") {
-                    return self.nodesImgList[2];
-                  }
+                  return self.nodesImgList[connect.nodeType];
                 });
               }
             })
+            if (d3.select(this).classed("clicked"))
+              d3.select(this).attr("xlink:href", () => self.nodeClickList[d.nodeType]).classed("clicked", true);
           });
         this.allNodesG.append("path").attr("d", (d) => {
           let tmp_r = this.nodeScale(d.degree) / 2;
@@ -564,7 +550,6 @@
             d.control = i % 5 + 1;
             return this.control_color_0[i % 5];
           });
-        this.secondFilter(nodeType, nodeAttrType);
       },
       switchLinkShow: function () {
         //切换边显示状态
@@ -576,11 +561,12 @@
           }
         }
       },
-      secondFilter: function (typeList, attributeList) {
+      secondFilter: function (typeList, palsyList, controlList) {
+        console.log(typeList, palsyList, controlList);
         //二级过滤
         let disappearNodes = new Set();
         this.allNodesG.attr("display", node => {
-          if (typeList.includes(node.nodeType) && attributeList.includes(node.nodeAttribute)) {
+          if (typeList.includes(node.nodeType)) {
             return "block";
           } else {
             disappearNodes.add(node.id);
@@ -592,6 +578,9 @@
           if (disappearNodes.includes(link.source) || disappearNodes.includes(link.target)) return "none";
           else return "block";
         });
+
+        //控制致瘫显示
+
       },
       updated(item) {
         this.obj['节点类型'] = item.nodeType;
@@ -600,38 +589,28 @@
       }
     },
     computed: {
-      ...mapGetters(['nodeTypeList_get', 'nodeAttrList_get']),
-      ...mapGetters(['selectTime_get', 'selectData_get']),
-      testData: function () {
-        return this.$store.state.testData
-      }
+      ...mapGetters(['nodeTypeList_get', 'palsyList_get', 'controlList_get']),
+      ...mapGetters(['selectTime_get', 'selectData_get'])
     },
     watch: {
       //监听过滤组件中的变化
       nodeTypeList_get: function (val) {
-        this.secondFilter(val, this.nodeAttrList_get)
+        this.secondFilter(val, this.palsyList_get, this.controlList_get)
       },
-      nodeAttrList_get: function (val) {
-        this.secondFilter(this.nodeTypeList_get, val)
+      palsyList_get: function (val) {
+        this.secondFilter(this.nodeTypeList_get, val, this.controlList_get)
       },
-      testData: function (newVal, oldVal) {
+      controlList_get: function (val) {
+        this.secondFilter(this.nodeTypeList_get, this.palsyList_get, val)
       },
-      'selectTime_get.start': {
-        handler: function (val) {
-          this.drawSwitchGraph();
-        },
+      selectTime_get: function (val) {
+        this.startTime = val.start;
+        this.endTime = val.end;
+        this.drawSwitchGraph();
       }
     }
   }
 </script>
 <style lang="less" scoped>
   @import "./AppNetwork.less";
-
-  div /deep/ .c {
-    line-height: normal !important;
-  }
-
-  div /deep/ .dg.main.a {
-    position: absolute;
-  }
 </style>

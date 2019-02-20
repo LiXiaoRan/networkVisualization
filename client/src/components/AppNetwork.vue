@@ -612,8 +612,8 @@
         let nodes = [], links = [];
         let source = '', target = '';
         data.forEach(function (d) {
-          source = d.trans_node_global_no.trim();
-          target = d.recv_node_golbal_no.trim();
+          source = d.trans_node_global_no;
+          target = d.recv_node_golbal_no;
           nodes.push(source);
           nodes.push(target);
           links.push({source: source, target: target, flow: +d.val});
@@ -686,12 +686,13 @@
           //根据时间轴的筛选进行布局
           //  this.selectData_get为所选时间段的数据（可用于各种筛选）
           let data = [].concat(this.selectData_get);
-          let nowData = this.nodeLevelFilter(data, this.nowLevel);
-          if (nowData.length === 0) {
-            alert("此层次上无节点")
-          }
-          this.layoutData = this.transformData(nowData);
-          this.drawSwitchGraph();
+          console.log(data)
+          // let nowData = this.nodeLevelFilter(data, this.nowLevel);
+          // if (nowData.length === 0) {
+          //   alert("此层次上无节点")
+          // }
+          // this.layoutData = this.transformData(nowData);
+          // this.drawSwitchGraph();
         },
         //immediate: true
       }

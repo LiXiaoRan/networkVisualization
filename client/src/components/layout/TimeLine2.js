@@ -11,6 +11,7 @@ export default class TimeLine2 {
     var select_data = [];//brush选中时间段的数据
     let hoursData = {};
     let distinguish_time = 30; //默认值为半小时
+    var upper_data_copy = [];
     Date.prototype.Format = function(fmt) {
       var o = {
         "M+": this.getMonth() + 1, //月份
@@ -64,7 +65,7 @@ export default class TimeLine2 {
         obj.data = JSON.stringify([startTime, maxendtime]);
         obj.name = name(mincnt);
         console.log(obj.data, obj.name, '+++++++++');
-        redrawTimeline();
+        redrawTimeLineD(mincnt);
       }
     }
 
@@ -205,20 +206,28 @@ export default class TimeLine2 {
       var lower_data = new Array();
     }
 
-    function redrawTimeline(){
-      if(!hoursData[lower_timeminspan]){
-        CommunicateWithServer('get',obj,'get-timeLine-json',redrawTimeLineD);
-      }else{
-        redrawTimeLineD(hoursData[lower_timeminspan])//将数据缓存下来，重复的直接利用，不用再次对数据库进行请求
-      }
+    function drawTimeLine() {
+      CommunicateWithServer('get',obj,'get-timeLine-json',drawTimeLineD);
     }
-    function redrawTimeLineD(evt_data) {
+
+    function drawTimeLineD(evt_data) {
       hoursData[lower_timeminspan] = evt_data
       lower_data= evt_data.data;
-      console.log("getdata+++++++++++++++++++++", evt_data.timeLineData)
-      timeline_data = evt_data.timeLineData;//获取下面整体时间段中的所有数据
       drawLowerTimeLine(lower_data);
-      drawUpperTimeLine(lower_data);
+      redrawTimeLineD(lower_timeminspan);//第一次为默认值：30分钟
+    }
+
+    //根据选择重新绘制上层时间轴
+    function redrawTimeLineD(mincnt) {
+      let lower_endTime = lowerparseTime(d3.keys(lower_data[lower_data.length - 1])[0])
+      let upper_data = [];
+      lower_data.forEach(function (d) {
+        if(lower_endTime - lowerparseTime(d3.keys(d)[0]) <= mincnt*60*1000){
+          upper_data.push(d);
+        }
+      })
+
+      drawUpperTimeLine(lower_data, upper_data);
     }
     function newdatestr(strdate) {
       newstr = strdate[0] + strdate[1] + strdate[2] + strdate[3] + "-" + strdate[4] + strdate[5] + "-" + strdate[6] + strdate[7] + " " + strdate[8] + strdate[9] + ":" + strdate[10] + strdate[11] + ":" + strdate[12] + strdate[13]
@@ -314,6 +323,7 @@ export default class TimeLine2 {
       var dx = select_x1 - select_x;
       //console.log(s);
       if (dx) {
+
         lowertimebrushed = [context_x.invert(select_x), context_x.invert(select_x1)];
         context_brushhandle.attr("display", null).attr("transform", function(d, i) { return "translate(" + s[i] + "," + (context_height - context_height / 5 - lower_margin.bottom) / 2 + ")"; });
         //timedata = [context_x.invert(select_x), context_x.invert(select_x1)];
@@ -327,7 +337,7 @@ export default class TimeLine2 {
         lowertimebrushed = context_x.domain();
         context_brushhandle.attr("display", "none");
 
-        focus_x.domain(context_x.domain());
+        focus_x.domain(d3.extent(upper_data_copy.map(function(d) { return lowerparseTime(d3.keys(d)[0]); })));
         lowertimebrushed = focus_x.domain();
         focusline.select(".timeline_path").attr("d", focus_area);
         focusline.select(".timeline_path_stroke").attr("d", focus_area_stroke);
@@ -339,22 +349,25 @@ export default class TimeLine2 {
       autoplaytimer = window.clearInterval(autoplaytimer);
     }
 
-    function drawUpperTimeLine(datap) {
+    function drawUpperTimeLine(datap, upperdata) {
 
-      focusline.selectAll("g").remove();
+       focusline.selectAll("g").remove();
 
-      focus_x.domain(context_x.domain());
+      upper_data_copy = upperdata;
+      focus_x.domain(d3.extent(upperdata.map(function(d) { return lowerparseTime(d3.keys(d)[0]); })))
+
+      //focus_x.domain(context_x.domain());
       focus_y.domain(context_y.domain());
       focus_xAxis = d3.axisBottom(focus_x).tickSize(-focus_height)
         .ticks(d3.timeMinute.every(upper_timeminsplite));
-      focus_yAxis = d3.axisLeft(focus_y).ticks(5);
+      focus_yAxis = d3.axisLeft(focus_y).ticks(3);
       focus_area = d3.area().curve(d3.curveBasis)
         .x(function(d) { return focus_x(lowerparseTime(d3.keys(d)[0])); })
         .y0(focus_height)
         .y1(function(d) { return focus_y(d3.values(d)[0]); });
       focus_area_stroke = d3.line().curve(d3.curveBasis)
         .x(focus_area.x()).y(focus_area.y1());
-      lowertimebrushed = focus_x.domain();
+    //  lowertimebrushed = focus_x.domain();
       //path
       var patharea = focusline.append("g");
       patharea.append("defs").append("clipPath")
@@ -511,13 +524,10 @@ export default class TimeLine2 {
       var brush_startTime = date2str(uppertimewindow[0]);
       var brush_endTime = date2str(uppertimewindow[1]);
       var brush_data = [];
-      timeline_data.forEach(function (item) {
-        if(item.event_begintime >= brush_startTime && item.event_endtime <= brush_endTime){
-          brush_data.push(item);
-        }
-      })
-      select_data = [].concat(brush_data);//看作为一层的深拷贝
-      //console.log(brush_startTime, brush_endTime)
+      let param = {};
+      param.data = JSON.stringify([brush_startTime, brush_endTime]);
+
+      CommunicateWithServer('get',param,'getData2',transfromSelectData);
 
 
 
@@ -528,14 +538,19 @@ export default class TimeLine2 {
        * ***/
       //let brush_time = { 'start':brush_startTime, 'end': brush_endTime };
       //传出数据;
+      function transfromSelectData(brush_data){
 
-      select_time.start = brush_startTime;
-      select_time.end = brush_endTime;
-      select_time.data = select_data;
-      console.log('select_data:+++++++++', select_data);
-      select_time.observe = brush_startTime;//用于监听
+        select_data = [].concat(brush_data);//看作为一层的深拷贝
+        //console.log(brush_startTime, brush_endTime)
+
+        select_time.start = brush_startTime;
+        select_time.end = brush_endTime;
+        select_time.data = select_data;
+        console.log('select_data:+++++++++', select_data);
+        select_time.observe = brush_startTime;//用于监听
+      }
     }
-    redrawTimeline();
+    drawTimeLine();
 
   }
 }

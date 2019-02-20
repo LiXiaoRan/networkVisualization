@@ -139,7 +139,7 @@
         layoutList: [{name: "RT树", value: "rt_circular", selected: true},
           {name: "力导", value: "kk", selected: false},
           {name: "降维", value: "reduce", selected: false},
-          {name: "椭圆", value: "circle", selected: false},
+          {name: "环形", value: "circle", selected: false},
           {name: "尺度", value: "mds", selected: false},
           {name: "网格", value: "grid", selected: false},
           {name: "大图", value: "lgl", selected: false},
@@ -236,7 +236,7 @@
       let height = parseFloat(this.svg.style("height"));
       this.viewSize = {width: width, height: height};
 
-      this.padding = {top: 20, bottom: 20, left: (width - height) / 2, right: (width - height) / 2};
+      this.padding = {top: 20, bottom: 20, left: (width - height + 40) / 2, right: (width - height + 40) / 2};
       let rateWH = Math.sqrt(this.viewSize.width * this.viewSize.height / 1200 / 400);
       this.arcs_width = rateWH * 2;
       let maxLinkWidth = 3 * rateWH;
@@ -252,10 +252,10 @@
         致瘫级别: 1,
         控制级别: 1
       };
-      let f1 = gui.addFolder('控制');
+      let folder = gui.addFolder('节点属性');
 
       // 节点类型
-      let nodeType = f1.add(this.obj, '节点类型', [
+      let nodeType = folder.add(this.obj, '节点类型', [
         "主机",
         "交换机",
         "服务器"
@@ -287,7 +287,7 @@
       });
 
       // 控制级别
-      let controlLevel = f1.add(this.obj, '控制级别').min(1).max(5).step(1).listen();
+      let controlLevel = folder.add(this.obj, '控制级别').min(1).max(5).step(1).listen();
       let controlLevelFun = function (item, value) {
         d3.select('#node_' + item)
           .attr('fill', (d) => {
@@ -307,7 +307,7 @@
       });
 
       // 致瘫级别
-      let collapsedLevel = f1.add(this.obj, '致瘫级别').min(1).max(5).step(1).listen();
+      let collapsedLevel = folder.add(this.obj, '致瘫级别').min(1).max(5).step(1).listen();
       let collapsedLevelFun = function (item, value) {
         d3.select('#node_' + item)
           .attr('fill', (d) => {
@@ -330,24 +330,16 @@
     methods: {
       drawSwitchGraph() {
         let paramsObj = {
-          layoutData: JSON.stringify(this.layoutData),
           layout_type: this.nowLayoutType,
-          level: this.nowLevel,
+          network_level: this.nowLevel
         };
         let Url = "get-layout-data";
-        CommunicateWithServer('post', paramsObj, Url, this.drawGraph)
+        CommunicateWithServer('get', paramsObj, Url, this.drawGraph)
       },
       changeLevel(item) {
         this.levelList.forEach(obj => obj.isChecked = false);
         item.isChecked = true;
         this.nowLevel = item.value;
-        //前端筛选节点的层级情况
-        let data = [].concat(this.selectData_get);
-        let nowData = this.nodeLevelFilter(data, this.nowLevel);
-        if (nowData.length === 0) {
-          alert("此层次上无节点")
-        }
-        this.layoutData = this.transformData(nowData);
         this.drawSwitchGraph();
 
       },
@@ -368,9 +360,6 @@
         this.linkAllShow = !this.linkAllShow;
         this.switchLinkShow();
       },
-      getDataWithParams(paramsObj) {
-        CommunicateWithServer('get', paramsObj, 'cal-layout', this.drawGraph)
-      },
       drawGraph(result) {
         let nodeType = this.nodeTypeList_get;
         let nodeAttrType = this.nodeAttrList_get;
@@ -378,7 +367,7 @@
         this.hostNum = 0;
         this.switchNum = 0;
         this.serverNum = 0;
-        this.layoutData = {'links': result.links, "nodes": result.nodes};
+        this.layoutData = result;
         this.layoutData.nodes.forEach(d => {
           if (d.nodeType === "主机") {
             this.hostNum++;
@@ -604,64 +593,10 @@
           else return "block";
         });
       },
-      transformData: function (data) {
-        //转化为后台需要的布局
-        let typeArray = ["主机", "交换机", "服务器"];
-        let attrtArray = ["致瘫", "控制", "正常"];
-        let formatData_node = [], formatData_link = [];
-        let nodes = [], links = [];
-        let source = '', target = '';
-        data.forEach(function (d) {
-          source = d.trans_node_global_no;
-          target = d.recv_node_golbal_no;
-          nodes.push(source);
-          nodes.push(target);
-          links.push({source: source, target: target, flow: +d.val});
-        });
-        //去重
-        nodes = [...new Set(nodes)];
-        let strObj = {};
-        links.forEach(function (item) {
-          let str = JSON.stringify({source: item.source, target: item.target})
-          if (!strObj[str]) {
-            strObj[str] = item;//第一次出现
-            //formatData_link.push({ source: item.source, target: item.target, flow: 0 });//不含重复项
-          } else {
-            strObj[str].flow += item.flow;//重复出现
-          }
-        });
-        //按格式处理nodes
-        nodes.forEach(function (d) {
-          let obj = {
-            id: d, nodeAttribute: attrtArray[parseInt(Math.random() * 3)],
-            nodeType: typeArray[parseInt(Math.random() * 3)],
-            in: 0, out: 0, x: 0, y: 0
-          };
-          formatData_node.push(obj);
-        });
-        //按格式处理links
-        for (let link in strObj) {
-          formatData_link.push(strObj[link]);
-        }
-        let formatData = {nodes: formatData_node, links: formatData_link};
-        return formatData;
-      },
-      nodeLevelFilter: function (nodeData, level) {
-        // 根据节点的层级筛选数据
-        if (level != 0) {
-          let startLevel = level * 100;
-          let endLevel = startLevel + 100;
-          return nodeData.filter(function (d) {
-            return (d.net_level >= startLevel && d.net_level < endLevel);
-          })
-        } else {
-          return nodeData
-        }
-      },
       updated(item) {
         this.obj['节点类型'] = item.nodeType;
-        this.obj.控制级别 = item.control;
-        this.obj.致瘫级别 = item.collapsed;
+        this.obj['控制级别'] = item.control;
+        this.obj['致瘫级别'] = item.collapsed;
       }
     },
     computed: {
@@ -683,18 +618,8 @@
       },
       'selectTime_get.start': {
         handler: function (val) {
-          //根据时间轴的筛选进行布局
-          //  this.selectData_get为所选时间段的数据（可用于各种筛选）
-          let data = [].concat(this.selectData_get);
-          console.log(data)
-          // let nowData = this.nodeLevelFilter(data, this.nowLevel);
-          // if (nowData.length === 0) {
-          //   alert("此层次上无节点")
-          // }
-          // this.layoutData = this.transformData(nowData);
-          // this.drawSwitchGraph();
+          this.drawSwitchGraph();
         },
-        //immediate: true
       }
     }
   }

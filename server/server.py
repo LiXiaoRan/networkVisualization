@@ -20,11 +20,9 @@ import json
 import numpy as np
 import math
 import codecs
+import copy
 
-# import frq_path_stat
 define("port", default=22333, type=int, help="run on the given port")
-# define("port", default=8661, type=int, help="run on the given port")
-# client_file_root_path = os.path.join(os.path.split(__file__)[0],'../client')
 client_file_root_path = os.path.join(os.path.split(__file__)[0], '../')
 client_file_root_path = os.path.abspath(client_file_root_path)
 
@@ -52,17 +50,27 @@ class getRecentDataHandler(tornado.web.RequestHandler):
         self.write({'data': data})
 
 
-class calLayout(tornado.web.RequestHandler):
+class getLayoutData(tornado.web.RequestHandler):
+    '''计算前端选择布局后提交的数据'''
 
     def get(self):
-
+        print("进入get")
         self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
         self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
         params = self.get_argument('params')
         params = json.loads(params)
         layoutType = params['layout_type']
-        data = NetworkData.getData(params)
+        networkLevel = int(params['network_level'])
+        data = []
+        if networkLevel != 0:
+            startLevel = networkLevel * 100
+            endLevel = startLevel + 100
+            for item in nowSelectedData:
+                if startLevel <= int(item['net_level']) < endLevel:
+                    data.append(item)
+        else:
+            data = copy.deepcopy(nowSelectedData)
         links = []
         temp_nodes = []
         nodes = []
@@ -105,38 +113,6 @@ class calLayout(tornado.web.RequestHandler):
         end = time.clock()
         diff_time = end - start
         print("spend time for calculate layout: " + str(diff_time))
-        # print(">>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>>", result['nodes'][0])
-        self.write(result)
-        LocalGraph.updatelocaldata(nodes, result['links'])
-
-    def post(self):
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
-        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
-        constraint = self.get_argument('constraint')
-        constraint = json.loads(constraint)
-        self.write({'suc': 'post success'})
-
-
-class getLayoutData(tornado.web.RequestHandler):
-    '''计算前端选择布局后提交的数据'''
-
-    def get(self):
-        print("进入get")
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
-        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
-        params = self.get_argument('params')
-        params = json.loads(params)
-        layoutType = params['layout_type']
-        data = params['layoutData']
-        # print("data in getLayoutData is ")
-        # print(data)
-        start = time.clock()
-        result = igraphLayout.cal_back_layout_data(data, layoutType)
-        end = time.clock()
-        diff_time = end - start
-        print("spend time for calculate layout: " + str(diff_time))
         self.write(result)
 
     def post(self):
@@ -170,7 +146,7 @@ class getDim2(tornado.web.RequestHandler):
         # type = int(json.loads(self.get_argument('type')))
         nodesobj = LocalGraph.getdim2(type)
         evt_unpacked = {'nodes': nodesobj,
-                        #'edges': list(LocalGraph.G.edges()),
+                        # 'edges': list(LocalGraph.G.edges()),
                         'outlier': LocalGraph.outlierrecord}
         evt = json.dumps(evt_unpacked)
         self.write(evt)
@@ -198,8 +174,8 @@ class getAttr(tornado.web.RequestHandler):
         self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
         params = json.loads(self.get_argument('params'))
         nodes = json.loads(params['nodes'])
-        tmpattr,nodesattr = LocalGraph.getAttr(nodes)
-        evt_unpacked = {"attr": tmpattr,'nodes':nodesattr,"start":LocalGraph.rangestart,"end":LocalGraph.rangeend}
+        tmpattr, nodesattr = LocalGraph.getAttr(nodes)
+        evt_unpacked = {"attr": tmpattr, 'nodes': nodesattr, "start": LocalGraph.rangestart, "end": LocalGraph.rangeend}
         evt = json.dumps(evt_unpacked)
         self.write(evt)
 
@@ -243,80 +219,6 @@ class getSPs(tornado.web.RequestHandler):
         self.write(evt)
 
 
-class getData(tornado.web.RequestHandler):
-    #获取timeline指定时间段的数据（不再使用此方法，改为下方的getTimeLineJson获取本地json数据）
-    def get(self):
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
-        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
-        params = json.loads(self.get_argument('params'))
-        print('params', params)
-        timeRange = json.loads(params['data'])
-        print('timeRange', timeRange[0], timeRange[1])
-        start = time.clock()
-        data = NetworkData.getTimeRangeData(timeRange[0], timeRange[1])
-        end = time.clock()
-        diff_time = end - start
-        print("spend time for get timeLine data: " + str(diff_time))
-        newdata=[]
-        i=0
-        while i<len(data)-1:
-            sttime=data[i]["event_begintime"]
-            sttime=sttime[0:14]
-            sttime2 = data[i+1]["event_begintime"]
-            sttime2 = sttime2[0:14]
-            sttimeStamp = int(time.mktime(time.strptime(sttime, "%Y%m%d%H%M%S")))
-            sttimeStamp2 = int(time.mktime(time.strptime(sttime2, "%Y%m%d%H%M%S")))
-
-            sttime = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(sttimeStamp))
-            sttime2 = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(sttimeStamp2))
-
-            value1=int(float(data[i]["flow"]))
-            value2 = int(float(data[i+1]["flow"]))
-
-            if((sttimeStamp2-sttimeStamp)>1000):
-                buckets=int((sttimeStamp2-sttimeStamp))
-                for j in xrange(0,buckets,10):
-                    timeArray = time.localtime(sttimeStamp+(j+1))
-                    otherStyleTime = time.strftime("%Y-%m-%d %H:%M:%S", timeArray)
-                    newdata.append({otherStyleTime:0})
-            elif (sttimeStamp2-sttimeStamp !=0):
-                newdata.append({sttime:math.sqrt(value1)})
-            elif (sttimeStamp2-sttimeStamp ==0):
-                if len(newdata):newdata.pop()
-                newdata.append({sttime: math.sqrt(value1+value2)})
-                i=i+1
-            i=i+1
-
-        timerange0=timeRange[0][0:14]
-        timerange0S=int(time.mktime(time.strptime(timerange0, "%Y%m%d%H%M%S")))
-        timerange0 = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timerange0S))
-        timerange1 = timeRange[1][0:14]
-        timerange1S = int(time.mktime(time.strptime(timerange1, "%Y%m%d%H%M%S")))
-        timerange1 = time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(timerange1S))
-
-        mintime = data[0]["event_begintime"][0:14]
-        mintimeS = int(time.mktime(time.strptime(mintime, "%Y%m%d%H%M%S")))
-        maxtime = data[(len(data)-1)]["event_begintime"][0:14]
-        maxtimeS = int(time.mktime(time.strptime(maxtime, "%Y%m%d%H%M%S")))
-
-        print(mintime,maxtime)
-        if (mintimeS-timerange0S)>300:
-            newdata.insert(0, {timerange0:0})
-            newdata.insert(1, {time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(mintimeS-1)): 0})
-        if (timerange1S-maxtimeS)>300:
-            newdata.append({time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(maxtimeS+1)): 0})
-            newdata.append({timerange1: 0})
-
-        #print newdata
-        #evt_unpacked = {'message': 'timeRangeData', 'data': data }
-        evt_unpacked = {'message': 'timeRangeData', 'data': newdata, 'timeLineData': data }
-        evt = json.dumps(evt_unpacked)
-        self.write(evt)
-
-        LocalGraph.rangestart=mintimeS
-        LocalGraph.rangeend=maxtimeS
-
 class getData2(tornado.web.RequestHandler):
     def get(self):
         self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
@@ -326,15 +228,15 @@ class getData2(tornado.web.RequestHandler):
         print('params', params)
         timeRange = json.loads(params['data'])
         print('timeRange', timeRange)
-        data = NetworkData.getTimeRangeData(timeRange[0], timeRange[1])
-        print(len(data))
-        evt_unpacked = {'message': 'timeRangeData', 'data': data }
+        global nowSelectedData
+        nowSelectedData = NetworkData.getTimeRangeData(timeRange[0], timeRange[1])
+        evt_unpacked = {'message': 'timeRangeData', 'data': nowSelectedData}
         evt = json.dumps(evt_unpacked)
         self.write(evt)
 
 
 class getTimeLineJson(tornado.web.RequestHandler):
-    #从预先计算好的json文件中，获取timeline全局流量
+    # 从预先计算好的json文件中，获取timeline全局流量
     def get(self):
         self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
@@ -342,10 +244,11 @@ class getTimeLineJson(tornado.web.RequestHandler):
         params = json.loads(self.get_argument('params'))
         print('params', params)
         filePath = '../data/timeLineData_all.json'
-        with codecs.open(filePath,'r','utf-8') as load_f:
+        with codecs.open(filePath, 'r', 'utf-8') as load_f:
             load_dict = json.load(load_f)
         evt = json.dumps(load_dict)
         self.write(evt)
+
 
 if __name__ == "__main__":
     tornado.options.parse_command_line()
@@ -354,7 +257,6 @@ if __name__ == "__main__":
     app = tornado.web.Application(
         handlers=[
             (r'/recent-data', getRecentDataHandler),
-            (r'/cal-layout', calLayout),
             (r'/get-layout-data', getLayoutData),
             (r'/getDim2', getDim2),
             (r'/changeOutlierType', changeOutlierType),
@@ -362,7 +264,6 @@ if __name__ == "__main__":
             (r'/choosenone', choosenone),
             (r'/gettree', gettree),
             (r'/getSPs', getSPs),
-            (r'/getData', getData),
             (r'/getData2', getData2),
             (r'/get-timeLine-json', getTimeLineJson),
             (r'/(.*)', tornado.web.StaticFileHandler, {'path': client_file_root_path,

@@ -513,9 +513,6 @@ export default class TimeLine2 {
         return str;
 
       }
-      console.log(uppertimewindow);
-      $('#start_text_time').text(uppertimewindow[0].Format("yyyy-MM-dd hh:mm:ss"))
-      $('#end_text_time').text(uppertimewindow[1].Format("yyyy-MM-dd hh:mm:ss"))
 
 
       /*********
@@ -536,17 +533,15 @@ export default class TimeLine2 {
        * 也可自行传出选中的数据：select_data，
        * 以及选中的时间：uppertimewindow（为Date格式），brush_startTime、brush_endTime（为String格式）
        * ***/
-      //let brush_time = { 'start':brush_startTime, 'end': brush_endTime };
       //传出数据;
       function transfromSelectData(brush_data){
 
         select_data = [].concat(brush_data);//看作为一层的深拷贝
         //console.log(brush_startTime, brush_endTime)
 
-        select_time.start = brush_startTime;
-        select_time.end = brush_endTime;
+        select_time.start = uppertimewindow[0].Format("yyyy-MM-dd hh:mm:ss");
+        select_time.end = uppertimewindow[1].Format("yyyy-MM-dd hh:mm:ss");
         select_time.data = select_data;
-        console.log('select_data:+++++++++', select_data);
         select_time.observe = brush_startTime;//用于监听
       }
     }

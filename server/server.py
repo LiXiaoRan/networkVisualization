@@ -29,9 +29,6 @@ client_file_root_path = os.path.abspath(client_file_root_path)
 NetworkData = database.NetworkData()
 LocalGraph = graphfunc.LocalGraph()
 
-typeArray = ["主机", "交换机", "服务器"]
-attrArray = ["致瘫", "控制", "正常"]
-
 
 class getRecentDataHandler(tornado.web.RequestHandler):
     def post(self):
@@ -51,8 +48,7 @@ class getRecentDataHandler(tornado.web.RequestHandler):
 
 
 class getLayoutData(tornado.web.RequestHandler):
-    '''计算前端选择布局后提交的数据'''
-
+    # 计算前端选择布局后提交的数据
     def get(self):
         print("进入get")
         self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
@@ -85,9 +81,11 @@ class getLayoutData(tornado.web.RequestHandler):
             links.append(link)
         temp_nodes = set(temp_nodes)
         for item in temp_nodes:
+            # 0 主机, 1 交换机, 2 服务器
             type_int = random.randint(0, 2)
+            # 0 致瘫, 1 控制, 2 正常
             attribute_int = random.randint(0, 2)
-            node = {'id': item, 'nodeType': typeArray[type_int], 'nodeAttribute': attrArray[attribute_int]}
+            node = {'id': item, 'nodeType': type_int, 'nodeAttribute': attribute_int}
             nodes.append(node)
 
         tmp_links = []

@@ -33,3 +33,7 @@ export const selectTime_get = function (state) {
 export const selectData_get = function (state) {
   return state.selectData
 }
+
+export const layoutData_get = function (state) {
+  return state.layoutData
+}

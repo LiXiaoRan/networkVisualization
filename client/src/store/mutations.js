@@ -17,18 +17,11 @@ const mutations = {
 
   modifySelectData(state, arr) {
     state.selectData = arr;
-  }
+  },
 
+  modiftLayoutData(state, obj) {
+    state.layoutData = obj.layoutData;
+  }
 }
 
 export default mutations;
-
-
-// export const mutations = {
-//     modifyNodeTypeList(state, obj) {
-//         state.nodeTypeList=obj.nodeTypeList
-//     },
-//     modifyNodeAttrList (state,obj) {
-//         state.nodeAttrList=obj.nodeAttrList
-//     }
-//   }

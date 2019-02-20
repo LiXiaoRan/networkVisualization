@@ -14,7 +14,8 @@ const state = {
   palsyLevelList: [0, 1, 2, 3, 4],
   controlLevelList: [0, 1, 2, 3, 4],
   selectTime: {start: '', end: ''},
-  selectData: []
+  selectData: [],
+  layoutData:[]
   //cleargraph:0,
   //init_dim2:0,
   //init_subgraph:0,

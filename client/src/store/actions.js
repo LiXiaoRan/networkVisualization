@@ -9,8 +9,10 @@ const actions = {
   },
   modifyControlList_sync(context, obj) {
     context.commit('modifyControlList', obj)
+  },
+  modiftLayoutData_sync(context, obj) {
+    context.commit('modiftLayoutData', obj)
   }
-
 }
 
 export default actions;

@@ -30,7 +30,7 @@ NetworkData = database.NetworkData()
 LocalGraph = graphfunc.LocalGraph()
 
 typeArray = ["主机", "交换机", "服务器"]
-attrtArray = ["致瘫", "控制", "正常"]
+attrArray = ["致瘫", "控制", "正常"]
 
 
 class getRecentDataHandler(tornado.web.RequestHandler):
@@ -87,7 +87,7 @@ class getLayoutData(tornado.web.RequestHandler):
         for item in temp_nodes:
             type_int = random.randint(0, 2)
             attribute_int = random.randint(0, 2)
-            node = {'id': item, 'nodeType': typeArray[type_int], 'nodeAttribute': attrtArray[attribute_int]}
+            node = {'id': item, 'nodeType': typeArray[type_int], 'nodeAttribute': attrArray[attribute_int]}
             nodes.append(node)
 
         tmp_links = []
@@ -127,6 +127,7 @@ class getLayoutData(tornado.web.RequestHandler):
         diff_time = end - start
         print("spend time for calculate layout: " + str(diff_time))
         self.write(result)
+        LocalGraph.updatelocaldata(nodes, result['links'])
 
     def post(self):
         self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
@@ -246,6 +247,8 @@ class getData2(tornado.web.RequestHandler):
         evt_unpacked = {'message': 'timeRangeData', 'data': nowSelectedData}
         evt = json.dumps(evt_unpacked)
         self.write(evt)
+        LocalGraph.rangestart = timeRange[0]
+        LocalGraph.rangeend = timeRange[1]
 
 
 class getTimeLineJson(tornado.web.RequestHandler):

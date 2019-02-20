@@ -99,6 +99,20 @@ class calLayout(tornado.web.RequestHandler):
         diff_time = end - start
         print("spend time for build graph: " + str(diff_time))
 
+        # 计算flow
+        for node in nodes:
+            flow_in=0
+            flow_out=0
+            for link in links:
+                if node['id']==link['source']:
+                    flow_out = flow_out + link['flow']
+                if node['id']==link['target']:
+                    flow_in = flow_in + link['flow']
+            node['flow_in'] = flow_in
+            node['flow_out'] = flow_out
+            node['flow']=flow_in + flow_out
+
+
         result = {'nodes': nodes, 'links': links}
         start = time.clock()
         result = igraphLayout.cal_back_layout_data(result, layoutType)

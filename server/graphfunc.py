@@ -29,14 +29,14 @@ class LocalGraph:
                    "endtime": linuxtimestamp(timee),
                    "timestep": 60, "timewindow": 60}
 
-        self.filepath = "../data/"
-        indata = open(self.filepath + "nodesattri.pkl", 'rb')
-        self.nodesattri = pickle.load(indata)
-        indata.close()
-
-        indata = open(self.filepath + "nodessps.pkl", 'rb')
-        self.nodessps = pickle.load(indata)
-        indata.close()
+        # self.filepath = "../data/"
+        # indata = open(self.filepath + "nodesattri.pkl", 'rb')
+        # self.nodesattri = pickle.load(indata)
+        # indata.close()
+        #
+        # indata = open(self.filepath + "nodessps.pkl", 'rb')
+        # self.nodessps = pickle.load(indata)
+        # indata.close()
 
         self.G = nx.Graph()
         self.nodesselected=[]

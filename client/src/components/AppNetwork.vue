@@ -483,7 +483,7 @@
               self.selectedFlag = false;
             }
             self.updated(d);
-            //此处清空所选节点信息，交大写上对应变更 selectedNode 为点击一个节点所存信息，selectedNodes 为多选节点信息
+            //此处清空所选节点信息，交大写上对应变更 selectedNode 为点击一个节点所存信息，selectedNodes 为多选节点信息，通过selectedFlag 判断属于哪一种交互
             // let tmpId = this.$store.state.nodesSelected.indexOf(d.id);
             // if (tmpId >= 0) {
             //   this.$store.state.nodesSelected.splice(tmpId, 1);

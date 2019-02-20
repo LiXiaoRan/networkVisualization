@@ -63,6 +63,7 @@ var buildCodes = false
     }
   }
   window.select_time = {observe:'', start:'', end:'', data:[]};//定义全局变量，方便数据传出
+  window.nodesNumber = {};//整个数据中，节点的总数，以及主机、交换机、服务器的总数
 
 }
 

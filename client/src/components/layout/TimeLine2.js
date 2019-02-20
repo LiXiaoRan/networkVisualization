@@ -215,6 +215,9 @@ export default class TimeLine2 {
       lower_data= evt_data.data;
       drawLowerTimeLine(lower_data);
       redrawTimeLineD(lower_timeminspan);//第一次为默认值：30分钟
+
+      nodesNumber = evt_data.nodesNumber;
+      console.log(nodesNumber)
     }
 
     //根据选择重新绘制上层时间轴

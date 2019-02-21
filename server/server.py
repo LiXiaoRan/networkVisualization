@@ -67,65 +67,79 @@ class getLayoutData(tornado.web.RequestHandler):
                     data.append(item)
         else:
             data = copy.deepcopy(nowSelectedData)
-        links = []
-        temp_nodes = []
-        nodes = []
-        start = time.clock()
-        for row in data:
-            source = row['trans_node_global_no'].strip()
-            target = row['recv_node_golbal_no'].strip()
-            flow = row['flow']
-            link = {'source': source, 'target': target, 'flow': flow}
-            temp_nodes.append(source)
-            temp_nodes.append(target)
-            links.append(link)
-        temp_nodes = set(temp_nodes)
-        for item in temp_nodes:
-            # 0 主机, 1 交换机, 2 服务器
-            type = random.randint(0, 2)
-            control = random.randint(0, 4)
-            palsy = random.randint(0, 4)
-            node = {'id': item, 'nodeType': type, 'control': control, 'palsy': palsy}
-            nodes.append(node)
+        if len(data):
+            links = []
+            temp_nodes = []
+            nodes = []
+            nodes_id = []
+            start = time.clock()
+            for row in data:
+                source = row['trans_node_global_no']
+                source_type = row['trans_node_type']
+                source_palsy = row['trans_palsy_level']
+                source_control = row['trans_control_level']
+                target = row['recv_node_golbal_no']
+                target_type = row['recv_node_type']
+                target_palsy = row['recv_palsy_level']
+                target_control = row['recv_control_level']
+                flow = row['flow']
+                link = {'source': source, 'target': target, 'flow': flow}
+                temp_nodes.append(
+                    {'id': source, 'nodeType': source_type, 'palsy': source_palsy, 'control': source_control})
+                temp_nodes.append(
+                    {'id': target, 'nodeType': target_type, 'palsy': target_palsy, 'control': target_control})
+                links.append(link)
+            for item in temp_nodes:
+                if item['id'] not in nodes_id:
+                    nodes_id.append(item['id'])
+                    nodes.append(item)
+                else:
+                    index = nodes_id.index(item['id'])
+                    del nodes[index]
+                    del nodes_id[index]
+                    nodes.append(item)
+                    nodes_id.append(item['id'])
 
-        tmp_links = []
-        # 去重
-        for link in links:
-            key = {'source': link['source'], 'target': link['target'], 'flow': 0}
-            if key not in tmp_links:
-                tmp_links.append(key)
-
-        for item in tmp_links:
+            tmp_links = []
+            # 去重
             for link in links:
-                if link['source'] == item['source'] and link['target'] == item['target']:
-                    item['flow'] = item['flow'] + link['flow']
-        links = tmp_links
+                key = {'source': link['source'], 'target': link['target'], 'flow': 0}
+                if key not in tmp_links:
+                    tmp_links.append(key)
 
-        end = time.clock()
-        diff_time = end - start
-        print("spend time for build graph: " + str(diff_time))
+            for item in tmp_links:
+                for link in links:
+                    if link['source'] == item['source'] and link['target'] == item['target']:
+                        item['flow'] = item['flow'] + link['flow']
+            links = tmp_links
 
-        # 计算flow
-        for node in nodes:
-            flow_in = 0
-            flow_out = 0
-            for link in links:
-                if node['id'] == link['source']:
-                    flow_out = flow_out + link['flow']
-                if node['id'] == link['target']:
-                    flow_in = flow_in + link['flow']
-            node['flow_in'] = flow_in
-            node['flow_out'] = flow_out
-            node['flow'] = flow_in + flow_out
+            end = time.clock()
+            diff_time = end - start
+            print("spend time for build graph: " + str(diff_time))
 
-        result = {'nodes': nodes, 'links': links}
-        start = time.clock()
-        result = igraphLayout.cal_back_layout_data(result, layoutType)
-        end = time.clock()
-        diff_time = end - start
-        print("spend time for calculate layout: " + str(diff_time))
-        self.write(result)
-        LocalGraph.updatelocaldata(nodes, result['links'])
+            # 计算flow
+            for node in nodes:
+                flow_in = 0
+                flow_out = 0
+                for link in links:
+                    if node['id'] == link['source']:
+                        flow_out = flow_out + link['flow']
+                    if node['id'] == link['target']:
+                        flow_in = flow_in + link['flow']
+                node['flow_in'] = flow_in
+                node['flow_out'] = flow_out
+                node['flow'] = flow_in + flow_out
+            result = {'nodes': nodes, 'links': links}
+            start = time.clock()
+            result = igraphLayout.cal_back_layout_data(result, layoutType)
+            end = time.clock()
+            diff_time = end - start
+            print("spend time for calculate layout: " + str(diff_time))
+            self.write(result)
+            LocalGraph.updatelocaldata(nodes, result['links'])
+        else:
+            result = {'nodes': [], 'links': []}
+            self.write(result)
 
     def post(self):
         self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求

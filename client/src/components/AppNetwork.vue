@@ -69,9 +69,9 @@
         <div id="control_legend">
           <div width="100%" style="margin-bottom: 5px;">网络层次
             <div>
-              <span v-for="item in levelList" style="width: 25%; padding-right: 5px">
+              <span v-for="item in levelList" class="label_network_level">
                 <input type="radio" name="networkLevel" :value="item.value" :checked="item.isChecked"
-                       @change="changeLevel(item)">{{item.name}}
+                       class="input_network_level" @change="changeLevel(item)">{{item.name}}
               </span>
             </div>
           </div>

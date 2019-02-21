@@ -267,7 +267,11 @@ class getData2(tornado.web.RequestHandler):
         timeRange = json.loads(params['data'])
         print('timeRange', timeRange)
         global nowSelectedData
+        start = time.clock()
         nowSelectedData = NetworkData.getTimeRangeData(timeRange[0], timeRange[1])
+        end = time.clock()
+        diff_time = end - start
+        print("spend time for get timeline data: " + str(diff_time))
         evt_unpacked = {'message': 'timeRangeData', 'data': nowSelectedData}
         evt = json.dumps(evt_unpacked)
         self.write(evt)

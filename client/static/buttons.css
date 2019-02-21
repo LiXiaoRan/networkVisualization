@@ -1603,7 +1603,10 @@
   font-family: Microsoft YaHei;
   font-size: 9px;
 }
-
+.times text {
+  font-family: Microsoft YaHei;
+  font-size: 9px;
+}
 #timeline_line .axis line,.axis path {
   fill: none;
   stroke: #959595;
@@ -1633,6 +1636,14 @@
   fill:none;
   stroke:#ada63c;
   stroke-width:2px;
+  stroke-dasharray:14;
+  stroke-linecap:round;
+  rx:2px;ry:2px;
+}
+.peakRect rect{
+  fill:none;
+  stroke:#ada63c;
+  stroke-width:1px;
   stroke-dasharray:14;
   stroke-linecap:round;
   rx:2px;ry:2px;

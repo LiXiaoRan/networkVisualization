@@ -37,7 +37,7 @@
               <td class="network_text1">当前数量</td>
             </tr>
             <tr>
-              <td class="network_text2">{{totalHostNum}}</td>
+              <td class="network_text2">{{totalHostNumPer}}</td>
               <td class="network_text1">占所有主机比例</td>
             </tr>
             <tr class="network_text3">
@@ -49,7 +49,7 @@
               <td class="network_text1">当前数量</td>
             </tr>
             <tr>
-              <td class="network_text2">{{totalSwitchNum}}</td>
+              <td class="network_text2">{{totalSwitchNumPer}}</td>
               <td class="network_text1">占所有交换机比例</td>
             </tr>
             <tr class="network_text3">
@@ -61,7 +61,7 @@
               <td class="network_text1">当前数量</td>
             </tr>
             <tr>
-              <td class="network_text2">{{totalServerNum}}</td>
+              <td class="network_text2">{{totalServerNumPer}}</td>
               <td class="network_text1">占所有服务器比例</td>
             </tr>
           </table>
@@ -119,7 +119,7 @@
   import switchClickImg from "../assets/switch_click.png";
   import serverClickImg from "../assets/server_click.png";
   import * as d3 from "d3";
-  import * as dat from "dat.gui"
+  import * as dat from "dat.gui";
 
   export default {
     data() {
@@ -154,9 +154,9 @@
         hostNum: 0,
         serverNum: 0,
         switchNum: 0,
-        totalHostNum: '0%',
-        totalSwitchNum: '0%',
-        totalServerNum: '0%',
+        totalHostNumPer: '0%',
+        totalSwitchNumPer: '0%',
+        totalServerNumPer: '0%',
         nowLevel: 0,
         obj: {},
         selectedNode: null, // 选择单个节点
@@ -229,7 +229,7 @@
           .data(d3.range(5)).enter().append("text")
           .attr("class", "levelText")
           .style("fill", "#959595")
-          .style("font-size", "5px")
+          .style("font-size", "7px")
           .attr("x", function (d, i) {
             return legend_color_width / 5 * i;
           })
@@ -277,7 +277,6 @@
           type = 2;
         }
         d3.select('#node_' + item.id)
-          .attr('fill', (d) => d.nodeType = type)
           .select('image')
           .attr("xlink:href", self.nodeClickList[type]);
       };
@@ -295,11 +294,8 @@
       let controlLevel = this.folder.add(this.obj, '控制级别').min(1).max(5).step(1).listen();
       let controlLevelFun = function (item, value) {
         d3.select('#node_' + item.id)
-          .attr('fill', (d) => {
-            d.control = value - 1
-          })
           .select('.arc_control')
-          .attr("fill", () => self.control_color_0[value - 1])
+          .attr("fill", self.control_color_0[value - 1])
       };
       controlLevel.onFinishChange((value) => {
         if (this.selectedFlag) {
@@ -364,7 +360,10 @@
       },
       showLinks() {
         this.linkAllShow = !this.linkAllShow;
-        this.switchLinkShow();
+        //切换边显示状态
+        if (this.allLinksG) {
+          this.allLinksG.attr("display", this.linkAllShow ? "block" : "none");
+        }
       },
       drawGraph(result) {
         let self = this;
@@ -382,6 +381,9 @@
             this.serverNum++;
           }
         });
+        this.totalHostNumPer = (this.hostNum / nodesNumber.hostNumber * 100).toFixed(2) + '%';
+        this.totalSwitchNumPer = (this.switchNum / nodesNumber.switchNumber * 100).toFixed(2) + '%';
+        this.totalServerNumPer = (this.serverNum / nodesNumber.serverNumber * 100).toFixed(2) + '%';
         if (this.svg.select("g")) this.svg.select("g").remove();
         let zoom = d3.zoom().scaleExtent([1, 10]).on("zoom", () => {
           this.nodesLinksG.attr("transform", d3.event.transform);
@@ -426,14 +428,15 @@
             this.selectedNodes = [];
             this.folder.close();
             //此处清空所选节点信息，交大写上对应变更
-			this.$store.state.nodesSelected=[];
+            this.$store.state.nodesSelected = [];
           }
         });
         this.allLinksG = this.layoutLinksG.selectAll("g")
           .data(result.links)
           .enter()
           .append("g")
-          .attr("id", (d, i) => "link_" + i);
+          .attr("id", (d, i) => "link_" + i)
+          .attr("display", this.linkAllShow ? "block" : "none");
         this.allLinksG.append("line")
           .attr("stroke", "#999999")
           .attr("stroke-width", d => this.linkScale(d.flow))
@@ -488,31 +491,28 @@
               self.selectedFlag = false;
             }
             self.updated(d);
-			
-			if(self.selectedFlag){
-				let tmpnodes=[];
-				for(let m=0;m<self.selectedNodes.length;m++){
-					tmpnodes.push(self.selectedNodes[m]['id']);
-				}
-				console.log(self.selectedNodes);
-				self.$store.state.nodesSelected=tmpnodes;
-			}else{
-				console.log(self.selectedNode);
-				self.$store.state.nodesSelected=[self.selectedNode['id']];
-			}
-			//console.log(self.$store.state.nodesSelected);
+
+            if (self.selectedFlag) {
+              let tmpNodes = [];
+              for (let m = 0; m < self.selectedNodes.length; m++) {
+                tmpNodes.push(self.selectedNodes[m]['id']);
+              }
+              self.$store.state.nodesSelected = tmpNodes;
+            } else {
+              self.$store.state.nodesSelected = [self.selectedNode['id']];
+            }
           })
           .on("mouseover", function (d) {
             d3.select(this).attr("xlink:href", () => self.nodeSelectedList[d.nodeType]);
             self.layoutData.links.forEach((t, i) => {
               if (t.source === d.id) {
-                d3.select("#link_" + i + " line").attr("stroke", "#00FFFF");
+                d3.select("#link_" + i).attr("display", "block").select("line").attr("stroke", "#00FFFF")
                 d3.select("#node_" + t.target + " image").attr("xlink:href", () => {
                   let connect = self.layoutData.nodes.find(item => (item.id === t.target));
                   return self.nodeSelectedList[connect.nodeType];
                 });
               } else if (t.target === d.id) {
-                d3.select("#link_" + i + " line").attr("stroke", "#00FFFF");
+                d3.select("#link_" + i).attr("display", "block").select("line").attr("stroke", "#00FFFF");
                 d3.select("#node_" + t.source + " image").attr("xlink:href", () => {
                   let connect = self.layoutData.nodes.find(item => (item.id === t.source));
                   return self.nodeSelectedList[connect.nodeType];
@@ -524,13 +524,13 @@
             d3.select(this).attr("xlink:href", self.nodesImgList[d.nodeType]);
             self.layoutData.links.forEach((t, i) => {
               if (t.source === d.id) {
-                d3.select("#link_" + i + " line").attr("stroke", "#999999");
+                d3.select("#link_" + i).attr("display", self.linkAllShow ? "block" : "none").select("line").attr("stroke", "#999999");
                 d3.select("#node_" + t.target + " image").attr("xlink:href", () => {
                   let connect = self.layoutData.nodes.find(item => (item.id === t.target));
                   return self.nodesImgList[connect.nodeType];
                 });
               } else if (t.target === d.id) {
-                d3.select("#link_" + i + " line").attr("stroke", "#999999");
+                d3.select("#link_" + i).attr("display", self.linkAllShow ? "block" : "none").select("line").attr("stroke", "#999999");
                 d3.select("#node_" + t.source + " image").attr("xlink:href", () => {
                   let connect = self.layoutData.nodes.find(item => (item.id === t.source));
                   return self.nodesImgList[connect.nodeType];
@@ -566,49 +566,6 @@
             return this.control_color_0[d.control];
           });
       },
-      switchLinkShow: function () {
-        //切换边显示状态
-        if (this.layoutLinksG) {
-          if (this.linkAllShow) {
-            this.layoutLinksG.attr("display", "block");
-          } else {
-            this.layoutLinksG.attr("display", "none");
-          }
-        }
-      },
-      secondFilter: function (typeList, palsyList, controlList) {
-        //二级过滤
-        let disappearNodes = new Set();
-        this.allNodesG.attr("display", node => {
-          if (typeList.includes(node.nodeType)) {
-            return "block";
-          } else {
-            disappearNodes.add(node.id);
-            return "none";
-          }
-        });
-        disappearNodes = [...disappearNodes];
-        this.allLinksG.attr("display", link => {
-          if (disappearNodes.includes(link.source) || disappearNodes.includes(link.target)) return "none";
-          else return "block";
-        });
-
-        //控制致瘫显示
-        this.allNodesG.selectAll('.arc_collapse').attr("fill", (d) => {
-          if (!palsyList.includes(d.palsy)) {
-            return "#FFFFFF";
-          } else {
-            return this.collapsed_color_0[d.palsy];
-          }
-        });
-        this.allNodesG.selectAll('.arc_control').attr("fill", (d) => {
-          if (!controlList.includes(d.control)) {
-            return "#FFFFFF";
-          } else {
-            return this.control_color_0[d.control];
-          }
-        });
-      },
       updated(item) {
         if (item.nodeType === 0) {
           this.obj['节点类型'] = "主机";
@@ -626,19 +583,41 @@
     },
     watch: {
       //监听过滤组件中的变化
-      nodeTypeList_get: function (val) {
-        this.secondFilter(val, this.palsyList_get, this.controlList_get)
+      nodeTypeList_get: function (typeList) {
+        let disappearNodes = new Set();
+        this.allNodesG.attr("display", node => {
+          if (typeList.includes(node.nodeType)) {
+            return "block";
+          } else {
+            disappearNodes.add(node.id);
+            return "none";
+          }
+        });
+        disappearNodes = [...disappearNodes];
+        this.allLinksG.attr("display", link => {
+          if (disappearNodes.includes(link.source) || disappearNodes.includes(link.target)) return "none";
+          else return "block";
+        });
       },
-      palsyList_get: function (val) {
-        this.secondFilter(this.nodeTypeList_get, val, this.controlList_get)
+      palsyList_get: function (palsyList) {
+        this.allNodesG.selectAll('.arc_collapse').attr("fill", (d) => {
+          if (!palsyList.includes(d.palsy)) {
+            return "#FFFFFF";
+          } else {
+            return this.collapsed_color_0[d.palsy];
+          }
+        });
       },
-      controlList_get: function (val) {
-        this.secondFilter(this.nodeTypeList_get, this.palsyList_get, val)
+      controlList_get: function (controlList) {
+        this.allNodesG.selectAll('.arc_control').attr("fill", (d) => {
+          if (!controlList.includes(d.control)) {
+            return "#FFFFFF";
+          } else {
+            return this.control_color_0[d.control];
+          }
+        });
       },
       selectTime_get: function (val) {
-        this.totalHostNum = nodesNumber.hostNumber;
-        this.totalSwitchNum = nodesNumber.switchNumber;
-        this.totalServerNum = nodesNumber.serverNumber;
         this.startTime = val.start;
         this.endTime = val.end;
         this.drawSwitchGraph();

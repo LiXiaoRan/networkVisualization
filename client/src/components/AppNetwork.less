@@ -62,42 +62,6 @@
   .view-svg {
     width: 100%;
     height: 100%;
-
-    .node {
-      fill: @circle-color;
-
-      .simpleCircle {
-        stroke: #eee;
-      }
-    }
-
-    .node.drag-active {
-      fill: #8c8c8c;
-    }
-
-    .node.hover-active {
-      fill: #8c8c8c;
-    }
-
-    .node:hover {
-      cursor: pointer;
-    }
-
-    .centerPath {
-      stroke: #888;
-      fill: none;
-    }
-
-    .link {
-      path {
-        stroke: #888;
-        fill: none;
-      }
-    }
-
-    .linkH {
-      stroke: #cacacc;
-    }
   }
 }
 
@@ -139,8 +103,10 @@
         line-height: 15px;
         vertical-align: middle;
         border-radius: 5px;
-        background-color: gray;
+        background-color: #535353;
         margin: 2px 2px;
+        border: 0;
+        padding: 0;
       }
 
       .active {

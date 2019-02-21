@@ -11,10 +11,7 @@ from dimension2 import *
 from outlier import *
 
 
-def linuxtimestamp(timestr):
-    timestr=timestr[:14]
-    timeArray = time.strptime(timestr, "%Y%m%d%H%M%S")
-    return int(time.mktime(timeArray))
+
 
 
 
@@ -25,18 +22,23 @@ class LocalGraph:
 
         times = "20160715134955000000"
         timee = "20160716094707500000"
-        self.timeset = {"starttime": linuxtimestamp(times), "curtime": linuxtimestamp(times),
-                   "endtime": linuxtimestamp(timee),
+        self.timeset = {"starttime": self.linuxtimestamp(times), "curtime": self.linuxtimestamp(times),
+                   "endtime": self.linuxtimestamp(timee),
                    "timestep": 60, "timewindow": 60}
 
         self.filepath = "../data/"
-        indata = open(self.filepath + "nodesattri.pkl", 'rb')
+        indata = open(self.filepath + "nodesattri_all.pkl", 'rb')
         self.nodesattri = pickle.load(indata)
         indata.close()
 
         indata = open(self.filepath + "nodessps.pkl", 'rb')
         self.nodessps = pickle.load(indata)
         indata.close()
+        '''
+        indata = open(self.filepath + "nodesflow.pkl", 'rb')
+        self.nodesflow = pickle.load(indata)
+        indata.close()
+        '''
 
         self.G = nx.Graph()
         self.nodesselected=[]
@@ -51,6 +53,10 @@ class LocalGraph:
         self.rangestart=0
         self.rangeend=0
 
+    def linuxtimestamp(self,timestr):
+        timestr = timestr[:14]
+        timeArray = time.strptime(timestr, "%Y%m%d%H%M%S")
+        return int(time.mktime(timeArray))
 
     def updatelocaldata(self, nodes_p,links_p):
         self.G = nx.Graph()
@@ -99,26 +105,35 @@ class LocalGraph:
             }
         return tmpobj
 
-    def getAttr(self,nodes):
+    def getAttr0(self,nodes,attrtype):
+        attrchange = {}
+        for n in nodes:
+            #attrchange[n]=self.nodesattri[n][timeindstart:timeindend]
+            attrchange[n]=[]
+            for t in range(len(self.nodesattri[n])):
+                if len(self.nodesattri[n][t])==0:
+                    attrchange[n].append(0)
+                else:
+                    attrchange[n].append(self.nodesattri[n][t][0][attrtype])
+        #nodesattr = self.getnodesattr(nodes)
+        return attrchange#,nodesattr
 
-        timeindstart = int(math.ceil(float(self.rangestart - self.timeset["starttime"]) / self.timeset["timestep"]))
+    def getAttr(self, nodes):
+        timeindstart = int(math.floor(float(self.rangestart - self.timeset["starttime"]) / self.timeset["timestep"]))
         timeindend = int(math.ceil(float(self.rangeend - self.timeset["starttime"]) / self.timeset["timestep"]))
 
         attrchange = {}
         for n in nodes:
-            attrchange[n]=self.nodesattri[n][timeindstart:timeindend]
-            '''
-            for t in range(len(tmpattr[n])):
-                if len(tmpattr[n][t])==0:
-                    tmpattr[n][t]=np.array([0]*attrnum).tolist()
+            #attrchange[n] = self.nodesattri[n][timeindstart:timeindend]
+            #attrchange[n] = self.nodesattri[n]
+            attrchange[n] = []
+            for t in range(len(self.nodesattri[n])):
+                if len(self.nodesattri[n][t])==0:
+                    attrchange[n].append([])
                 else:
-                    tmpattr[n][t] = np.array(tmpattr[n][t]).tolist()
-            tmpattr[n] = np.array(tmpattr[n])
-            tmpattr[n]=np.transpose(tmpattr[n]).tolist()
-            '''
+                    attrchange[n].append(self.nodesattri[n][t][0])
         nodesattr = self.getnodesattr(nodes)
-
-        return attrchange,nodesattr
+        return attrchange, nodesattr
 
     def choosenone(self):
         self.nodesselected=[]
@@ -137,7 +152,11 @@ class LocalGraph:
     def singlesel(self,nodes):
         self.nodesselected = nodes
         nodeid = nodes[0]
-        nodesnei=list(self.G.neighbors(nodeid))
+        tmpnodesall=set(self.G.nodes())
+        if nodeid in tmpnodesall:
+            nodesnei=list(self.G.neighbors(nodeid))
+        else:
+            nodesnei=[]
         nodesappears=self.nodesappear(nodesnei)
         nodesshown=set(nodesnei) | {nodeid}
         nodesattr = self.getnodesattr(nodesshown)
@@ -146,7 +165,7 @@ class LocalGraph:
 
 
     def getspshist(self,source, target):
-        timeindstart = int(math.ceil(float(self.rangestart-self.timeset["starttime"])/self.timeset["timestep"]))
+        timeindstart = int(math.floor(float(self.rangestart-self.timeset["starttime"])/self.timeset["timestep"]))
         timeindend = int(math.ceil(float(self.rangeend-self.timeset["starttime"])/self.timeset["timestep"]))
 
         try:
@@ -159,7 +178,7 @@ class LocalGraph:
                     curspsrecord[i].append([-1] * (timeindend - timeindstart))
 
                 for timeind in range(timeindend-timeindstart):
-                    tmpspsall = self.nodessps[timeind]
+                    tmpspsall = self.nodessps[timeindstart+timeind]
                     if type(tmpspsall)==type(-1):
                         continue
                     if source in tmpspsall.keys():
@@ -186,6 +205,7 @@ class LocalGraph:
         spspathsrecord=[]
         nodesshown=[]
         self.nodesselected = nodes
+        timeindstart = int(math.floor(float(self.rangestart - self.timeset["starttime"]) / self.timeset["timestep"]))
         for i in range(len(nodes)-1):
             paths,pathsrecord=self.getspshist(nodes[i],nodes[i+1])
             spspaths.append(paths)
@@ -196,7 +216,7 @@ class LocalGraph:
                     nodesshown.append(n)
         nodesshown=list(set(nodesshown))
         nodesattr=self.getnodesattr(nodesshown)
-        self.spspaths={'paths': spspaths,'nodes':nodesattr,'records':spspathsrecord}
+        self.spspaths={'paths': spspaths,'nodes':nodesattr,'records':spspathsrecord,'startind':timeindstart}
         return self.spspaths
 
     def getsubdata(self):
@@ -206,3 +226,21 @@ class LocalGraph:
                 return self.singlesel(self.nodesselected)
             else:
                 return self.multisel(self.nodesselected)
+
+    def flowdist(self,nodes):
+        flowchange = {}
+        levelchange={}
+        for n in nodes:
+            flowchange[n] = []
+            levelchange[n] = []
+            for t in range(len(self.nodesattri[n])):
+                if len(self.nodesattri[n][t]) == 0:
+                    flowchange[n].append([0,0])
+                    levelchange[n].append({})
+                else:
+                    flowchange[n].append(self.nodesattri[n][t][1])
+                    levelchange[n].append(self.nodesattri[n][t][2])
+
+        #nodesattr = self.getnodesattr(nodes)
+        resultobj= {'flow': flowchange,  'level': levelchange}
+        return resultobj

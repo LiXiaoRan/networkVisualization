@@ -4,6 +4,7 @@
       <app-title v-bind:icon="icon" v-bind:msgs="msgs"></app-title>
       <div class='view'>
         <svg class='view-svg'></svg>
+        <div id="lay-container"></div>
       </div>
     </div>
     <div id="legend-index">
@@ -15,13 +16,13 @@
               <td class="network_text1">起时间</td>
             </tr>
             <tr>
-              <td id='start_text_time' class="network_text2">2015.00.00 00:00:00</td>
+              <td class="network_text2">{{startTime}}</td>
             </tr>
             <tr>
               <td class="network_text1">讫时间</td>
             </tr>
             <tr>
-              <td id='end_text_time' class="network_text2">2015.00.00 00:00:00</td>
+              <td class="network_text2">{{endTime}}</td>
             </tr>
           </table>
         </div>
@@ -36,7 +37,7 @@
               <td class="network_text1">当前数量</td>
             </tr>
             <tr>
-              <td class="network_text2">0%</td>
+              <td class="network_text2">{{totalHostNumPer}}</td>
               <td class="network_text1">占所有主机比例</td>
             </tr>
             <tr class="network_text3">
@@ -48,7 +49,7 @@
               <td class="network_text1">当前数量</td>
             </tr>
             <tr>
-              <td class="network_text2">0%</td>
+              <td class="network_text2">{{totalSwitchNumPer}}</td>
               <td class="network_text1">占所有交换机比例</td>
             </tr>
             <tr class="network_text3">
@@ -60,13 +61,13 @@
               <td class="network_text1">当前数量</td>
             </tr>
             <tr>
-              <td class="network_text2">0%</td>
+              <td class="network_text2">{{totalServerNumPer}}</td>
               <td class="network_text1">占所有服务器比例</td>
             </tr>
           </table>
         </div>
         <div id="control_legend">
-          <div width="100%">网络层次
+          <div width="100%" style="margin-bottom: 5px;">网络层次
             <div>
               <span v-for="item in levelList" style="width: 25%; padding-right: 5px">
                 <input type="radio" name="networkLevel" :value="item.value" :checked="item.isChecked"
@@ -74,28 +75,28 @@
               </span>
             </div>
           </div>
-          <div width="100%">布局方式
+          <div width="100%" style="margin-bottom: 5px;">布局方式
             <div>
               <button class="layout_btn" :class="{active: item.selected}"
                       v-for="item in layoutList" @click="switchLayout(item)">{{item.name}}
               </button>
             </div>
           </div>
-          <div width="100%">
+          <div width="100%" style="margin-bottom: 5px;">
             <span>显示边</span>
             <span class="switch_btn" :class="{'switch_btn_on' : linkAllShow}" @click="showLinks"></span>
           </div>
         </div>
         <div id="level_legend">
           <table border="0" width="100%">
-            <tr>
-              <td class="graph_level_svg" width="12%"></td>
-              <td class="network_text4" width="30%">致瘫级别</td>
+            <tr style="height: 25px">
+              <td class="graph_level_svg" width="10%"></td>
+              <td class="network_text4" width="32%" style="padding-right: 5px;font-size: 12px">致瘫级别</td>
               <td class="legend_color" width="58%"></td>
             </tr>
-            <tr>
-              <td class="graph_level_svg" width="12%"></td>
-              <td class="network_text4" width="30%">控制级别</td>
+            <tr style="height: 25px">
+              <td class="graph_level_svg" width="10%"></td>
+              <td class="network_text4" width="32%" style="padding-right: 5px;font-size: 12px">控制级别</td>
               <td class="legend_color" width="58%"></td>
             </tr>
           </table>
@@ -107,15 +108,18 @@
 </template>
 <script>
   import AppTitle from "./AppTitle.vue";
-  import {mapGetters} from 'vuex';
+  import {mapGetters, mapActions} from 'vuex';
   import hostImg from "../assets/host.png";
   import switchImg from "../assets/switch.png";
   import serverImg from "../assets/server.png";
   import hostSelectedImg from "../assets/host_selected.png";
   import switchSelectedImg from "../assets/switch_selected.png";
   import serverSelectedImg from "../assets/server_selected.png";
+  import hostClickImg from "../assets/host_click.png";
+  import switchClickImg from "../assets/switch_click.png";
+  import serverClickImg from "../assets/server_click.png";
   import * as d3 from "d3";
-  import * as dat from "dat.gui"
+  import * as dat from "dat.gui";
 
   export default {
     data() {
@@ -126,9 +130,8 @@
         legendMsgs: "图例与指示",
         nowLayoutType: "rt_circular",
         layoutData: {},
-        limit: 500,
-        start: 0,
-        end: 1000000000,
+        startTime: "2016-07-15 15.52:12",
+        endTime: "2016-07-15 15.53:12",
         linkAllShow: true,
         mainMiniMap: null,
         viewSize: {},
@@ -147,12 +150,16 @@
           {name: "层次", value: "sugiyama", selected: false}],
         nodesImgList: [hostImg, switchImg, serverImg],
         nodeSelectedList: [hostSelectedImg, switchSelectedImg, serverSelectedImg],
+        nodeClickList: [hostClickImg, switchClickImg, serverClickImg],
         hostNum: 0,
         serverNum: 0,
         switchNum: 0,
+        totalHostNumPer: '0%',
+        totalSwitchNumPer: '0%',
+        totalServerNumPer: '0%',
         nowLevel: 0,
         obj: {},
-        selectedNode: '', // 选择单个节点
+        selectedNode: null, // 选择单个节点
         selectedNodes: [], // 选择多个节点
         selectedFlag: false
       };
@@ -163,7 +170,7 @@
     mounted() {
       let self = this;
       let node_legend_svg = d3.selectAll(".graph_nodelegend_svg").append("svg")
-        .attr("width", "20px").attr("height", "20px").append("image");
+        .attr("width", "25px").attr("height", "25px").append("image");
       node_legend_svg.attr("class", "brandCircle_image")
         .attr("xlink:href", (d, i) => this.nodesImgList[i])
         .attr("x", 0).attr("y", 4)
@@ -172,8 +179,8 @@
       this.end_angle = 180 * (Math.PI / 180);
       let legend_r = 3;
       let legend_level_height = parseFloat(d3.select("#level_legend .network_text4").style("height"));
-      let collapsed_color = ["white", "#b72626"];
-      let control_color = ["#008475", "white"];
+      let collapsed_color = ["#dac385", "#b72626"];
+      let control_color = ["#008475", "#dff68e"];
       this.collapsed_color_0 = ["#b72626", "#cd4d40", "#d37053", "#da9155", "#dac385"];
       this.control_color_0 = ["#008475", "#00ba8a", "#4dcf8b", "#9ce28d", "#dff68e"];
       let arcs_level = d3.arc()
@@ -194,7 +201,7 @@
             }
           })
           .attr("transform", function (d, i) {
-            return "translate(" + (legend_level_height / 2) + "," + (legend_level_height / 2 + 2) + ")" + "rotate(" + 180 * i + ")";
+            return "translate(" + (legend_level_height / 2) + "," + (legend_level_height / 2 + 1) + ")" + "rotate(" + 180 * i + ")";
           });
       });
       let legend_color_width = parseFloat(d3.select(".legend_color").style("width"));
@@ -208,7 +215,7 @@
           .attr("x", function (d, i) {
             return legend_color_width / 5 * i;
           })
-          .attr("y", legend_color_height / 4 * 3)
+          .attr("y", legend_color_height / 4 * 2)
           .attr("width", legend_color_width / 5)
           .attr("height", legend_color_height / 4)
           .style("fill", (d, i) => {
@@ -222,11 +229,11 @@
           .data(d3.range(5)).enter().append("text")
           .attr("class", "levelText")
           .style("fill", "#959595")
-          .style("font-size", "5px")
+          .style("font-size", "7px")
           .attr("x", function (d, i) {
             return legend_color_width / 5 * i;
           })
-          .attr("y", legend_color_height / 4 * 3 - 3)
+          .attr("y", legend_color_height / 4 * 2 - 3)
           .text(function (d) {
             return d + 1;
           });
@@ -252,29 +259,26 @@
         致瘫级别: 1,
         控制级别: 1
       };
-      let folder = gui.addFolder('节点属性');
+      this.folder = gui.addFolder('节点属性');
 
       // 节点类型
-      let nodeType = folder.add(this.obj, '节点类型', [
+      let nodeType = this.folder.add(this.obj, '节点类型', [
         "主机",
         "交换机",
         "服务器"
       ]).listen();
       let nodeTypeFun = function (item, value) {
-        d3.select('#node_' + item)
-          .attr('fill', (d) => {
-            d.nodeType = value
-          })
+        let type = -1;
+        if (value === "主机") {
+          type = 0;
+        } else if (value === "交换机") {
+          type = 1;
+        } else if (value === "服务器") {
+          type = 2;
+        }
+        d3.select('#node_' + item.id)
           .select('image')
-          .attr("xlink:href", () => {
-            if (value === "主机") {
-              return self.nodesImgList[0];
-            } else if (value === "交换机") {
-              return self.nodesImgList[1];
-            } else if (value === "服务器") {
-              return self.nodesImgList[2];
-            }
-          })
+          .attr("xlink:href", self.nodeClickList[type]);
       };
       nodeType.onFinishChange((value) => {
         if (this.selectedFlag) {
@@ -287,14 +291,11 @@
       });
 
       // 控制级别
-      let controlLevel = folder.add(this.obj, '控制级别').min(1).max(5).step(1).listen();
+      let controlLevel = this.folder.add(this.obj, '控制级别').min(1).max(5).step(1).listen();
       let controlLevelFun = function (item, value) {
-        d3.select('#node_' + item)
-          .attr('fill', (d) => {
-            d.control = value
-          })
+        d3.select('#node_' + item.id)
           .select('.arc_control')
-          .attr("fill", () => self.control_color_0[value - 1])
+          .attr("fill", self.control_color_0[value - 1])
       };
       controlLevel.onFinishChange((value) => {
         if (this.selectedFlag) {
@@ -307,11 +308,11 @@
       });
 
       // 致瘫级别
-      let collapsedLevel = folder.add(this.obj, '致瘫级别').min(1).max(5).step(1).listen();
+      let collapsedLevel = this.folder.add(this.obj, '致瘫级别').min(1).max(5).step(1).listen();
       let collapsedLevelFun = function (item, value) {
-        d3.select('#node_' + item)
+        d3.select('#node_' + item.id)
           .attr('fill', (d) => {
-            d.collapsed = value
+            d.palsy = value - 1
           })
           .select('.arc_collapse')
           .attr("fill", () => self.collapsed_color_0[value - 1])
@@ -325,9 +326,10 @@
           collapsedLevelFun(this.selectedNode, value)
         }
       });
-      document.getElementById("layout-panel").appendChild(gui.domElement);
+      document.getElementById("lay-container").appendChild(gui.domElement);
     },
     methods: {
+      ...mapActions(['modifyLayoutData_sync']),
       drawSwitchGraph() {
         let paramsObj = {
           layout_type: this.nowLayoutType,
@@ -358,25 +360,30 @@
       },
       showLinks() {
         this.linkAllShow = !this.linkAllShow;
-        this.switchLinkShow();
+        //切换边显示状态
+        if (this.allLinksG) {
+          this.allLinksG.attr("display", this.linkAllShow ? "block" : "none");
+        }
       },
       drawGraph(result) {
-        let nodeType = this.nodeTypeList_get;
-        let nodeAttrType = this.nodeAttrList_get;
         let self = this;
         this.hostNum = 0;
         this.switchNum = 0;
         this.serverNum = 0;
+        this.nowClickNode = null;
         this.layoutData = result;
         this.layoutData.nodes.forEach(d => {
-          if (d.nodeType === "主机") {
+          if (d.nodeType === 0) {
             this.hostNum++;
-          } else if (d.nodeType === "交换机") {
+          } else if (d.nodeType === 1) {
             this.switchNum++;
-          } else if (d.nodeType === "服务器") {
+          } else if (d.nodeType === 2) {
             this.serverNum++;
           }
         });
+        this.totalHostNumPer = (this.hostNum / nodesNumber.hostNumber * 100).toFixed(2) + '%';
+        this.totalSwitchNumPer = (this.switchNum / nodesNumber.switchNumber * 100).toFixed(2) + '%';
+        this.totalServerNumPer = (this.serverNum / nodesNumber.serverNumber * 100).toFixed(2) + '%';
         if (this.svg.select("g")) this.svg.select("g").remove();
         let zoom = d3.zoom().scaleExtent([1, 10]).on("zoom", () => {
           this.nodesLinksG.attr("transform", d3.event.transform);
@@ -407,17 +414,29 @@
           .range([this.padding.top, this.viewSize.height - this.padding.bottom]);
         this.linkScale.domain(d3.extent(result.links, d => d.flow));
         this.nodeScale.domain(d3.extent(result.nodes, d => d.degree));
-        this.svg.on("mouseup", () => {
+        this.svg.on("click", () => {
           if (event.target.nodeName === "svg") {
-            this.nodesSelected = [];
-            this.$store.state.nodesSelected = this.nodesSelected;
+            //清除单选信息
+            this.selectedNode = null;
+            if (this.nowClickNode !== null) {
+              this.nowClickNode.attr("xlink:href", (l) => self.nodesImgList[l.nodeType]).classed("clicked", false);
+              this.nowClickNode = null;
+            }
+            this.selectedNodes.forEach(item => {
+              d3.select("#node_" + item.id + " image").attr("xlink:href", self.nodesImgList[item.nodeType]).classed("clicked", false);
+            });
+            this.selectedNodes = [];
+            this.folder.close();
+            //此处清空所选节点信息，交大写上对应变更
+            this.$store.state.nodesSelected = [];
           }
         });
         this.allLinksG = this.layoutLinksG.selectAll("g")
           .data(result.links)
           .enter()
           .append("g")
-          .attr("id", (d, i) => "link_" + i);
+          .attr("id", (d, i) => "link_" + i)
+          .attr("display", this.linkAllShow ? "block" : "none");
         this.allLinksG.append("line")
           .attr("stroke", "#999999")
           .attr("stroke-width", d => this.linkScale(d.flow))
@@ -431,111 +450,95 @@
           .append("g")
           .attr("id", d => "node_" + d.id);
         this.allNodesG.append("image")
-          .attr("xlink:href", d => {
-            if (d.nodeType === "主机") {
-              return this.nodesImgList[0];
-            } else if (d.nodeType === "交换机") {
-              return this.nodesImgList[1];
-            } else if (d.nodeType === "服务器") {
-              return this.nodesImgList[2];
-            }
-          })
+          .attr("xlink:href", d => this.nodesImgList[d.nodeType])
           .attr("x", d => this.xScale(d.x) - this.nodeScale(d.degree) / 2)
           .attr("y", d => this.yScale(d.y) - this.nodeScale(d.degree) / 2)
           .attr("width", d => this.nodeScale(d.degree))
           .attr("height", d => this.nodeScale(d.degree))
-          .on("click", (d) => {
-            if (d3.event.ctrlKey) {// 多选
-              this.selectedNodes.push(d.id);
-              this.selectedFlag = true;
-            } else { // 单选
-              this.selectedNodes = [];
-              this.selectedNode = d.id;
-              this.selectedFlag = false;
-            }
-            this.updated(d);
-
-            let tmpind = this.$store.state.nodesSelected.indexOf(d.id);
-            if (tmpind >= 0) {
-              this.$store.state.nodesSelected.splice(tmpind, 1);
+          .classed("clicked", false)
+          .on("click", function (d) {
+            self.folder.open();
+            if (d3.event.ctrlKey) {
+              //清除单选信息
+              self.selectedNode = null;
+              if (self.nowClickNode !== null) {
+                self.nowClickNode.attr("xlink:href", (l) => self.nodesImgList[l.nodeType]).classed("clicked", false);
+                self.nowClickNode = null;
+              }
+              // 多选
+              let index = self.selectedNodes.findIndex(item => item.id === d.id);
+              if (index !== -1) {
+                self.selectedNodes.splice(index, 1);
+                d3.select(this).attr("xlink:href", self.nodesImgList[d.nodeType]).classed("clicked", false);
+              } else {
+                self.selectedNodes.push(d);
+                d3.select(this).attr("xlink:href", self.nodeClickList[d.nodeType]).classed("clicked", true);
+              }
+              self.selectedFlag = true;
             } else {
-              this.$store.state.nodesSelected.push(d.id);
-            }
-          }).on("mouseover", function (d) {
-          d3.select(this).attr("xlink:href", () => {
-            if (d.nodeType === "主机") {
-              return self.nodeSelectedList[0];
-            } else if (d.nodeType === "交换机") {
-              return self.nodeSelectedList[1];
-            } else if (d.nodeType === "服务器") {
-              return self.nodeSelectedList[2];
-            }
-          });
-          self.layoutData.links.forEach((t, i) => {
-            if (t.source === d.id) {
-              d3.select("#link_" + i + " line").attr("stroke", "#00FFFF");
-              d3.select("#node_" + t.target + " image").attr("xlink:href", () => {
-                let connect = self.layoutData.nodes.find(item => (item.id === t.target));
-                if (connect.nodeType === "主机") {
-                  return self.nodeSelectedList[0];
-                } else if (connect.nodeType === "交换机") {
-                  return self.nodeSelectedList[1];
-                } else if (connect.nodeType === "服务器") {
-                  return self.nodeSelectedList[2];
-                }
+              self.selectedNodes.forEach(item => {
+                d3.select("#node_" + item.id + " image").attr("xlink:href", self.nodesImgList[item.nodeType]).classed("clicked", false);
               });
-            } else if (t.target === d.id) {
-              d3.select("#link_" + i + " line").attr("stroke", "#00FFFF");
-              d3.select("#node_" + t.source + " image").attr("xlink:href", () => {
-                let connect = self.layoutData.nodes.find(item => (item.id === t.source));
-                if (connect.nodeType === "主机") {
-                  return self.nodeSelectedList[0];
-                } else if (connect.nodeType === "交换机") {
-                  return self.nodeSelectedList[1];
-                } else if (connect.nodeType === "服务器") {
-                  return self.nodeSelectedList[2];
-                }
-              });
+              self.selectedNodes = [];
+              self.selectedNode = d;
+              if (self.nowClickNode === null) {
+                self.nowClickNode = d3.select(this);
+              } else {
+                self.nowClickNode.attr("xlink:href", (l) => self.nodesImgList[l.nodeType]).classed("clicked", false);
+                self.nowClickNode = d3.select(this);
+              }
+              d3.select(this).attr("xlink:href", self.nodeClickList[d.nodeType]).classed("clicked", true);
+              self.selectedFlag = false;
+            }
+            self.updated(d);
+
+            if (self.selectedFlag) {
+              let tmpNodes = [];
+              for (let m = 0; m < self.selectedNodes.length; m++) {
+                tmpNodes.push(self.selectedNodes[m]['id']);
+              }
+              self.$store.state.nodesSelected = tmpNodes;
+            } else {
+              self.$store.state.nodesSelected = [self.selectedNode['id']];
             }
           })
-        })
-          .on("mouseout", function (d) {
-            d3.select(this).attr("xlink:href", () => {
-              if (d.nodeType === "主机") {
-                return self.nodesImgList[0];
-              } else if (d.nodeType === "交换机") {
-                return self.nodesImgList[1];
-              } else if (d.nodeType === "服务器") {
-                return self.nodesImgList[2];
-              }
-            });
+          .on("mouseover", function (d) {
+            d3.select(this).attr("xlink:href", () => self.nodeSelectedList[d.nodeType]);
             self.layoutData.links.forEach((t, i) => {
               if (t.source === d.id) {
-                d3.select("#link_" + i + " line").attr("stroke", "#999999");
+                d3.select("#link_" + i).attr("display", "block").select("line").attr("stroke", "#00FFFF")
                 d3.select("#node_" + t.target + " image").attr("xlink:href", () => {
                   let connect = self.layoutData.nodes.find(item => (item.id === t.target));
-                  if (connect.nodeType === "主机") {
-                    return self.nodesImgList[0];
-                  } else if (connect.nodeType === "交换机") {
-                    return self.nodesImgList[1];
-                  } else if (connect.nodeType === "服务器") {
-                    return self.nodesImgList[2];
-                  }
+                  return self.nodeSelectedList[connect.nodeType];
                 });
               } else if (t.target === d.id) {
-                d3.select("#link_" + i + " line").attr("stroke", "#999999");
+                d3.select("#link_" + i).attr("display", "block").select("line").attr("stroke", "#00FFFF");
                 d3.select("#node_" + t.source + " image").attr("xlink:href", () => {
                   let connect = self.layoutData.nodes.find(item => (item.id === t.source));
-                  if (connect.nodeType === "主机") {
-                    return self.nodesImgList[0];
-                  } else if (connect.nodeType === "交换机") {
-                    return self.nodesImgList[1];
-                  } else if (connect.nodeType === "服务器") {
-                    return self.nodesImgList[2];
-                  }
+                  return self.nodeSelectedList[connect.nodeType];
                 });
               }
             })
+          })
+          .on("mouseout", function (d) {
+            d3.select(this).attr("xlink:href", self.nodesImgList[d.nodeType]);
+            self.layoutData.links.forEach((t, i) => {
+              if (t.source === d.id) {
+                d3.select("#link_" + i).attr("display", self.linkAllShow ? "block" : "none").select("line").attr("stroke", "#999999");
+                d3.select("#node_" + t.target + " image").attr("xlink:href", () => {
+                  let connect = self.layoutData.nodes.find(item => (item.id === t.target));
+                  return self.nodesImgList[connect.nodeType];
+                });
+              } else if (t.target === d.id) {
+                d3.select("#link_" + i).attr("display", self.linkAllShow ? "block" : "none").select("line").attr("stroke", "#999999");
+                d3.select("#node_" + t.source + " image").attr("xlink:href", () => {
+                  let connect = self.layoutData.nodes.find(item => (item.id === t.source));
+                  return self.nodesImgList[connect.nodeType];
+                });
+              }
+            })
+            if (d3.select(this).classed("clicked"))
+              d3.select(this).attr("xlink:href", () => self.nodeClickList[d.nodeType]).classed("clicked", true);
           });
         this.allNodesG.append("path").attr("d", (d) => {
           let tmp_r = this.nodeScale(d.degree) / 2;
@@ -547,9 +550,8 @@
           .attr("transform", (d) => {
             return "translate(" + (this.xScale(d.x)) + "," + (this.yScale(d.y)) + ")"
           })
-          .attr("fill", (d, i) => {
-            d.collapsed = i % 5 + 1
-            return this.collapsed_color_0[i % 5];
+          .attr("fill", (d) => {
+            return this.collapsed_color_0[d.palsy];
           });
         this.allNodesG.append("path").attr("d", (d) => {
           let tmp_r = this.nodeScale(d.degree) / 2;
@@ -560,27 +562,31 @@
           .attr("transform", (d) => {
             return "translate(" + (this.xScale(d.x)) + "," + (this.yScale(d.y)) + ")" + "rotate(180)"
           })
-          .attr("fill", (d, i) => {
-            d.control = i % 5 + 1;
-            return this.control_color_0[i % 5];
+          .attr("fill", (d) => {
+            return this.control_color_0[d.control];
           });
-        this.secondFilter(nodeType, nodeAttrType);
       },
-      switchLinkShow: function () {
-        //切换边显示状态
-        if (this.layoutLinksG) {
-          if (this.linkAllShow) {
-            this.layoutLinksG.attr("display", "block");
-          } else {
-            this.layoutLinksG.attr("display", "none");
-          }
+      updated(item) {
+        if (item.nodeType === 0) {
+          this.obj['节点类型'] = "主机";
+        } else if (item.nodeType === 1) {
+          this.obj['节点类型'] = "交换机";
+        } else if (item.nodeType === 2) {
+          this.obj['节点类型'] = "服务器";
         }
-      },
-      secondFilter: function (typeList, attributeList) {
-        //二级过滤
+        this.obj['控制级别'] = item.control + 1;
+        this.obj['致瘫级别'] = item.palsy + 1;
+      }
+    },
+    computed: {
+      ...mapGetters(['nodeTypeList_get', 'palsyList_get', 'controlList_get', 'selectTime_get']),
+    },
+    watch: {
+      //监听过滤组件中的变化
+      nodeTypeList_get: function (typeList) {
         let disappearNodes = new Set();
         this.allNodesG.attr("display", node => {
-          if (typeList.includes(node.nodeType) && attributeList.includes(node.nodeAttribute)) {
+          if (typeList.includes(node.nodeType)) {
             return "block";
           } else {
             disappearNodes.add(node.id);
@@ -593,45 +599,35 @@
           else return "block";
         });
       },
-      updated(item) {
-        this.obj['节点类型'] = item.nodeType;
-        this.obj['控制级别'] = item.control;
-        this.obj['致瘫级别'] = item.collapsed;
-      }
-    },
-    computed: {
-      ...mapGetters(['nodeTypeList_get', 'nodeAttrList_get']),
-      ...mapGetters(['selectTime_get', 'selectData_get']),
-      testData: function () {
-        return this.$store.state.testData
-      }
-    },
-    watch: {
-      //监听过滤组件中的变化
-      nodeTypeList_get: function (val) {
-        this.secondFilter(val, this.nodeAttrList_get)
+      palsyList_get: function (palsyList) {
+        this.allNodesG.selectAll('.arc_collapse').attr("fill", (d) => {
+          if (!palsyList.includes(d.palsy)) {
+            return "#FFFFFF";
+          } else {
+            return this.collapsed_color_0[d.palsy];
+          }
+        });
       },
-      nodeAttrList_get: function (val) {
-        this.secondFilter(this.nodeTypeList_get, val)
+      controlList_get: function (controlList) {
+        this.allNodesG.selectAll('.arc_control').attr("fill", (d) => {
+          if (!controlList.includes(d.control)) {
+            return "#FFFFFF";
+          } else {
+            return this.control_color_0[d.control];
+          }
+        });
       },
-      testData: function (newVal, oldVal) {
+      selectTime_get: function (val) {
+        this.startTime = val.start;
+        this.endTime = val.end;
+        this.drawSwitchGraph();
       },
-      'selectTime_get.start': {
-        handler: function (val) {
-          this.drawSwitchGraph();
-        },
+      layoutData: function (val) {
+        this.modifyLayoutData_sync({layoutData: val});
       }
     }
   }
 </script>
-<style lang="less" scoped>
+<style lang="less">
   @import "./AppNetwork.less";
-
-  div /deep/ .c {
-    line-height: normal !important;
-  }
-
-  div /deep/ .dg.main.a {
-    position: absolute;
-  }
 </style>

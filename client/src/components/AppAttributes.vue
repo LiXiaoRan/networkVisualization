@@ -1,7 +1,10 @@
 <template>
     <div id="attributes-panel">
 		<app-title v-bind:icon="icon" v-bind:msgs="msgs"></app-title>
-		<div id="attributes_btn" class="btn-div">
+		<div id="attributes_btn" class="btn-div" @click="handlehistotype">
+			<input type="radio" name="histotype" value="0" checked='checked'>&nbsp;<span>flow</span>&nbsp;&nbsp;
+			<input type="radio" name="histotype" value="1">&nbsp;<span>protocol</span>
+			
 			<div id="attributes_label" class="block-div"></div>
 		</div>
 		
@@ -25,12 +28,19 @@ export default {
       msgs: "属性变化",
       width: null,
       width2: null,
-      height: null,
-      height2: null,
+      height: null,//line
+      height2: null,//nodes circle
+      height3: null,//histogram
 	  svg: null,
 	  svg_label: null,
       attributes_g: null,
+      hists_g: null,
+	  flow0proto1:0,
       curnodes: [],
+	  curnode:null,
+	  //timedomain:null,
+	  protocoldict:{'000': 'unknown','001': 'other','101': 'VAST','102': 'SDH','103': 'Link16','104': 'Link11','201': 'PPP','202': 'Ethernet','203': 'HDLC','204': 'IP','205': 'OSPF','206': 'EIGRP ','207': 'ISIS','208': 'PNNI','209': 'CLNP','210': 'ICMP','211': 'ARP','212': 'TCP','213': 'UDP','214': 'BGP','215': 'RIP','301': 'HTTP','302': 'FTP','303': 'SMTP','304': 'POP3','305': 'H.323','306': 'SIP','307': 'DNS','308': 'SNMP'},
+	  protocolcolor:{'000': 'white','001': 'white','101': '#F8C3CD','102': '#F4A7B9','103': '#E16B8C','104': '#D05A6E','201': '#1fa5da','202': '#1fa5da','203': '#1fa5da','204': '#1fa5da','205': '#1fa5da','206': '#1fa5da','207': '#1fa5da','208': '#1fa5da','209': '#1fa5da','210': '#1fa5da','211': '#1fa5da','212': '','213': '#1fa5da','214': '#1fa5da','215': '#1fa5da','301': '#FFB11B','302': '#D19826','303': '#DDA52D','304': '#C99833','305': '#F9BF45','306': '#DCB879','307': '#BA9132','308': '#E8B647'},
 	  nodesImgList: [hostImg, switchImg, serverImg],
 	  padding:{top: 10, bottom: 20, left: 70, right: 30},
 	  timeset:{"starttime": 1468561795, "curtime": 1468561795, "endtime": 1468633627, "timestep": 60,"timewindow": 60}
@@ -41,11 +51,17 @@ export default {
     let self = this;
 	let $Div=$("#attributes_svg");
     self.width=$Div.width();
-	self.height=$Div.height();
+	self.height=$Div.height()*0.5;
 	self.svg=d3.select("#attributes_svg")
 			.append("svg")
 			.attr("width", self.width)
-			.attr("height", self.height);
+			.attr("height", $Div.height());
+	self.attributes_g=self.svg.append("g").attr("class","attributes");
+	
+	self.height3=$Div.height()-self.height;
+	self.hists_g=self.svg.append("g").attr("class","flowlevel")
+		.attr("transform", "translate("+(0)+"," + (self.height) + ")");;
+	
 	let $Div2=$("#attributes_label");
     self.width2=$Div2.width();
     self.height2=$Div2.height();
@@ -53,7 +69,7 @@ export default {
 			.append("svg")
 			.attr("width", self.width2)
 			.attr("height", self.height2);
-	self.attributes_g=self.svg.append("g").attr("class","attributes");
+	
 	this.start_angle = 0;
     this.end_angle = 180 * (Math.PI / 180);
 	this.arcs_width = 2;
@@ -61,37 +77,28 @@ export default {
     this.control_color_0 = ["#008475", "#00ba8a", "#4dcf8b", "#9ce28d", "#dff68e"];
   },
   methods: {
-	handleattribute(){
-		let newtype=parseInt(document.getElementById("st_attribute").value);
-		if(newtype!=this.curtype){
-			this.curtype=newtype;
-			this.getattr();
-		}
-	},
-	yformat(){
-		if(this.curtype==0 || this.curtype==2){
-			return d3.format("d");
-		}else{
-			return d3.formatPrefix(",.0", 1e-3);
-		}
-	},
-	yscale(min,max){
-		if(min==max){
-			if(this.curtype==0 || this.curtype==2){
-				return [min-1,max+1];
-			}else{
-				return [min-0.001,max+0.001];
-			}
-		}else{
-			return [min,max];
-		}
-	},
 	inttime2date(num){
 		return new Date(num*1000);
 	},
-	drawlines(data,nodesattr,shownnode,rangestart,rangeend){
-
+	handlehistotype(){
+		let obj = document.getElementsByName("histotype");
+		for(let i=0; i<obj.length; i ++){
+			if(obj[i].checked){
+				let newtype=parseInt(obj[i].value);
+				if(newtype!=this.flow0proto1){
+					
+					this.flow0proto1=newtype;
+					this.drawhists(this.flowprotodata);
+				}
+				break;
+			}
+		}
+	},
+	drawlines(data,nodesattr){
 		//let colors=["#F48061","#56A4C9","#50890E","#AFC0DD","#F6E3BE"];
+		let shownnode=this.curnode;
+		let rangestart=this.rangestart;
+		let rangeend=this.rangeend;
 		
 		let nodes=this.curnodes;
 		if(shownnode==-1){
@@ -102,11 +109,6 @@ export default {
 		let w=this.width;
 		let padding=this.padding;
 		let lineheight=h-padding.top-padding.bottom;
-		//console.log(w,h,lineheight);
-		//let timenum=data[nodes[0]].length;
-		//Math.ceil((this.timeset["endtime"]-this.timeset["starttime"])/this.timeset["timestep"]);
-		let x = d3.scaleTime().range([0, w-padding.left-padding.right])
-			//.domain([this.inttime2date(this.timeset["starttime"]),this.inttime2date(this.timeset["endtime"])]);
 		
 		let attrnamx=["degree","clustering","core num","eigen center","reachable percent"];
 		let attrnum=5;
@@ -115,6 +117,8 @@ export default {
 		let d_min=[100,100,100,100,100];let d_max=[0,0,0,0,0];
 		let timestart=this.timeset["endtime"];
 		let timeend=0;
+		let time0=this.timeset["starttime"]
+		let timestep=this.timeset["timestep"];
 		
 		for(let k=0;k<data[shownnode].length;k++){
 			let tmpdata=data[shownnode][k];
@@ -127,21 +131,18 @@ export default {
 				}else if(tmpdata[attr_i]<d_min[attr_i]){
 					d_min[attr_i]=tmpdata[attr_i];
 				}
-				let tmpstart=rangestart+k*this.timeset["timestep"];
-				let tmpend=rangestart+(k+1)*this.timeset["timestep"];
+				let tmpstart=time0+k*this.timeset["timestep"];
+				let tmpend=time0+(k+1)*this.timeset["timestep"];
 				if(newdata[attr_i].length!=0){
 					let lastind=newdata[attr_i][newdata[attr_i].length-1][1];
 					if(lastind!=k-1){
 						newdata[attr_i].push([0,lastind+1]);
-						//newdata_ind[attr_i].push(lastind+1);
 					}
+					newdata[attr_i].push([tmpdata[attr_i],k]);
 				}else{
-					if(k-1>0){
-						newdata[attr_i].push([tmpdata[attr_i],k-1]);
-						tmpstart=rangestart+(k-1)*this.timeset["timestep"];
-					}
+					newdata[attr_i].push([tmpdata[attr_i],k]);
+					//newdata[attr_i].push([tmpdata[attr_i],k+1]);
 				}
-				newdata[attr_i].push([tmpdata[attr_i],k]);
 
 				if(tmpend>timeend){
 					timeend=tmpend;
@@ -151,13 +152,26 @@ export default {
 				}
 			}
 		}
+		for(let attr_i=0;attr_i<newdata.length;attr_i++){
+			//if(newdata[attr_i].length==1){}
+			let lastvalue=newdata[attr_i][newdata[attr_i].length-1][0];
+			let lastind=newdata[attr_i][newdata[attr_i].length-1][1];
+			newdata[attr_i].push([lastvalue,lastind+1]);
+			let tmpend=time0+(lastind+1)*this.timeset["timestep"];
+			if(tmpend>timeend){
+				timeend=tmpend;
+			}
+		}
+		
 		if(rangestart<timestart){timestart=rangestart;}
 		if(rangeend>timeend){timeend=rangeend;}
 		
+		let x = d3.scaleTime().range([0, w-padding.left-padding.right]);
 		x.domain([this.inttime2date(timestart),this.inttime2date(timeend)]);
-		
+		//this.timedomain=x.domain();
 		//console.log([timestart,timeend]);
-		//console.log(newdata);
+		//console.log(x.domain());
+		console.log(newdata);
 		
 		let y=d3.scaleLinear().range([lineheight, 0])
 				.domain([0,1]);
@@ -170,9 +184,7 @@ export default {
 			y.push(tmpy);
 		}
 		*/
-		timestart=rangestart;
-		let timestep=this.timeset["timestep"];
-		
+		//timestart=rangestart;
 			
 		let axis=g.append("g").attr("transform", "translate("+(padding.left)+"," + (padding.top) + ")");
 		let xaxis=axis.append("g")
@@ -197,14 +209,9 @@ export default {
 				let linemaker=d3.line()
 					.curve(d3.curveBasis)
 					.x((dd)=> { 
-						return x(this.inttime2date((timestart+dd[1]*timestep))); 
+						return x(this.inttime2date((time0+dd[1]*timestep))); 
 					})
 					.y((dd)=> {
-						//console.log(dd,i);
-						/*
-						if(dd[0]==0){return 0;}
-						else{return y[i](dd[0]); }
-						*/
 						if(d_max[i]>1){return y(dd[0]/d_max[i]);}
 						else{return y(dd[0]);}
 					});
@@ -216,7 +223,8 @@ export default {
 			.append("title").text((d,i)=>{
 				return attrnamx[i];
 			});
-		/*
+		
+		
 		let timeendlocx=x(this.inttime2date(rangeend));
 		let timestartlocx=x(this.inttime2date(rangestart));
 		let timespanwidth=timeendlocx-timestartlocx;
@@ -226,8 +234,10 @@ export default {
 			.attr("class", "upper_timerange")
 			.attr("x", timeendlocx - timespanwidth)
 			.attr("width", timespanwidth)
-			.attr("height", lineheight+8);
-        */
+			.attr("height", lineheight+8)
+			//.style("stroke-width","1px");
+        
+		
 		var noderadius=8;
 		var nodesall=_.keys(nodesattr);
 		let g4=this.svg_label.append("g");
@@ -264,7 +274,9 @@ export default {
 			.on("click",(d,i)=>{
 				this.attributes_g.selectAll("g").remove();
 				this.svg_label.selectAll("g").remove();
-				this.drawlines(data,nodesattr,d,rangestart,rangeend);
+				this.curnode=d;
+				this.drawlines(this.attridata,nodesattr);
+				this.drawhists(this.flowprotodata);
 			})
 			.append("title").text((d,i)=>{
 				return d;
@@ -299,6 +311,150 @@ export default {
 		})
 		
 	},
+	drawhists(data_p){
+		let flow0proto1=this.flow0proto1;
+		let protocoldict=this.protocoldict;
+		let shownnode=this.curnode;
+		let rangestart=this.rangestart;
+		let rangeend=this.rangeend;
+		
+		let data=JSON.parse(JSON.stringify(data_p));
+		let tmpdata;
+		let tmpkey;
+		let tmpcolor;
+		
+		if(flow0proto1==0){
+			for(let t=0;t<data["flow"][shownnode].length;t++){
+				if(_.isArray(data["flow"][shownnode][t])){
+					data["flow"][shownnode][t]=_.object(['inflow', 'outflow'], data["flow"][shownnode][t]);
+				}
+			}
+			tmpdata=data["flow"][shownnode];
+			tmpkey=['inflow', 'outflow'];
+			tmpcolor={"inflow":"#7bc5e3","outflow":"#1fa5da"};
+		}else if(flow0proto1==1){
+			let keysall=_.keys(this.protocoldict);
+			for(let t=0;t<data["level"][shownnode].length;t++){
+				let tmpkeys=_.keys(data["level"][shownnode][t]);
+				for(let k=0;k<keysall.length;k++){
+					if(_.indexOf(tmpkeys,keysall[k])<0){
+						data["level"][shownnode][t][keysall[k]]=0;
+					}
+				}
+			}
+			tmpdata=data["level"][shownnode];
+			tmpkey=keysall;
+			tmpcolor=this.protocolcolor;
+		}
+		//console.log(tmpcolor);
+		
+		let delstart=-1;
+		for(let i=0;i<tmpdata.length;i++){
+			if(_.max(_.values(tmpdata[i]))==0){
+				delstart=i;
+			}else{
+				break;
+			}
+		}
+		tmpdata.splice(0,delstart+1);
+		delstart=delstart+1;
+		
+		for(let i=tmpdata.length-1;i>=0;i--){
+			if(_.max(_.values(tmpdata[i]))==0){
+				tmpdata.splice(i,1);
+			}else{
+				break;
+			}
+		}
+		//console.log(tmpdata);
+		
+		let series=d3.stack().keys(tmpkey)(tmpdata);
+		//console.log(series);
+		
+		let time0=this.timeset["starttime"]
+		let timestep=this.timeset["timestep"];
+		
+		let timestart=time0+delstart*timestep;
+		let timeend=time0+(delstart+tmpdata.length)*timestep;
+		if(rangestart<timestart){timestart=rangestart;}
+		if(rangeend>timeend){timeend=rangeend;}
+		
+		let x = d3.scaleTime().range([0, this.width-this.padding.left-this.padding.right]);
+		x.domain([this.inttime2date(timestart),this.inttime2date(timeend)]);
+		//console.log(delstart);
+		//console.log(x.domain());
+		
+		let availheight=this.height3-this.padding.top-this.padding.bottom;	
+		var y = d3.scaleLinear()
+			.domain([d3.min(series, stackMin), d3.max(series, stackMax)])
+			.range([availheight, 0]);
+		function stackMin(serie) {
+		    return d3.min(serie, (d)=>{ return d[0]; });
+		}
+		function stackMax(serie) {
+		    return d3.max(serie, (d)=>{ return d[1]; });
+		}
+		//console.log(x.bandwidth());
+		
+		this.hists_g.selectAll("g").remove();
+		
+		let axis=this.hists_g.append("g").attr("transform", "translate("+(this.padding.left)+"," + (this.padding.top) + ")");
+		let xaxis=axis.append("g")
+			.attr("class", "x axis")
+			.attr("transform", "translate(0," + (availheight) + ")")
+			.call(d3.axisBottom(x).ticks(5));
+		let yaxis=axis.append("g")
+			.attr("class", "y axis")
+			.call(d3.axisLeft(y).ticks(5));	
+		
+		let barstack_g=this.hists_g.append("g")
+			.attr("transform", "translate(" + this.padding.left + "," + this.padding.top + ")")
+			.selectAll("g")
+			.data(series)
+			.enter().append("g").attr("class",(d,i)=>{return d.key;})
+			.attr("fill", (d)=>{
+				return tmpcolor[d.key];
+			})
+		let barstack=barstack_g.selectAll("rect")
+			.data((d)=>{return d; })
+			.enter().append("rect")
+			.attr("opacity",(d,i)=>{
+				/*
+				if((time0+(delstart+i)*timestep)>rangeend || (time0+(delstart+i+1)*timestep)<rangestart){
+					return 0.7;
+				}else{return 1;}*/
+				return 1;
+			})
+			.attr("x", (d,i)=>{ 
+				return x(this.inttime2date((time0+(delstart+i)*timestep)))
+			})
+			.attr("y", (d)=>{ return y(d[1]); })
+			.attr("height", (d)=>{ return y(d[0]) - y(d[1]); })
+			.attr("width", (d,i)=>{
+				let x1=x(this.inttime2date((time0+(delstart+i)*timestep)));
+				let x2=x(this.inttime2date((time0+(delstart+i+1)*timestep)));
+				return x2-x1;
+			}).append("title").text(function(d,i){
+				//console.log($(this).parent());
+				//console.log($(this).parent().parent().attr("class"));
+				let tmpkey=$(this).parent().parent().attr("class");
+				if(flow0proto1==0){return tmpkey+":"+d.data[tmpkey];}
+				else{return protocoldict[tmpkey]+":"+d.data[tmpkey];}
+			});
+		
+		let timeendlocx=x(this.inttime2date(rangeend));
+		let timestartlocx=x(this.inttime2date(rangestart));
+		let timespanwidth=timeendlocx-timestartlocx;
+		
+		let timerect=this.hists_g.append("g").attr("transform", "translate("+(this.padding.left)+"," + (this.padding.top-4) + ")");
+        timerect.append("g").append("rect")
+			.attr("class", "upper_timerange")
+			.attr("x", timeendlocx - timespanwidth)
+			.attr("width", timespanwidth)
+			.attr("height", availheight+8)
+			//.style("stroke-width","1px");
+		
+	},
 	getattr(){
 		let obj = {
 			nodes:JSON.stringify(this.curnodes)
@@ -307,7 +463,17 @@ export default {
 			console.log(evt_data);
 			this.attributes_g.selectAll("g").remove();
 			this.svg_label.selectAll("g").remove();
-			this.drawlines(evt_data["attr"],evt_data["nodes"],this.curnodes[this.curnodes.length-1],evt_data["start"],evt_data["end"]);
+			this.attridata=evt_data["attr"];
+			this.curnode=this.curnodes[this.curnodes.length-1];
+			this.rangestart=evt_data["start"];
+			this.rangeend=evt_data["end"];
+			this.drawlines(evt_data["attr"],evt_data["nodes"]);
+			
+			CommunicateWithServer('get', obj, 'getFlow', (evt_data2)=>{
+				console.log(evt_data2);
+				this.flowprotodata=evt_data2;
+				this.drawhists(evt_data2);
+			});
 		});
 	}
   },

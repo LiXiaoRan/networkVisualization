@@ -234,6 +234,8 @@ export default {
 		circles.append("image")
 			.attr("xlink:href", (d,i) => {
 				let tmptype=nodesdata[d]["nodeType"];
+				return this.nodesImgList[tmptype];
+				/*
 				if (tmptype === "主机") {
 				  return this.nodesImgList[0];
 				} else if (tmptype === "交换机") {
@@ -241,6 +243,7 @@ export default {
 				} else if (tmptype === "服务器") {
 				  return this.nodesImgList[2];
 				}
+				*/
 			})
 			.attr("x", d => - noderadius)
 			.attr("y", d => - noderadius)

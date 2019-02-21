@@ -260,7 +260,7 @@ export default {
 					cury=(this.height-this.padding.top-this.padding.bottom)/(pathnum-1)*(pi);
 				}
 				let pathlen=nodessps[i][pi].length;
-					
+				
 				for(let ni=0;ni<pathlen-1;ni++){
 					nodesrecord_new.push(nodesrecord[i][pi][ni]);
 					
@@ -331,7 +331,7 @@ export default {
 					else{return 5;}
 				})
 				.append("title").text((dd,ii)=>{
-					return this.inttime2str(this.timeset["starttime"]+ii*this.timeset["timestep"])+" - "+this.inttime2str(this.timeset["starttime"]+(ii+1)*this.timeset["timestep"]);
+					return this.inttime2str(this.timeset["starttime"]+(ii+this.starttimeind)*this.timeset["timestep"])+" - "+this.inttime2str(this.timeset["starttime"]+(ii+1+this.starttimeind)*this.timeset["timestep"]);
 				});
 		}
 		//console.log(nodespos);
@@ -461,6 +461,7 @@ export default {
 		    this.showntype=1;
 			CommunicateWithServer('get', obj, 'getSPs', (evt_data)=>{
 				console.log(evt_data);
+				this.starttimeind=evt_data["startind"];
 				this.multipsps(evt_data["paths"],evt_data["records"],evt_data["nodes"]);
 		    })
 	  }

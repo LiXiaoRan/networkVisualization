@@ -360,8 +360,8 @@
         }
       },
       showLinks() {
-        this.linkAllShow = !this.linkAllShow;
         //切换边显示状态
+        this.linkAllShow = !this.linkAllShow;
         if (this.allLinksG) {
           this.allLinksG.attr("display", this.linkAllShow ? "block" : "none");
           if (this.disappearNodes.length && this.linkAllShow) {

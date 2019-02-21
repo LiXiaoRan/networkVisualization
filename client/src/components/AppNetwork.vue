@@ -161,7 +161,8 @@
         obj: {},
         selectedNode: null, // 选择单个节点
         selectedNodes: [], // 选择多个节点
-        selectedFlag: false
+        selectedFlag: false,
+        disappearNodes: []
       };
     },
     components: {
@@ -363,6 +364,11 @@
         //切换边显示状态
         if (this.allLinksG) {
           this.allLinksG.attr("display", this.linkAllShow ? "block" : "none");
+          if (this.disappearNodes.length && this.linkAllShow) {
+            this.allLinksG.attr("display", link => {
+              if (this.disappearNodes.includes(link.source) || this.disappearNodes.includes(link.target)) return "none"
+            });
+          }
         }
       },
       drawGraph(result) {
@@ -547,24 +553,16 @@
           return arcs(d);
         })
           .attr("class", "arc_collapse")
-          .attr("transform", (d) => {
-            return "translate(" + (this.xScale(d.x)) + "," + (this.yScale(d.y)) + ")"
-          })
-          .attr("fill", (d) => {
-            return this.collapsed_color_0[d.palsy];
-          });
+          .attr("transform", (d) => "translate(" + (this.xScale(d.x)) + "," + (this.yScale(d.y)) + ")")
+          .attr("fill", (d) => this.collapsed_color_0[d.palsy]);
         this.allNodesG.append("path").attr("d", (d) => {
           let tmp_r = this.nodeScale(d.degree) / 2;
           let arcs = d3.arc().startAngle(this.start_angle).endAngle(this.end_angle)
             .innerRadius(tmp_r - this.arcs_width / 2).outerRadius(tmp_r + this.arcs_width / 2);
           return arcs(d);
         }).attr("class", "arc_control")
-          .attr("transform", (d) => {
-            return "translate(" + (this.xScale(d.x)) + "," + (this.yScale(d.y)) + ")" + "rotate(180)"
-          })
-          .attr("fill", (d) => {
-            return this.control_color_0[d.control];
-          });
+          .attr("transform", (d) => "translate(" + (this.xScale(d.x)) + "," + (this.yScale(d.y)) + ")" + "rotate(180)")
+          .attr("fill", (d) => this.control_color_0[d.control]);
       },
       updated(item) {
         if (item.nodeType === 0) {
@@ -593,11 +591,12 @@
             return "none";
           }
         });
-        disappearNodes = [...disappearNodes];
-        this.allLinksG.attr("display", link => {
-          if (disappearNodes.includes(link.source) || disappearNodes.includes(link.target)) return "none";
-          else return "block";
-        });
+        this.disappearNodes = [...disappearNodes];
+        if (this.linkAllShow) {
+          this.allLinksG.attr("display", link => {
+            if (this.disappearNodes.includes(link.source) || this.disappearNodes.includes(link.target)) return "none"
+          });
+        }
       },
       palsyList_get: function (palsyList) {
         this.allNodesG.selectAll('.arc_collapse').attr("fill", (d) => {

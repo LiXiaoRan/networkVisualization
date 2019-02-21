@@ -19,7 +19,7 @@ const mutations = {
     state.selectData = arr;
   },
 
-  modiftLayoutData(state, obj) {
+  modifyLayoutData(state, obj) {
     state.layoutData = obj.layoutData;
   }
 }

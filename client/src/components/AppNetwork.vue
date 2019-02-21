@@ -37,7 +37,7 @@
               <td class="network_text1">当前数量</td>
             </tr>
             <tr>
-              <td class="network_text2">0%</td>
+              <td class="network_text2">{{totalHostNum}}</td>
               <td class="network_text1">占所有主机比例</td>
             </tr>
             <tr class="network_text3">
@@ -49,7 +49,7 @@
               <td class="network_text1">当前数量</td>
             </tr>
             <tr>
-              <td class="network_text2">0%</td>
+              <td class="network_text2">{{totalSwitchNum}}</td>
               <td class="network_text1">占所有交换机比例</td>
             </tr>
             <tr class="network_text3">
@@ -61,7 +61,7 @@
               <td class="network_text1">当前数量</td>
             </tr>
             <tr>
-              <td class="network_text2">0%</td>
+              <td class="network_text2">{{totalServerNum}}</td>
               <td class="network_text1">占所有服务器比例</td>
             </tr>
           </table>
@@ -108,7 +108,7 @@
 </template>
 <script>
   import AppTitle from "./AppTitle.vue";
-  import {mapGetters} from 'vuex';
+  import {mapGetters, mapActions} from 'vuex';
   import hostImg from "../assets/host.png";
   import switchImg from "../assets/switch.png";
   import serverImg from "../assets/server.png";
@@ -154,6 +154,9 @@
         hostNum: 0,
         serverNum: 0,
         switchNum: 0,
+        totalHostNum: '0%',
+        totalSwitchNum: '0%',
+        totalServerNum: '0%',
         nowLevel: 0,
         obj: {},
         selectedNode: null, // 选择单个节点
@@ -330,6 +333,7 @@
       document.getElementById("lay-container").appendChild(gui.domElement);
     },
     methods: {
+      ...mapActions(['modifyLayoutData_sync']),
       drawSwitchGraph() {
         let paramsObj = {
           layout_type: this.nowLayoutType,
@@ -566,7 +570,6 @@
         }
       },
       secondFilter: function (typeList, palsyList, controlList) {
-        console.log(typeList, palsyList, controlList);
         //二级过滤
         let disappearNodes = new Set();
         this.allNodesG.attr("display", node => {
@@ -612,8 +615,7 @@
       }
     },
     computed: {
-      ...mapGetters(['nodeTypeList_get', 'palsyList_get', 'controlList_get']),
-      ...mapGetters(['selectTime_get', 'selectData_get'])
+      ...mapGetters(['nodeTypeList_get', 'palsyList_get', 'controlList_get', 'selectTime_get']),
     },
     watch: {
       //监听过滤组件中的变化
@@ -627,9 +629,15 @@
         this.secondFilter(this.nodeTypeList_get, this.palsyList_get, val)
       },
       selectTime_get: function (val) {
+        this.totalHostNum = nodesNumber.hostNumber;
+        this.totalSwitchNum = nodesNumber.switchNumber;
+        this.totalServerNum = nodesNumber.serverNumber;
         this.startTime = val.start;
         this.endTime = val.end;
         this.drawSwitchGraph();
+      },
+      layoutData: function (val) {
+        this.modifyLayoutData_sync({layoutData: val});
       }
     }
   }

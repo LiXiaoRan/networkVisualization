@@ -3,47 +3,47 @@
     <app-title v-bind:icon="icon" v-bind:msgs="msgs"></app-title>
     <div class="filter1">
       <span class="filter-msg">节点类型</span>
-      <div id="outer-div">
-        <div v-for="item in nodeType" id="inner-div">
+      <div class="outer-div">
+        <div v-for="item in nodeType" class="inner-div">
           <input
             type="checkbox"
-            id="select-checkbox"
+            class="select-checkbox"
             :value="item.value"
             :checked="item.checked"
             @change="changeNodeType(item)"
           >
-          <span id="checbok-span">{{item.name}}</span>
+          <span class="checbok-span">{{item.name}}</span>
         </div>
       </div>
     </div>
     <div class="filter2">
       <div>
         <span class="filter-msg">致瘫级别</span>
-        <div id="outer-div">
-          <div v-for="item in palsyLevel" id="inner-div">
+        <div class="outer-div">
+          <div v-for="item in palsyLevel" class="inner-div">
             <input
               type="checkbox"
-              id="select-checkbox"
+              class="select-checkbox"
               :value="item.value"
               :checked="item.checked"
               @change="changePalsyLevel(item)"
             >
-            <span id="checbok-span">{{item.name}}</span>
+            <span class="checbok-span">{{item.name}}</span>
           </div>
         </div>
       </div>
       <div>
         <span class="filter-msg">控制级别</span>
-        <div id="outer-div">
-          <div v-for="item in controlLevel" id="inner-div">
+        <div class="outer-div">
+          <div v-for="item in controlLevel" class="inner-div">
             <input
               type="checkbox"
-              id="select-checkbox"
+              class="select-checkbox"
               :value="item.value"
               :checked="item.checked"
               @change="changeControlLevel(item)"
             >
-            <span id="checbok-span">{{item.name}}</span>
+            <span class="checbok-span">{{item.name}}</span>
           </div>
         </div>
       </div>

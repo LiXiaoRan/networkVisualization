@@ -841,7 +841,7 @@
         </state>
       </provider>
     </entry>
-    <entry file="file://$PROJECT_DIR$/server/server.py">
+    <entry file="file://$PROJECT_DIR$/client/src/components/AppNetwork.vue">
       <provider selected="true" editor-type-id="text-editor">
         <state relative-caret-position="189">
           <caret line="249" column="47" selection-start-line="249" selection-start-column="47" selection-end-line="249" selection-end-column="47" />

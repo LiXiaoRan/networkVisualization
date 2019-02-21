@@ -426,6 +426,7 @@
             this.selectedNodes = [];
             this.folder.close();
             //此处清空所选节点信息，交大写上对应变更
+			this.$store.state.nodesSelected=[];
           }
         });
         this.allLinksG = this.layoutLinksG.selectAll("g")
@@ -487,13 +488,19 @@
               self.selectedFlag = false;
             }
             self.updated(d);
-            //此处清空所选节点信息，交大写上对应变更 selectedNode 为点击一个节点所存信息，selectedNodes 为多选节点信息，通过selectedFlag 判断属于哪一种交互
-            // let tmpId = this.$store.state.nodesSelected.indexOf(d.id);
-            // if (tmpId >= 0) {
-            //   this.$store.state.nodesSelected.splice(tmpId, 1);
-            // } else {
-            //   this.$store.state.nodesSelected.push(d.id);
-            // }
+			
+			if(self.selectedFlag){
+				let tmpnodes=[];
+				for(let m=0;m<self.selectedNodes.length;m++){
+					tmpnodes.push(self.selectedNodes[m]['id']);
+				}
+				console.log(self.selectedNodes);
+				self.$store.state.nodesSelected=tmpnodes;
+			}else{
+				console.log(self.selectedNode);
+				self.$store.state.nodesSelected=[self.selectedNode['id']];
+			}
+			//console.log(self.$store.state.nodesSelected);
           })
           .on("mouseover", function (d) {
             d3.select(this).attr("xlink:href", () => self.nodeSelectedList[d.nodeType]);

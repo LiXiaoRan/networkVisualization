@@ -244,6 +244,18 @@ class getSPs(tornado.web.RequestHandler):
         evt = json.dumps(evt_unpacked)
         self.write(evt)
 
+class getFlow(tornado.web.RequestHandler):
+    # 获取指定节点的指定属性变化记录
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        params = json.loads(self.get_argument('params'))
+        nodes = json.loads(params['nodes'])
+        evt_unpacked = LocalGraph.flowdist(nodes)
+        # print(evt_unpacked)
+        evt = json.dumps(evt_unpacked)
+        self.write(evt)
 
 class getData2(tornado.web.RequestHandler):
     def get(self):
@@ -259,8 +271,8 @@ class getData2(tornado.web.RequestHandler):
         evt_unpacked = {'message': 'timeRangeData', 'data': nowSelectedData}
         evt = json.dumps(evt_unpacked)
         self.write(evt)
-        LocalGraph.rangestart = timeRange[0]
-        LocalGraph.rangeend = timeRange[1]
+        LocalGraph.rangestart = LocalGraph.linuxtimestamp(timeRange[0])
+        LocalGraph.rangeend = LocalGraph.linuxtimestamp(timeRange[1])
 
 
 class getTimeLineJson(tornado.web.RequestHandler):
@@ -292,6 +304,7 @@ if __name__ == "__main__":
             (r'/choosenone', choosenone),
             (r'/gettree', gettree),
             (r'/getSPs', getSPs),
+            (r'/getFlow', getFlow),
             (r'/getData2', getData2),
             (r'/get-timeLine-json', getTimeLineJson),
             (r'/(.*)', tornado.web.StaticFileHandler, {'path': client_file_root_path,

@@ -102,7 +102,11 @@
           {text: "流入量", value: "流入量"},
           {text: "流出量", value: "流出量"}
         ],
-        selected: "总流量"
+        selected: "总流量",
+        FilterLayoutData:[],
+        HistogramData:[],
+        HistogramFlowInData:[],
+        HistogramFlowOutData:[]
       };
     },
     components: {AppTitle},
@@ -137,12 +141,19 @@
         this.modifyControlList_sync({controlLevelList: data});
       },
       dataProcess(layoutData) {
+        let self=this;
         let maxFlow = -1;
         let minFlow = -1;
         let num = 0;//节点数目
         let nodes = [];
-        let HistogramData = []
         nodes = layoutData.nodes;
+
+        if(typeof self.HistogramData.increase_num !=='undefined' && self.HistogramData.increase_num.length>0) self.HistogramData=[];
+        if(typeof self.HistogramFlowInData.increase_num !=='undefined' && self.HistogramFlowInData.increase_num.length>0) self.HistogramFlowInData=[];
+        if(typeof self.HistogramFlowOutData.increase_num !=='undefined' && self.HistogramFlowOutData.increase_num.length>0) self.HistogramFlowOutData=[];
+
+
+        if(self.selected=="总流量") {
         maxFlow = d3.max(nodes, d => {
           return d.flow
         });
@@ -161,9 +172,57 @@
             }
           })
 
-          HistogramData.push([index, num])
+          self.HistogramData.push([index, num])
         }
-        this.drawHistogram(HistogramData, 50)
+        this.drawHistogram(self.HistogramData, 50)
+        }
+        if(self.selected=="流入量"){
+          // if(self.HistogramFlowInData!=null) self.HistogramFlowInData=[];
+          maxFlow = d3.max(nodes, d => {
+          return d.flow_in
+        });
+        minFlow = d3.min(nodes, d => {
+          return d.flow_in
+        });
+        let step = Math.ceil(maxFlow / 50);
+        let item_attr = [];
+        item_attr = d3.range(0, maxFlow, step);
+        console.log(item_attr);
+        for (let index = 1; index < item_attr.length; index++) {
+          num = 0;
+          nodes.forEach(d => {
+            if (d.flow_in > item_attr[index - 1] && d.flow_in <= item_attr[index]) {
+              num++
+            }
+          })
+
+          self.HistogramFlowInData.push([index, num])
+        }
+        this.drawHistogram(self.HistogramFlowInData, 50)
+        }
+        if(self.selected=="流出量"){
+          maxFlow = d3.max(nodes, d => {
+          return d.flow_out
+        });
+        minFlow = d3.min(nodes, d => {
+          return d.flow_out
+        });
+        let step = Math.ceil(maxFlow / 50);
+        let item_attr = [];
+        item_attr = d3.range(0, maxFlow, step);
+        console.log(item_attr);
+        for (let index = 1; index < item_attr.length; index++) {
+          num = 0;
+          nodes.forEach(d => {
+            if (d.flow_out > item_attr[index - 1] && d.flow_out <= item_attr[index]) {
+              num++
+            }
+          })
+
+          self.HistogramFlowOutData.push([index, num])
+        }
+        this.drawHistogram(self.HistogramFlowOutData, 50)
+        }
       },
       drawHistogram(randomData, randomDataLength) {
         if (d3.select("#barchart").selectAll('g')) d3.select("#barchart").selectAll('g').remove();
@@ -298,10 +357,36 @@
     watch: {
       layoutData_get: function (data) {
         //这里获取到当前布局的数据，然后重新绘制直方图
-        console.log(data)
-        this.dataProcess(data)
+        console.log(data);
+        this.FilterLayoutData=data;
+        this.dataProcess(data);
       },
       selected: function (data) {
+
+        if (data=='总流量') {
+          if (typeof this.HistogramData.increase_num !=='undefined' && this.HistogramData.increase_num.length>0) {
+            //如果总流量数组不为空，绘制总流量直方图
+            this.drawHistogram(this.HistogramData,50)
+          }else{
+            this.dataProcess(this.FilterLayoutData)
+          }
+        }
+        if (data=='流入量') {
+          if (typeof this.HistogramFlowInData.increase_num !=='undefined' && this.HistogramFlowInData.increase_num.length>0) {
+            console.log('流入量不为空');
+            
+            this.drawHistogram(this.HistogramFlowInData,50)
+          }else{
+            this.dataProcess(this.FilterLayoutData)
+          }
+        }
+        if (data=='流出量') {
+          if (typeof this.HistogramFlowOutData.increase_num !=='undefined' && this.HistogramFlowOutData.increase_num.length>0) {
+            this.drawHistogram(this.HistogramFlowOutData,50)
+          }else{
+            this.dataProcess(this.FilterLayoutData)
+          }
+        }
         console.log(data);
       }
     }

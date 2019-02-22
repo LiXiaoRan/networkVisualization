@@ -1,6 +1,6 @@
 {
     "message": "timeRangeData",
-    "nodesNumber": {"totalNumber": 41809, "hostNumber": 20904, "switchNumber": 12543, "serverNumber": 8362},
+    "nodesNumber": {"totalNumber": 41809, "hostNumber": 13894, "switchNumber": 13996, "serverNumber": 13919},
     "data": [
         {
             "2016-07-15 13:50:00": 13.856406460551018

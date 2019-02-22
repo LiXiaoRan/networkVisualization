@@ -164,7 +164,6 @@
       drawHistogram(randomData, randomDataLength) {
         console.log('data is ');
         console.log(randomData);
-        
         let self = this;
         let domItem = d3.select(self.$el);
         let brushleft = 0;

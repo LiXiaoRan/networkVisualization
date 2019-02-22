@@ -63,28 +63,9 @@ export default class TimeLine2 {
         startTime=date2str(timestart);
         Center.startTime = newdatestr(startTime);
         obj.data = JSON.stringify([startTime, maxendtime]);
-        obj.name = name(mincnt);
         console.log(obj.data, obj.name, '+++++++++');
         redrawTimeLineD(mincnt);
       }
-    }
-
-    function name(mincnt) {
-      let  filename = '';
-      switch (mincnt){
-        case 30:
-          filename =  'timeLineData_halfhour';
-          break;
-        case 60:
-          filename = 'timeLineData_onehour';
-          break;
-        case 180:
-          filename = 'timeLineData_threehours';
-          break;
-        default:
-          filename = '';
-      }
-      return filename;
     }
 
     function granulariyBtnFunc(mincnt) {
@@ -202,7 +183,8 @@ export default class TimeLine2 {
       var lowertimerange = []; //lower time range
       var lowertimebrushed = []; //upper time range
       var uppertimewindow = []; //uper time window
-
+      var axisTime = d3.scaleOrdinal().range([5, 10, 30]).domain([30, 60, 180]);
+      var spacing = axisTime(lower_timeminspan)/10;
       var lower_data = new Array();
     }
 
@@ -315,26 +297,41 @@ export default class TimeLine2 {
     }
 
     function brushend() {
+     console.log(lowertimebrushed)
+      let upper_data = [];
+      let lower_startTime = lowertimebrushed[0];
+      let lower_endTime = lowertimebrushed[1];
+      lower_data.forEach(function (d) {
+        if(lowerparseTime(d3.keys(d)[0]) <= lower_endTime && lowerparseTime(d3.keys(d)[0]) >= lower_startTime){
+          upper_data.push(d);
+        }
+      })
+      spacing = (lower_endTime - lower_startTime)/10/60/1000;
+      drawPeakValueLabe(upper_data);
       focusToStart();
     }
 
     function brushed() {
-
+      d3.select('.peakRect').remove()
       var s = d3.event.selection;
       var select_x = s[0],
         select_x1 = s[1];
       var dx = select_x1 - select_x;
       //console.log(s);
       if (dx) {
-
+        let timeMinute = d3.scaleLinear().range([0, 60]).domain([0, 360]);
         lowertimebrushed = [context_x.invert(select_x), context_x.invert(select_x1)];
+        let spaceTime = (context_x.invert(select_x1) - context_x.invert(select_x))/1000/60;
         context_brushhandle.attr("display", null).attr("transform", function(d, i) { return "translate(" + s[i] + "," + (context_height - context_height / 5 - lower_margin.bottom) / 2 + ")"; });
         //timedata = [context_x.invert(select_x), context_x.invert(select_x1)];
         focus_x.domain([context_x.invert(select_x), context_x.invert(select_x1)]);
         lowertimebrushed = focus_x.domain();
         focusline.select(".timeline_path").attr("d", focus_area);
         focusline.select(".timeline_path_stroke").attr("d", focus_area_stroke);
+        focus_xAxis = d3.axisBottom(focus_x).tickSize(-focus_height)
+          .ticks(d3.timeMinute.every(parseInt(timeMinute(spaceTime))));
         focusline.select(".axis").call(focus_xAxis);
+
         focusline.selectAll(".axis .tick text").attr("transform", "translate(0," + 5 + ")");
       } else {
         lowertimebrushed = context_x.domain();
@@ -352,22 +349,109 @@ export default class TimeLine2 {
       autoplaytimer = window.clearInterval(autoplaytimer);
     }
 
+    function drawPeakValueLabe(upperdata) {
+      d3.select('.peakRect').remove()
+      let peakValue = [];
+      peakValue = upperdata.filter(function (d) {
+        return d3.values(d)[0] > 200;
+      });
+
+      let peakValue_now = [];
+      let peakValue_spacing = [];
+
+      for(let i = 0; i < peakValue.length; i++){
+        let pre_time, cur_time, next_time;
+        if(i === 0){
+          pre_time = lowerparseTime('2015-12-25 15:32:33');//设置一个足够小的初始值
+        }else {
+          pre_time = lowerparseTime(d3.keys(peakValue[i - 1])[0]);
+        }
+        cur_time = lowerparseTime(d3.keys(peakValue[i])[0]);
+        if(i === peakValue.length - 1){
+          next_time = new Date();//设置一个足够大的结束值
+        }else {
+          next_time = lowerparseTime(d3.keys(peakValue[i + 1])[0]);
+        }
+        if (cur_time - pre_time >= spacing*60*1000 && next_time - cur_time >= spacing*60*1000) {
+          peakValue_now.push(peakValue[i]);
+        }else{
+          peakValue_spacing.push(peakValue[i]);
+        }
+      }
+
+      if (peakValue_spacing.length != 0){
+        let max_index = 0;
+        let max = 0;
+        peakValue_spacing.forEach(function (d, index) {
+          if (d3.values(d)[0] > max){
+            max = d3.values(d)[0];
+            max_index = index;
+          }
+        })
+        peakValue_now.push(peakValue_spacing[max_index])
+      }
+      peakValue_now = peakValue_now.filter(d => lowerparseTime(d3.keys(d)[0]).getMinutes() + spacing < 60 )
+
+      let peakValue_pos = peakValue_now.map(function (d) {
+        let time = lowerparseTime(d3.keys(d)[0]);
+        let hour = time.getHours();
+        let minute = time.getMinutes();
+
+        if(hour >= 12){
+          hour = '0' + (hour - 12);
+        }else{
+          hour = '0' + hour;
+        }
+        if(minute < 10){
+          minute = '0' + minute;
+        }
+
+        let time_str = hour + ":" + minute;
+        return {'time': time_str ,'x': focus_x(lowerparseTime(d3.keys(d)[0])), 'y': focus_height - focus_y(d3.values(d)[0])}
+      })
+
+      let peakRect = focusline.append('g').attr('class', 'peakRect');
+
+      peakRect.append('g').attr('class','lines')
+        .selectAll('line').data(peakValue_pos).enter()
+        .append('line')
+        .attr('x1', d => d.x)
+        .attr('y1', focus_height)
+        .attr('x2', d => d.x)
+        .attr('y2', 0)
+        .attr('stroke-width', 1)
+        .attr('stroke', '#ada63c')
+        .attr('stroke-dasharray', '5,5')
+
+      peakRect.append('g').attr('class','times')
+        .selectAll('text').data(peakValue_pos).enter()
+        .append('text')
+        .attr('x', d => d.x - 11)
+        .attr('y', focus_height)
+        .text(d => d.time)
+        .attr("font-size", "9px")
+        .attr("fill", "#ada63c")
+        .attr("dy", '1.53em')
+    }
+
     function drawUpperTimeLine(datap, upperdata) {
 
        focusline.selectAll("g").remove();
-
+      spacing = axisTime(lower_timeminspan)/10
       upper_data_copy = upperdata;
       focus_x.domain(d3.extent(upperdata.map(function(d) { return lowerparseTime(d3.keys(d)[0]); })))
 
       //focus_x.domain(context_x.domain());
       focus_y.domain(context_y.domain());
+
+      drawPeakValueLabe(upperdata);
       focus_xAxis = d3.axisBottom(focus_x).tickSize(-focus_height)
-        .ticks(d3.timeMinute.every(upper_timeminsplite));
+        .ticks(d3.timeMinute.every(axisTime(lower_timeminspan)));
       focus_yAxis = d3.axisLeft(focus_y).ticks(3);
       focus_area = d3.area().curve(d3.curveBasis)
         .x(function(d) { return focus_x(lowerparseTime(d3.keys(d)[0])); })
         .y0(focus_height)
-        .y1(function(d) { return focus_y(d3.values(d)[0]); });
+        .y1(function(d) { return focus_y(d3.values(d)[0]) ; });
       focus_area_stroke = d3.line().curve(d3.curveBasis)
         .x(focus_area.x()).y(focus_area.y1());
     //  lowertimebrushed = focus_x.domain();

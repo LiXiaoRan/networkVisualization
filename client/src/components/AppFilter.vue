@@ -114,7 +114,8 @@
       ...mapActions([
         "modifyNodeTypeList_sync",
         "modifyPalsyList_sync",
-        "modifyControlList_sync"
+        "modifyControlList_sync",
+        "modifyBrushData_sync"
       ]),
       changeNodeType(item) {
         item.checked = !item.checked;
@@ -141,6 +142,7 @@
         this.modifyControlList_sync({controlLevelList: data});
       },
       dataProcess(layoutData) {
+        //处理当前布局原始数据
         let self=this;
         let maxFlow = -1;
         let minFlow = -1;
@@ -225,6 +227,7 @@
         }
       },
       drawHistogram(randomData, randomDataLength) {
+        //绘制直方图
         if (d3.select("#barchart").selectAll('g')) d3.select("#barchart").selectAll('g').remove();
         let self = this;
         let domItem = d3.select(self.$el);
@@ -275,6 +278,7 @@
             brushleft = Math.round(range[0]);
             brushright = Math.round(range[1]);
             console.log(randomData.slice(brushleft, brushright));
+            self.decodeBrushData(randomData.slice(brushleft, brushright))
           });
         let svg = d3
           .select("#barchart")
@@ -339,17 +343,83 @@
           .attr("class", "brush")
           .call(brush);
       },
+      decodeBrushData(data){
+        //解构刷取的数据
+        let self=this;
+        let maxFlow = -1;
+        let minFlow = -1;
+        let brushNodes = [];
+        let nodes = [];
+        nodes = self.FilterLayoutData.nodes;
+        if(self.selected=="总流量") {
+          maxFlow = d3.max(nodes, d => {
+            return d.flow
+          });
+          let step = Math.ceil(maxFlow / 50);
+          let item_attr = [];
+          item_attr = d3.range(0, maxFlow, step);
 
+          data.forEach(d=>{
+            for (let index = 1; index < item_attr.length; index++) {
+                if(d[0]==index){
+                  nodes.forEach(d => {
+                    if (d.flow > item_attr[index - 1] && d.flow <= item_attr[index]) {
+                        brushNodes.push(d)
+                    }
+                  })
+                }
+
+              }
+          });
+        }
+        if(self.selected=="流入量") {
+          maxFlow = d3.max(nodes, d => {
+            return d.flow_in
+          });
+          let step = Math.ceil(maxFlow / 50);
+          let item_attr = [];
+          item_attr = d3.range(0, maxFlow, step);
+
+          data.forEach(d=>{
+            for (let index = 1; index < item_attr.length; index++) {
+                if(d[0]==index){
+                  nodes.forEach(d => {
+                    if (d.flow_in > item_attr[index - 1] && d.flow_in <= item_attr[index]) {
+                        brushNodes.push(d)
+                    }
+                  })
+                }
+
+              }
+          });
+        }
+        if(self.selected=="流出量") {
+          maxFlow = d3.max(nodes, d => {
+            return d.flow_out
+          });
+          let step = Math.ceil(maxFlow / 50);
+          let item_attr = [];
+          item_attr = d3.range(0, maxFlow, step);
+
+          data.forEach(d=>{
+            for (let index = 1; index < item_attr.length; index++) {
+                if(d[0]==index){
+                  nodes.forEach(d => {
+                    if (d.flow_out > item_attr[index - 1] && d.flow_out <= item_attr[index]) {
+                        brushNodes.push(d)
+                    }
+                  })
+                }
+
+              }
+          });
+        }
+        //将解构完成的brushNodes发送到AppNetwork
+        // console.log(brushNodes);
+        self.modifyBrushData_sync({brushData:brushNodes})
+      }
     },
     mounted() {
-      // let self = this;
-      // let randomData = [];
-      // let randomDataLength = 50;
-      // for (let i = 0; i < randomDataLength; i++) {
-      //   let rand = Math.floor(Math.random() * 500);
-      //   randomData.push([i, rand]);
-      // }
-      // self.drawHistogram(randomData, randomDataLength);
     },
     computed: {
       ...mapGetters(["layoutData_get"])

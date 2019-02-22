@@ -577,7 +577,7 @@
       }
     },
     computed: {
-      ...mapGetters(['nodeTypeList_get', 'palsyList_get', 'controlList_get', 'selectTime_get']),
+      ...mapGetters(['nodeTypeList_get', 'palsyList_get', 'controlList_get', 'selectTime_get','brushData_get']),
     },
     watch: {
       //监听过滤组件中的变化
@@ -623,6 +623,11 @@
       },
       layoutData: function (val) {
         this.modifyLayoutData_sync({layoutData: val});
+      },
+      brushData_get:function (val) {
+        //这里的val为刷取的节点数据
+        console.log(val);
+        
       }
     }
   }

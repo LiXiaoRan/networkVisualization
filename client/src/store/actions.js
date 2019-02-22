@@ -12,6 +12,9 @@ const actions = {
   },
   modifyLayoutData_sync(context, obj) {
     context.commit('modifyLayoutData', obj)
+  },
+  modifyBrushData_sync(context, obj) {
+    context.commit('modifyBrushData',obj)
   }
 }
 

@@ -255,7 +255,7 @@
           .range([0, height - padding.top - padding.bottom]);
 
         let x = d3.scaleLinear()
-          .domain([0, randomDataLength])
+          .domain([1, randomDataLength])
           .range([0, width - padding.left - padding.right]);
 
         let brush = d3.brushX()

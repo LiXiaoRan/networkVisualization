@@ -67,22 +67,22 @@
           </table>
         </div>
         <div id="control_legend">
-          <div width="100%" style="margin-bottom: 5px;">网络层次
+          <div class="items_div">网络层次
             <div>
-              <span v-for="item in levelList" class="label_network_level">
+              <label v-for="item in levelList" class="label_network_level">
                 <input type="radio" name="networkLevel" :value="item.value" :checked="item.isChecked"
-                       class="input_network_level" @change="changeLevel(item)">{{item.name}}
-              </span>
+                       class="input_network_level" @change="changeLevel(item)">
+              {{item.name}}</label>
             </div>
           </div>
-          <div width="100%" style="margin-bottom: 5px;">布局方式
+          <div class="items_div">布局方式
             <div>
               <button class="layout_btn" :class="{active: item.selected}"
                       v-for="item in layoutList" @click="switchLayout(item)">{{item.name}}
               </button>
             </div>
           </div>
-          <div width="100%" style="margin-bottom: 5px;">
+          <div class="items_div">
             <span>显示边</span>
             <span class="switch_btn" :class="{'switch_btn_on' : linkAllShow}" @click="showLinks"></span>
           </div>

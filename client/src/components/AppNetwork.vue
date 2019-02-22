@@ -627,7 +627,6 @@
       brushData_get:function (val) {
         //这里的val为刷取的节点数据
         console.log(val);
-        
       }
     }
   }

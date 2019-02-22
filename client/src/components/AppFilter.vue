@@ -103,10 +103,10 @@
           {text: "流出量", value: "流出量"}
         ],
         selected: "总流量",
-        FilterLayoutData:[],
-        HistogramData:[],
-        HistogramFlowInData:[],
-        HistogramFlowOutData:[]
+        FilterLayoutData: [],
+        HistogramData: [],
+        HistogramFlowInData: [],
+        HistogramFlowOutData: []
       };
     },
     components: {AppTitle},
@@ -143,180 +143,160 @@
       },
       dataProcess(layoutData) {
         //处理当前布局原始数据
-        let self=this;
+        let self = this;
         let maxFlow = -1;
         let minFlow = -1;
         let num = 0;//节点数目
         let nodes = [];
         nodes = layoutData.nodes;
 
-        if(typeof self.HistogramData.increase_num !=='undefined' && self.HistogramData.increase_num.length>0) self.HistogramData=[];
-        if(typeof self.HistogramFlowInData.increase_num !=='undefined' && self.HistogramFlowInData.increase_num.length>0) self.HistogramFlowInData=[];
-        if(typeof self.HistogramFlowOutData.increase_num !=='undefined' && self.HistogramFlowOutData.increase_num.length>0) self.HistogramFlowOutData=[];
+        self.HistogramData = [];
+        self.HistogramFlowInData = [];
+        self.HistogramFlowOutData = [];
 
 
-        if(self.selected=="总流量") {
-        maxFlow = d3.max(nodes, d => {
-          return d.flow
-        });
-        minFlow = d3.min(nodes, d => {
-          return d.flow
-        });
-        let step = Math.ceil(maxFlow / 50);
-        let item_attr = [];
-        item_attr = d3.range(0, maxFlow, step);
-        console.log(item_attr);
-        for (let index = 1; index < item_attr.length; index++) {
-          num = 0;
-          nodes.forEach(d => {
-            if (d.flow > item_attr[index - 1] && d.flow <= item_attr[index]) {
-              num++
-            }
-          })
+        if (self.selected == "总流量") {
+          maxFlow = d3.max(nodes, d => {
+            return d.flow
+          });
+          minFlow = d3.min(nodes, d => {
+            return d.flow
+          });
+          let step = Math.ceil(maxFlow / 50);
+          let item_attr = [];
+          item_attr = d3.range(0, maxFlow, step);
+          for (let index = 1; index < item_attr.length; index++) {
+            num = 0;
+            nodes.forEach(d => {
+              if (d.flow > item_attr[index - 1] && d.flow <= item_attr[index]) {
+                num++
+              }
+            })
 
-          self.HistogramData.push([index, num])
+            self.HistogramData.push([index, num])
+          }
+          this.drawHistogram(self.HistogramData, 50)
         }
-        this.drawHistogram(self.HistogramData, 50)
-        }
-        if(self.selected=="流入量"){
+        if (self.selected == "流入量") {
           // if(self.HistogramFlowInData!=null) self.HistogramFlowInData=[];
           maxFlow = d3.max(nodes, d => {
-          return d.flow_in
-        });
-        minFlow = d3.min(nodes, d => {
-          return d.flow_in
-        });
-        let step = Math.ceil(maxFlow / 50);
-        let item_attr = [];
-        item_attr = d3.range(0, maxFlow, step);
-        console.log(item_attr);
-        for (let index = 1; index < item_attr.length; index++) {
-          num = 0;
-          nodes.forEach(d => {
-            if (d.flow_in > item_attr[index - 1] && d.flow_in <= item_attr[index]) {
-              num++
-            }
-          })
+            return d.flow_in
+          });
+          minFlow = d3.min(nodes, d => {
+            return d.flow_in
+          });
+          let step = Math.ceil(maxFlow / 50);
+          let item_attr = [];
+          item_attr = d3.range(0, maxFlow, step);
+          console.log(item_attr);
+          for (let index = 1; index < item_attr.length; index++) {
+            num = 0;
+            nodes.forEach(d => {
+              if (d.flow_in > item_attr[index - 1] && d.flow_in <= item_attr[index]) {
+                num++
+              }
+            })
 
-          self.HistogramFlowInData.push([index, num])
+            self.HistogramFlowInData.push([index, num])
+          }
+          this.drawHistogram(self.HistogramFlowInData, 50)
         }
-        this.drawHistogram(self.HistogramFlowInData, 50)
-        }
-        if(self.selected=="流出量"){
+        if (self.selected == "流出量") {
           maxFlow = d3.max(nodes, d => {
-          return d.flow_out
-        });
-        minFlow = d3.min(nodes, d => {
-          return d.flow_out
-        });
-        let step = Math.ceil(maxFlow / 50);
-        let item_attr = [];
-        item_attr = d3.range(0, maxFlow, step);
-        console.log(item_attr);
-        for (let index = 1; index < item_attr.length; index++) {
-          num = 0;
-          nodes.forEach(d => {
-            if (d.flow_out > item_attr[index - 1] && d.flow_out <= item_attr[index]) {
-              num++
-            }
-          })
+            return d.flow_out
+          });
+          minFlow = d3.min(nodes, d => {
+            return d.flow_out
+          });
+          let step = Math.ceil(maxFlow / 50);
+          let item_attr = [];
+          item_attr = d3.range(0, maxFlow, step);
+          console.log(item_attr);
+          for (let index = 1; index < item_attr.length; index++) {
+            num = 0;
+            nodes.forEach(d => {
+              if (d.flow_out > item_attr[index - 1] && d.flow_out <= item_attr[index]) {
+                num++
+              }
+            })
 
-          self.HistogramFlowOutData.push([index, num])
-        }
-        this.drawHistogram(self.HistogramFlowOutData, 50)
+            self.HistogramFlowOutData.push([index, num])
+          }
+          this.drawHistogram(self.HistogramFlowOutData, 50)
         }
       },
       drawHistogram(randomData, randomDataLength) {
         //绘制直方图
-        if (d3.select("#barchart").selectAll('g')) d3.select("#barchart").selectAll('g').remove();
+        if (d3.select("#barchart").select('g')) d3.select("#barchart").select('g').remove();
         let self = this;
-        let domItem = d3.select(self.$el);
+        let width = d3.select("#svg-div").style("width").split("px")[0];
+        let height = d3.select("#svg-div").style("height").split("px")[0];
         let brushleft = 0;
         let brushright = 0;
-        let width =
-          +domItem
-            .select(".filter-graph")
-            .style("width")
-            .split("px")[0] * 0.9;
-        let height =
-          +domItem
-            .select(".filter-graph")
-            .style("height")
-            .split("px")[0] * 0.5;
-        let margin = +width * 0.05;
 
-        let xScale = d3
-          .scaleBand()
-          .rangeRound([0, width], 0.1)
-          .domain(
-            randomData.map(function (d) {
-              return d[0];
-            })
-          )
-          .rangeRound([0, width], 0.1);
+        let padding = {top: 0, left: 30, bottom: 10, right: 10};
 
-        let y = d3
-          .scaleLinear()
-          .domain([
-            d3.max(randomData, function (d) {
-              return d[1];
-            }),
-            0
-          ])
-          .range([0, height]);
+        let group = d3.select("#barchart")
+          .attr("width", width)
+          .attr("height", height)
+          .append("g");
 
-        let x = d3
-          .scaleLinear()
+
+        let xScale = d3.scaleBand()
+          .rangeRound([0, width - padding.left - padding.right], 0.1)
+          .domain(randomData.map(function (d) {
+            return d[0];
+          }));
+
+        let y = d3.scaleLinear()
+          .domain([d3.max(randomData, function (d) {
+            return d[1];
+          }), 0])
+          .range([0, height - padding.top - padding.bottom]);
+
+        let x = d3.scaleLinear()
           .domain([0, randomDataLength])
-          .range([0, width]);
+          .range([0, width - padding.left - padding.right]);
 
-        let brush = d3
-          .brushX()
-          .extent([[0, 0], [width, height]])
+        let brush = d3.brushX()
+          .extent([[0, 0], [width - padding.left - padding.right, height - padding.top - padding.bottom]])
           .on("end", function () {
             let range = d3.brushSelection(this).map(x.invert);
             brushleft = Math.round(range[0]);
             brushright = Math.round(range[1]);
-            console.log(randomData.slice(brushleft, brushright));
             self.decodeBrushData(randomData.slice(brushleft, brushright))
           });
-        let svg = d3
-          .select("#barchart")
-          .attr("width", width + margin * 2)
-          .attr("height", height + margin + margin)
-          .append("g")
+
+
+        let svg = group.append("g")
           .attr("id", "yaxis")
-          .attr("transform", "translate(" + margin + "," + margin + ")")
-          .call(
-            d3
-              .axisLeft()
-              .scale(y)
-              .ticks(3)
-          );
+          .attr("transform", "translate(" + padding.left + "," + padding.top + ")")
+          .call(d3.axisLeft().scale(y).ticks(3));
 
         d3.select("#yaxis")
           .select("path")
           .remove();
+
         d3.select("#yaxis")
           .selectAll(".tick")
           .select("line")
           .remove();
+
         d3.select("#yaxis")
           .selectAll(".tick")
           .selectAll("text")
-          .attr("transform", "translate(" + margin * 0.8 + ",0)")
+          .attr("transform", "translate(0, 5)")
           .attr("fill", "#95a5a6");
-        let translateMarginX = margin + 10;
-        d3.select("#barchart")
-          .append("g")
-          .selectAll("rect")
+
+        group.append("g")
+          .attr("transform", "translate(" + padding.left + "," + (padding.top + padding.bottom) + ")")
+          .selectAll(".bar")
           .data(randomData)
           .enter()
           .append("rect")
           .attr("width", xScale.bandwidth())
           .attr("height", function (d, i) {
-            return (
-              (d[1] * height) /
+            return ((d[1] * (height - padding.top - padding.bottom)) /
               d3.max(randomData, function (d) {
                 return d[1];
               })
@@ -327,31 +307,29 @@
           })
           .attr("y", function (d, i) {
             return (
-              height -
-              (d[1] * height) /
+              (height - padding.top - padding.bottom) - (d[1] * (height - padding.top - padding.bottom)) /
               d3.max(randomData, function (d) {
                 return d[1];
               })
             );
           })
-          .attr("transform", "translate(" + translateMarginX + "," + margin + ")")
           .style("fill", "rgb(31,165,218)")
           .style("stroke", "rgb(48,50,67)");
 
-        svg
-          .append("g")
+        group.append("g")
           .attr("class", "brush")
+          .attr("transform", "translate(" + padding.left + "," + (padding.top + padding.bottom) + ")")
           .call(brush);
       },
-      decodeBrushData(data){
+      decodeBrushData(data) {
         //解构刷取的数据
-        let self=this;
+        let self = this;
         let maxFlow = -1;
         let minFlow = -1;
         let brushNodes = [];
         let nodes = [];
         nodes = self.FilterLayoutData.nodes;
-        if(self.selected=="总流量") {
+        if (self.selected == "总流量") {
           maxFlow = d3.max(nodes, d => {
             return d.flow
           });
@@ -359,20 +337,20 @@
           let item_attr = [];
           item_attr = d3.range(0, maxFlow, step);
 
-          data.forEach(d=>{
+          data.forEach(d => {
             for (let index = 1; index < item_attr.length; index++) {
-                if(d[0]==index){
-                  nodes.forEach(d => {
-                    if (d.flow > item_attr[index - 1] && d.flow <= item_attr[index]) {
-                        brushNodes.push(d)
-                    }
-                  })
-                }
-
+              if (d[0] == index) {
+                nodes.forEach(d => {
+                  if (d.flow > item_attr[index - 1] && d.flow <= item_attr[index]) {
+                    brushNodes.push(d)
+                  }
+                })
               }
+
+            }
           });
         }
-        if(self.selected=="流入量") {
+        if (self.selected == "流入量") {
           maxFlow = d3.max(nodes, d => {
             return d.flow_in
           });
@@ -380,20 +358,20 @@
           let item_attr = [];
           item_attr = d3.range(0, maxFlow, step);
 
-          data.forEach(d=>{
+          data.forEach(d => {
             for (let index = 1; index < item_attr.length; index++) {
-                if(d[0]==index){
-                  nodes.forEach(d => {
-                    if (d.flow_in > item_attr[index - 1] && d.flow_in <= item_attr[index]) {
-                        brushNodes.push(d)
-                    }
-                  })
-                }
-
+              if (d[0] == index) {
+                nodes.forEach(d => {
+                  if (d.flow_in > item_attr[index - 1] && d.flow_in <= item_attr[index]) {
+                    brushNodes.push(d)
+                  }
+                })
               }
+
+            }
           });
         }
-        if(self.selected=="流出量") {
+        if (self.selected == "流出量") {
           maxFlow = d3.max(nodes, d => {
             return d.flow_out
           });
@@ -401,22 +379,22 @@
           let item_attr = [];
           item_attr = d3.range(0, maxFlow, step);
 
-          data.forEach(d=>{
+          data.forEach(d => {
             for (let index = 1; index < item_attr.length; index++) {
-                if(d[0]==index){
-                  nodes.forEach(d => {
-                    if (d.flow_out > item_attr[index - 1] && d.flow_out <= item_attr[index]) {
-                        brushNodes.push(d)
-                    }
-                  })
-                }
-
+              if (d[0] == index) {
+                nodes.forEach(d => {
+                  if (d.flow_out > item_attr[index - 1] && d.flow_out <= item_attr[index]) {
+                    brushNodes.push(d)
+                  }
+                })
               }
+
+            }
           });
         }
         //将解构完成的brushNodes发送到AppNetwork
         // console.log(brushNodes);
-        self.modifyBrushData_sync({brushData:brushNodes})
+        self.modifyBrushData_sync({brushData: brushNodes})
       }
     },
     mounted() {
@@ -428,32 +406,32 @@
       layoutData_get: function (data) {
         //这里获取到当前布局的数据，然后重新绘制直方图
         console.log(data);
-        this.FilterLayoutData=data;
+        this.FilterLayoutData = data;
         this.dataProcess(data);
       },
       selected: function (data) {
 
-        if (data=='总流量') {
-          if (typeof this.HistogramData.increase_num !=='undefined' && this.HistogramData.increase_num.length>0) {
+        if (data == '总流量') {
+          if (typeof this.HistogramData.increase_num !== 'undefined' && this.HistogramData.increase_num.length > 0) {
             //如果总流量数组不为空，绘制总流量直方图
-            this.drawHistogram(this.HistogramData,50)
-          }else{
+            this.drawHistogram(this.HistogramData, 50)
+          } else {
             this.dataProcess(this.FilterLayoutData)
           }
         }
-        if (data=='流入量') {
-          if (typeof this.HistogramFlowInData.increase_num !=='undefined' && this.HistogramFlowInData.increase_num.length>0) {
+        if (data == '流入量') {
+          if (typeof this.HistogramFlowInData.increase_num !== 'undefined' && this.HistogramFlowInData.increase_num.length > 0) {
             console.log('流入量不为空');
-            
-            this.drawHistogram(this.HistogramFlowInData,50)
-          }else{
+
+            this.drawHistogram(this.HistogramFlowInData, 50)
+          } else {
             this.dataProcess(this.FilterLayoutData)
           }
         }
-        if (data=='流出量') {
-          if (typeof this.HistogramFlowOutData.increase_num !=='undefined' && this.HistogramFlowOutData.increase_num.length>0) {
-            this.drawHistogram(this.HistogramFlowOutData,50)
-          }else{
+        if (data == '流出量') {
+          if (typeof this.HistogramFlowOutData.increase_num !== 'undefined' && this.HistogramFlowOutData.increase_num.length > 0) {
+            this.drawHistogram(this.HistogramFlowOutData, 50)
+          } else {
             this.dataProcess(this.FilterLayoutData)
           }
         }

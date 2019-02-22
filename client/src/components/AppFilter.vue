@@ -136,34 +136,37 @@
         });
         this.modifyControlList_sync({controlLevelList: data});
       },
-      dataProcess(layoutData) { 
-        let maxFlow=-1;
-        let minFlow=-1;
-        let num=0;//节点数目
-        let nodes=[];
-        let HistogramData=[]
-        nodes=layoutData.nodes;
-        maxFlow=d3.max(nodes,d=> {return d.flow});
-        minFlow=d3.min(nodes,d=> {return d.flow});
-        let step=Math.ceil(maxFlow/50);
-        let item_attr=[];
-        item_attr=d3.range(0,maxFlow,step);
+      dataProcess(layoutData) {
+        let maxFlow = -1;
+        let minFlow = -1;
+        let num = 0;//节点数目
+        let nodes = [];
+        let HistogramData = []
+        nodes = layoutData.nodes;
+        maxFlow = d3.max(nodes, d => {
+          return d.flow
+        });
+        minFlow = d3.min(nodes, d => {
+          return d.flow
+        });
+        let step = Math.ceil(maxFlow / 50);
+        let item_attr = [];
+        item_attr = d3.range(0, maxFlow, step);
         console.log(item_attr);
         for (let index = 1; index < item_attr.length; index++) {
-          num=0;
-          nodes.forEach(d=>{
-            if(d.flow>item_attr[index-1]&&d.flow<=item_attr[index]){
+          num = 0;
+          nodes.forEach(d => {
+            if (d.flow > item_attr[index - 1] && d.flow <= item_attr[index]) {
               num++
             }
           })
 
-          HistogramData.push([index,num])
+          HistogramData.push([index, num])
         }
-        this.drawHistogram(HistogramData,50)
+        this.drawHistogram(HistogramData, 50)
       },
       drawHistogram(randomData, randomDataLength) {
-        console.log('data is ');
-        console.log(randomData);
+        if (d3.select("#barchart").selectAll('g')) d3.select("#barchart").selectAll('g').remove();
         let self = this;
         let domItem = d3.select(self.$el);
         let brushleft = 0;
@@ -277,7 +280,7 @@
           .attr("class", "brush")
           .call(brush);
       },
-      
+
     },
     mounted() {
       // let self = this;
@@ -305,6 +308,6 @@
   };
 </script>
 <style lang="less" scoped>
-@import "AppTimeLine.less";
-@import "./AppFilter.less";
+  @import "AppTimeLine.less";
+  @import "./AppFilter.less";
 </style>

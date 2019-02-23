@@ -72,7 +72,7 @@
               <label v-for="item in levelList" class="label_network_level">
                 <input type="radio" name="networkLevel" :value="item.value" :checked="item.isChecked"
                        class="input_network_level" @change="changeLevel(item)">
-              {{item.name}}</label>
+                {{item.name}}</label>
             </div>
           </div>
           <div class="items_div">布局方式
@@ -577,7 +577,7 @@
       }
     },
     computed: {
-      ...mapGetters(['nodeTypeList_get', 'palsyList_get', 'controlList_get', 'selectTime_get','brushData_get']),
+      ...mapGetters(['nodeTypeList_get', 'palsyList_get', 'controlList_get', 'selectTime_get', 'brushData_get']),
     },
     watch: {
       //监听过滤组件中的变化
@@ -624,9 +624,24 @@
       layoutData: function (val) {
         this.modifyLayoutData_sync({layoutData: val});
       },
-      brushData_get:function (val) {
+      brushData_get: function (brushList) {
         //这里的val为刷取的节点数据
-        console.log(val);
+        console.log(brushList)
+        let disappearNodes = [];
+        this.allNodesG.attr("display", node => {
+          if (brushList.includes(node.id)) {
+            return "block";
+          } else {
+            disappearNodes.push(node.id);
+            return "none";
+          }
+        });
+        this.disappearNodes = disappearNodes;
+        if (this.linkAllShow) {
+          this.allLinksG.attr("display", link => {
+            if (this.disappearNodes.includes(link.source) || this.disappearNodes.includes(link.target)) return "none"
+          });
+        }
       }
     }
   }

@@ -342,7 +342,7 @@
               if (d[0] == index) {
                 nodes.forEach(d => {
                   if (d.flow > item_attr[index - 1] && d.flow <= item_attr[index]) {
-                    brushNodes.push(d)
+                    brushNodes.push(d.id)
                   }
                 })
               }
@@ -363,7 +363,7 @@
               if (d[0] == index) {
                 nodes.forEach(d => {
                   if (d.flow_in > item_attr[index - 1] && d.flow_in <= item_attr[index]) {
-                    brushNodes.push(d)
+                    brushNodes.push(d.id)
                   }
                 })
               }
@@ -384,7 +384,7 @@
               if (d[0] == index) {
                 nodes.forEach(d => {
                   if (d.flow_out > item_attr[index - 1] && d.flow_out <= item_attr[index]) {
-                    brushNodes.push(d)
+                    brushNodes.push(d.id)
                   }
                 })
               }

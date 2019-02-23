@@ -163,6 +163,7 @@
           let step = Math.ceil(maxFlow / 50);
           let item_attr = [];
           item_attr = d3.range(0, maxFlow, step);
+          item_attr.push(maxFlow);
           for (let index = 1; index < item_attr.length; index++) {
             num = 0;
             nodes.forEach(d => {
@@ -173,7 +174,7 @@
 
             self.HistogramData.push([index, num])
           }
-          this.drawHistogram(self.HistogramData, 50)
+          this.drawHistogram(self.HistogramData, self.HistogramData.length + 1)
         }
         if (self.selected == "流入量") {
           maxFlow = d3.max(nodes, d => {
@@ -185,6 +186,7 @@
           let step = Math.ceil(maxFlow / 50);
           let item_attr = [];
           item_attr = d3.range(0, maxFlow, step);
+          item_attr.push(maxFlow);
           for (let index = 1; index < item_attr.length; index++) {
             num = 0;
             nodes.forEach(d => {
@@ -195,7 +197,7 @@
 
             self.HistogramFlowInData.push([index, num])
           }
-          this.drawHistogram(self.HistogramFlowInData, 50)
+          this.drawHistogram(self.HistogramFlowInData, self.HistogramFlowInData.length + 1)
         }
         if (self.selected == "流出量") {
           maxFlow = d3.max(nodes, d => {
@@ -207,6 +209,7 @@
           let step = Math.ceil(maxFlow / 50);
           let item_attr = [];
           item_attr = d3.range(0, maxFlow, step);
+          item_attr.push(maxFlow);
           for (let index = 1; index < item_attr.length; index++) {
             num = 0;
             nodes.forEach(d => {
@@ -217,7 +220,7 @@
 
             self.HistogramFlowOutData.push([index, num])
           }
-          this.drawHistogram(self.HistogramFlowOutData, 50)
+          this.drawHistogram(self.HistogramFlowOutData, self.HistogramFlowOutData.length + 1)
         }
       },
       drawHistogram(randomData, randomDataLength) {
@@ -263,7 +266,7 @@
             brushRight = Math.round(range[1]);
             d3.select(this).transition().call(d3.event.target.move, [brushLeft, brushRight].map(x));
             if (brushLeft !== brushRight)
-              self.decodeBrushData(randomData.slice(brushLeft, brushRight));
+              self.decodeBrushData(randomData.slice(brushLeft - 1, brushRight - 1));
             else
               self.decodeBrushData(randomData);
           });
@@ -337,7 +340,7 @@
           let step = Math.ceil(maxFlow / 50);
           let item_attr = [];
           item_attr = d3.range(0, maxFlow, step);
-
+          item_attr.push(maxFlow);
           data.forEach(d => {
             for (let index = 1; index < item_attr.length; index++) {
               if (d[0] == index) {
@@ -358,7 +361,7 @@
           let step = Math.ceil(maxFlow / 50);
           let item_attr = [];
           item_attr = d3.range(0, maxFlow, step);
-
+          item_attr.push(maxFlow);
           data.forEach(d => {
             for (let index = 1; index < item_attr.length; index++) {
               if (d[0] == index) {
@@ -379,7 +382,7 @@
           let step = Math.ceil(maxFlow / 50);
           let item_attr = [];
           item_attr = d3.range(0, maxFlow, step);
-
+          item_attr.push(maxFlow);
           data.forEach(d => {
             for (let index = 1; index < item_attr.length; index++) {
               if (d[0] == index) {

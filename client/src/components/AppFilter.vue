@@ -47,8 +47,6 @@
           </div>
         </div>
       </div>
-      <!-- </br> -->
-      <!-- <span class="filtermsg">控制级别</span> -->
     </div>
     <div class="filter-graph">
       <span class="filtermsg-0">节点数量</span>
@@ -178,7 +176,6 @@
           this.drawHistogram(self.HistogramData, 50)
         }
         if (self.selected == "流入量") {
-          // if(self.HistogramFlowInData!=null) self.HistogramFlowInData=[];
           maxFlow = d3.max(nodes, d => {
             return d.flow_in
           });
@@ -188,7 +185,6 @@
           let step = Math.ceil(maxFlow / 50);
           let item_attr = [];
           item_attr = d3.range(0, maxFlow, step);
-          console.log(item_attr);
           for (let index = 1; index < item_attr.length; index++) {
             num = 0;
             nodes.forEach(d => {
@@ -211,7 +207,6 @@
           let step = Math.ceil(maxFlow / 50);
           let item_attr = [];
           item_attr = d3.range(0, maxFlow, step);
-          console.log(item_attr);
           for (let index = 1; index < item_attr.length; index++) {
             num = 0;
             nodes.forEach(d => {
@@ -231,8 +226,8 @@
         let self = this;
         let width = d3.select("#svg-div").style("width").split("px")[0];
         let height = d3.select("#svg-div").style("height").split("px")[0];
-        let brushleft = 0;
-        let brushright = 0;
+        let brushLeft = 0;
+        let brushRight = 0;
 
         let padding = {top: 0, left: 30, bottom: 10, right: 10};
 
@@ -261,14 +256,20 @@
         let brush = d3.brushX()
           .extent([[0, 0], [width - padding.left - padding.right, height - padding.top - padding.bottom]])
           .on("end", function () {
+            if (!d3.event.sourceEvent) return;
+            if (!d3.event.selection) return;
             let range = d3.brushSelection(this).map(x.invert);
-            brushleft = Math.round(range[0]);
-            brushright = Math.round(range[1]);
-            self.decodeBrushData(randomData.slice(brushleft, brushright))
+            brushLeft = Math.round(range[0]);
+            brushRight = Math.round(range[1]);
+            d3.select(this).transition().call(d3.event.target.move, [brushLeft, brushRight].map(x));
+            if (brushLeft !== brushRight)
+              self.decodeBrushData(randomData.slice(brushLeft, brushRight));
+            else
+              self.decodeBrushData(randomData);
           });
 
 
-        let svg = group.append("g")
+        group.append("g")
           .attr("id", "yaxis")
           .attr("transform", "translate(" + padding.left + "," + padding.top + ")")
           .call(d3.axisLeft().scale(y).ticks(3));
@@ -405,7 +406,6 @@
     watch: {
       layoutData_get: function (data) {
         //这里获取到当前布局的数据，然后重新绘制直方图
-        console.log(data);
         this.FilterLayoutData = data;
         this.dataProcess(data);
       },
@@ -435,7 +435,6 @@
             this.dataProcess(this.FilterLayoutData)
           }
         }
-        console.log(data);
       }
     }
   };

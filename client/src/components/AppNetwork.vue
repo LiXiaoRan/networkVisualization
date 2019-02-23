@@ -626,7 +626,6 @@
       },
       brushData_get: function (brushList) {
         //这里的val为刷取的节点数据
-        console.log(brushList)
         let disappearNodes = [];
         this.allNodesG.attr("display", node => {
           if (brushList.includes(node.id)) {

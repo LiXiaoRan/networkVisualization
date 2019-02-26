@@ -37,3 +37,7 @@ export const selectData_get = function (state) {
 export const layoutData_get = function (state) {
   return state.layoutData
 }
+
+export const brushData_get = function (state) {
+  return state.brushData
+}

@@ -258,6 +258,8 @@ export default {
 		legend.append("image")
 			.attr("xlink:href", d => {
 				let tmptype=nodesattr[d]["nodeType"];
+				return this.nodesImgList[tmptype];
+				/*
 				//console.log(tmptype);
 				if (tmptype === "主机") {
 				  return this.nodesImgList[0];
@@ -265,7 +267,7 @@ export default {
 				  return this.nodesImgList[1];
 				} else if (tmptype === "服务器") {
 				  return this.nodesImgList[2];
-				}
+				}*/
 			})
 			.attr("x", d => - noderadius)
 			.attr("y", d => - noderadius)

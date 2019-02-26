@@ -21,6 +21,10 @@ const mutations = {
 
   modifyLayoutData(state, obj) {
     state.layoutData = obj.layoutData;
+  },
+
+  modifyBrushData(state, obj) {
+    state.brushData=obj.brushData;
   }
 }
 

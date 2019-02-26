@@ -15,7 +15,8 @@ const state = {
   controlLevelList: [0, 1, 2, 3, 4],
   selectTime: {start: '', end: ''},
   selectData: [],
-  layoutData:[]
+  layoutData:[],
+  brushData:[]
   //cleargraph:0,
   //init_dim2:0,
   //init_subgraph:0,

@@ -67,22 +67,22 @@
           </table>
         </div>
         <div id="control_legend">
-          <div width="100%" style="margin-bottom: 5px;">网络层次
+          <div class="items_div">网络层次
             <div>
-              <span v-for="item in levelList" class="label_network_level">
+              <label v-for="item in levelList" class="label_network_level">
                 <input type="radio" name="networkLevel" :value="item.value" :checked="item.isChecked"
-                       class="input_network_level" @change="changeLevel(item)">{{item.name}}
-              </span>
+                       class="input_network_level" @change="changeLevel(item)">
+                {{item.name}}</label>
             </div>
           </div>
-          <div width="100%" style="margin-bottom: 5px;">布局方式
+          <div class="items_div">布局方式
             <div>
               <button class="layout_btn" :class="{active: item.selected}"
                       v-for="item in layoutList" @click="switchLayout(item)">{{item.name}}
               </button>
             </div>
           </div>
-          <div width="100%" style="margin-bottom: 5px;">
+          <div class="items_div">
             <span>显示边</span>
             <span class="switch_btn" :class="{'switch_btn_on' : linkAllShow}" @click="showLinks"></span>
           </div>
@@ -577,7 +577,7 @@
       }
     },
     computed: {
-      ...mapGetters(['nodeTypeList_get', 'palsyList_get', 'controlList_get', 'selectTime_get']),
+      ...mapGetters(['nodeTypeList_get', 'palsyList_get', 'controlList_get', 'selectTime_get', 'brushData_get']),
     },
     watch: {
       //监听过滤组件中的变化
@@ -623,6 +623,24 @@
       },
       layoutData: function (val) {
         this.modifyLayoutData_sync({layoutData: val});
+      },
+      brushData_get: function (brushList) {
+        //这里的val为刷取的节点数据
+        let disappearNodes = [];
+        this.allNodesG.attr("display", node => {
+          if (brushList.includes(node.id)) {
+            return "block";
+          } else {
+            disappearNodes.push(node.id);
+            return "none";
+          }
+        });
+        this.disappearNodes = disappearNodes;
+        if (this.linkAllShow) {
+          this.allLinksG.attr("display", link => {
+            if (this.disappearNodes.includes(link.source) || this.disappearNodes.includes(link.target)) return "none"
+          });
+        }
       }
     }
   }

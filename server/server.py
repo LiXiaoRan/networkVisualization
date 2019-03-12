@@ -32,15 +32,19 @@ LocalGraph = graphfunc.LocalGraph()
 
 class getRecentDataHandler(tornado.web.RequestHandler):
     def post(self):
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
 
     def get(self):
         # 时间轴获取统计数据
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
         params = self.get_argument('params')
         params = json.loads(params)
         data = NetworkData.getDataByRecentTime(params)
@@ -51,9 +55,11 @@ class getLayoutData(tornado.web.RequestHandler):
     # 计算前端选择布局后提交的数据
     def get(self):
         print("进入get")
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
         params = self.get_argument('params')
         params = json.loads(params)
         layoutType = params['layout_type']
@@ -84,10 +90,18 @@ class getLayoutData(tornado.web.RequestHandler):
                 target_control = row['recv_control_level']
                 flow = row['flow']
                 link = {'source': source, 'target': target, 'flow': flow}
-                temp_nodes.append(
-                    {'id': source, 'nodeType': source_type, 'palsy': source_palsy, 'control': source_control})
-                temp_nodes.append(
-                    {'id': target, 'nodeType': target_type, 'palsy': target_palsy, 'control': target_control})
+                temp_nodes.append({
+                    'id': source,
+                    'nodeType': source_type,
+                    'palsy': source_palsy,
+                    'control': source_control
+                })
+                temp_nodes.append({
+                    'id': target,
+                    'nodeType': target_type,
+                    'palsy': target_palsy,
+                    'control': target_control
+                })
                 links.append(link)
             for item in temp_nodes:
                 if item['id'] not in nodes_id:
@@ -103,13 +117,18 @@ class getLayoutData(tornado.web.RequestHandler):
             tmp_links = []
             # 去重
             for link in links:
-                key = {'source': link['source'], 'target': link['target'], 'flow': 0}
+                key = {
+                    'source': link['source'],
+                    'target': link['target'],
+                    'flow': 0
+                }
                 if key not in tmp_links:
                     tmp_links.append(key)
 
             for item in tmp_links:
                 for link in links:
-                    if link['source'] == item['source'] and link['target'] == item['target']:
+                    if link['source'] == item['source'] and link[
+                            'target'] == item['target']:
                         item['flow'] = item['flow'] + link['flow']
             links = tmp_links
 
@@ -142,9 +161,11 @@ class getLayoutData(tornado.web.RequestHandler):
             self.write(result)
 
     def post(self):
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
         print('post')
         params = self.get_argument('params')
         params = json.loads(params)
@@ -163,17 +184,21 @@ class getLayoutData(tornado.web.RequestHandler):
 class getDim2(tornado.web.RequestHandler):
     # 获取降维数据
     def get(self):
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
         params = json.loads(self.get_argument('params'))
         # print(params)
         type = int(params['type'])
         # type = int(json.loads(self.get_argument('type')))
         nodesobj = LocalGraph.getdim2(type)
-        evt_unpacked = {'nodes': nodesobj,
-                        # 'edges': list(LocalGraph.G.edges()),
-                        'outlier': LocalGraph.outlierrecord}
+        evt_unpacked = {
+            'nodes': nodesobj,
+            # 'edges': list(LocalGraph.G.edges()),
+            'outlier': LocalGraph.outlierrecord
+        }
         evt = json.dumps(evt_unpacked)
         self.write(evt)
 
@@ -181,9 +206,11 @@ class getDim2(tornado.web.RequestHandler):
 class changeOutlierType(tornado.web.RequestHandler):
     # 改变检测outlier的方法
     def get(self):
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
         params = json.loads(self.get_argument('params'))
         type = int(params['type'])
         LocalGraph.outliertype = type
@@ -195,13 +222,20 @@ class changeOutlierType(tornado.web.RequestHandler):
 class getAttr(tornado.web.RequestHandler):
     # 获取指定节点的指定属性变化记录
     def get(self):
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
         params = json.loads(self.get_argument('params'))
         nodes = json.loads(params['nodes'])
         tmpattr, nodesattr = LocalGraph.getAttr(nodes)
-        evt_unpacked = {"attr": tmpattr, 'nodes': nodesattr, "start": LocalGraph.rangestart, "end": LocalGraph.rangeend}
+        evt_unpacked = {
+            "attr": tmpattr,
+            'nodes': nodesattr,
+            "start": LocalGraph.rangestart,
+            "end": LocalGraph.rangeend
+        }
         evt = json.dumps(evt_unpacked)
         self.write(evt)
 
@@ -209,9 +243,11 @@ class getAttr(tornado.web.RequestHandler):
 class choosenone(tornado.web.RequestHandler):
     # 获取指定节点的指定属性变化记录
     def get(self):
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
         LocalGraph.choosenone()
         evt_unpacked = {}
         evt = json.dumps(evt_unpacked)
@@ -221,9 +257,11 @@ class choosenone(tornado.web.RequestHandler):
 class gettree(tornado.web.RequestHandler):
     # 获取指定节点的指定属性变化记录
     def get(self):
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
         params = json.loads(self.get_argument('params'))
         nodes = params['nodes']
         evt_unpacked = LocalGraph.singlesel(nodes)
@@ -234,9 +272,11 @@ class gettree(tornado.web.RequestHandler):
 class getSPs(tornado.web.RequestHandler):
     # 获取指定节点的指定属性变化记录
     def get(self):
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
         params = json.loads(self.get_argument('params'))
         nodes = params['nodes']
         evt_unpacked = LocalGraph.multisel(nodes)
@@ -244,12 +284,15 @@ class getSPs(tornado.web.RequestHandler):
         evt = json.dumps(evt_unpacked)
         self.write(evt)
 
+
 class getFlow(tornado.web.RequestHandler):
     # 获取指定节点的指定属性变化记录
     def get(self):
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
         params = json.loads(self.get_argument('params'))
         nodes = json.loads(params['nodes'])
         evt_unpacked = LocalGraph.flowdist(nodes)
@@ -257,18 +300,22 @@ class getFlow(tornado.web.RequestHandler):
         evt = json.dumps(evt_unpacked)
         self.write(evt)
 
+
 class getData2(tornado.web.RequestHandler):
     def get(self):
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
         params = json.loads(self.get_argument('params'))
         print('params', params)
         timeRange = json.loads(params['data'])
         print('timeRange', timeRange)
         global nowSelectedData
         start = time.clock()
-        nowSelectedData = NetworkData.getTimeRangeData(timeRange[0], timeRange[1])
+        nowSelectedData = NetworkData.getTimeRangeData(timeRange[0],
+                                                       timeRange[1])
         end = time.clock()
         diff_time = end - start
         print("spend time for get timeline data: " + str(diff_time))
@@ -282,12 +329,14 @@ class getData2(tornado.web.RequestHandler):
 class getTimeLineJson(tornado.web.RequestHandler):
     # 从预先计算好的json文件中，获取timeline全局流量
     def get(self):
-        self.set_header('Access-Control-Allow-Origin', '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
-        self.set_header("Access-Control-Allow-Methods", "PUT,POST,GET,DELETE,OPTIONS")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
         params = json.loads(self.get_argument('params'))
         print('params', params)
-        filePath = '../data/timeLineData_all.json'
+        filePath = 'data/timeLineData_all.json'
         with codecs.open(filePath, 'r', 'utf-8') as load_f:
             load_dict = json.load(load_f)
         evt = json.dumps(load_dict)
@@ -296,7 +345,8 @@ class getTimeLineJson(tornado.web.RequestHandler):
 
 if __name__ == "__main__":
     tornado.options.parse_command_line()
-    print('server running at 127.0.0.1:%d ...' % (tornado.options.options.port))
+    print(
+        'server running at 127.0.0.1:%d ...' % (tornado.options.options.port))
     print(client_file_root_path)
     app = tornado.web.Application(
         handlers=[
@@ -311,8 +361,10 @@ if __name__ == "__main__":
             (r'/getFlow', getFlow),
             (r'/getData2', getData2),
             (r'/get-timeLine-json', getTimeLineJson),
-            (r'/(.*)', tornado.web.StaticFileHandler, {'path': client_file_root_path,
-                                                       'default_filename': 'index.html'})  # fetch client files
+            (r'/(.*)', tornado.web.StaticFileHandler, {
+                'path': client_file_root_path,
+                'default_filename': 'index.html'
+            })  # fetch client files
         ],
         debug=True,
     )

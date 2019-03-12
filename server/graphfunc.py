@@ -26,7 +26,7 @@ class LocalGraph:
                    "endtime": self.linuxtimestamp(timee),
                    "timestep": 60, "timewindow": 60}
 
-        self.filepath = "../data/"
+        self.filepath = "data/"
         indata = open(self.filepath + "nodesattri_all.pkl", 'rb')
         self.nodesattri = pickle.load(indata)
         indata.close()

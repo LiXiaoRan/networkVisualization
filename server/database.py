@@ -13,10 +13,14 @@ from datetime import datetime, timedelta
 # conn = pymysql.connect(host='192.168.10.9', db='transit_network', user = 'transitnet', password = 'pkuvistransit', cursorclass=pymysql.cursors.DictCursor)
 # conn = pymysql.connect(host='127.0.0.1', db='transit_network', user='root', password='584007',
 #                        cursorclass=pymysql.cursors.DictCursor)
-# conn = pymysql.connect(host='127.0.0.1', db='transit_networks', user='root', password='Corner',
-#                        cursorclass=pymysql.cursors.DictCursor)
-conn = pymysql.connect(host='127.0.0.1', db='transit_network', user='root', password='123456',
-                        cursorclass=pymysql.cursors.DictCursor)
+conn = pymysql.connect(
+    host='127.0.0.1',
+    db='transit_network',
+    user='root',
+    password='Corner',
+    cursorclass=pymysql.cursors.DictCursor)
+# conn = pymysql.connect(host='127.0.0.1', db='transit_network', user='root', password='123456',
+#                         cursorclass=pymysql.cursors.DictCursor)
 
 tablename = 'EVENT'
 
@@ -37,7 +41,8 @@ class NetworkData:
         end = timeConvert(self.maxTime)
         start = 0
         if params['timeRange'] == '1day':
-            start = (end + timedelta(-0.1)).strftime('%Y%m%d%H%M%S') + self.maxTime[14:]
+            start = (end + timedelta(-0.1)
+                     ).strftime('%Y%m%d%H%M%S') + self.maxTime[14:]
         end = self.maxTime
         print(start, end)
         key = 'event_endtime'

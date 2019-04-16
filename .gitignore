@@ -4,3 +4,4 @@ index.html
 /server/__pycache__/
 *.pyc
 data/
+.idea

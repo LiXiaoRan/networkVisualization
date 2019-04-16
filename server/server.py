@@ -336,7 +336,7 @@ class getTimeLineJson(tornado.web.RequestHandler):
                         "PUT,POST,GET,DELETE,OPTIONS")
         params = json.loads(self.get_argument('params'))
         print('params', params)
-        filePath = 'data/timeLineData_all.json'
+        filePath = '../data/timeLineData_all.json'
         with codecs.open(filePath, 'r', 'utf-8') as load_f:
             load_dict = json.load(load_f)
         evt = json.dumps(load_dict)

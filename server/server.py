@@ -120,17 +120,20 @@ class getLayoutData(tornado.web.RequestHandler):
                 key = {
                     'source': link['source'],
                     'target': link['target'],
-                    'flow': 0
+                    'flow': 0,
+                    'times': 0,
                 }
                 if key not in tmp_links:
                     tmp_links.append(key)
 
             for item in tmp_links:
                 for link in links:
-                    if link['source'] == item['source'] and link[
-                            'target'] == item['target']:
+                    if link['source'] == item['source'] and link['target'] == item['target']:
                         item['flow'] = item['flow'] + link['flow']
+                        item['times'] = item['times'] + 1
             links = tmp_links
+
+            print(links)
 
             end = time.clock()
             diff_time = end - start

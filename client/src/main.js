@@ -45,13 +45,13 @@ var buildCodes = false;
     } else {
       let formData = new URLSearchParams();
       formData.append('params', JSON.stringify(paramsObj));
-      if (type == 'get') {
+      if (type === 'get') {
         api.get(url, formData, data => {
           callback(data);
         }, error => {
           callback(error);
         });
-      } else if (type == 'post') {
+      } else if (type ==='post') {
         api.post(url, formData, data => {
           callback(data);
         }, error => {

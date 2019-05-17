@@ -133,8 +133,6 @@ class getLayoutData(tornado.web.RequestHandler):
                         item['times'] = item['times'] + 1
             links = tmp_links
 
-            print(links)
-
             end = time.clock()
             diff_time = end - start
             print("spend time for build graph: " + str(diff_time))

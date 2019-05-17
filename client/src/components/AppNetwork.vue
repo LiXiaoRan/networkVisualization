@@ -5,6 +5,20 @@
       <div class='view'>
         <svg class='view-svg'></svg>
         <div id="lay-container"></div>
+        <div id="func-switch">
+          <router-link to="/different">
+            <button class="func-btn">异常检测</button>
+          </router-link>
+          <router-link to="/compare">
+            <button class="func-btn">对比分析</button>
+          </router-link>
+          <router-link to="/multilayer">
+            <button class="func-btn">多层结构</button>
+          </router-link>
+          <router-link to="/accompany">
+            <button class="func-btn">伴随关系</button>
+          </router-link>
+        </div>
       </div>
     </div>
     <div id="legend-index">

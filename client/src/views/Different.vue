@@ -1,13 +1,124 @@
 <template>
   <div id="Different">
-    异常检测
+    <svg id="view-svg"></svg>
   </div>
 </template>
 <script>
+import * as d3 from "d3";
 
-  export default {};
+export default {
+  data() {
+    return {
+      layoutData: {},
+      linksData: [],
+      nodesData: [],
+      xScale: null,
+      yScale: null
+    };
+  },
+  mounted() {
+    let self = this;
+    self.getGraphData();
+  },
+  methods: {
+    getGraphData() {
+      let self = this;
+      let paramsObj = {};
+      let Url = "get-anomaly-layout-data";
+      CommunicateWithServer("get", paramsObj, Url, self.drawGraph);
+    },
 
+    drawGraph(result) {
+      let self = this;
+      self.layoutData = result;
+      console.info("different回调函数被调用了");
+
+      self.svg = d3.select("#view-svg");
+      let width = parseFloat(self.svg.style("width"));
+      let height = parseFloat(self.svg.style("height"));
+
+      // 浏览器可视部分宽高
+      let screenWidth = document.documentElement.clientWidth;
+      let screenHeight = document.documentElement.clientHeight;
+
+      console.log("width is " + width + " height is " + height);
+      self.layoutData.links.forEach(d => self.linksData.push(d));
+      self.layoutData.nodes.forEach(d => self.nodesData.push(d));
+
+      self.xScale = d3
+        .scaleLinear()
+        .domain(d3.extent(self.nodesData, d => d.x))
+        .range([screenWidth / 2 - width / 2, screenWidth / 2]);
+      // .range([screenWidth / 2 - width / 2, screenWidth / 2 + width / 2]);
+
+      self.yScale = d3
+        .scaleLinear()
+        .domain(d3.extent(self.nodesData, d => d.y))
+        .range([screenHeight / 2 - height / 2, screenHeight / 2]);
+      // .range([screenHeight / 2 - height / 2, screenHeight / 2 + height / 2]);
+
+      console.log(self.nodesData);
+      console.log(self.linksData);
+
+      let link = self.svg
+        .append("g")
+        .attr("class", "links")
+        .selectAll("line")
+        .data(self.linksData)
+        .enter()
+        .append("line")
+        .attr("x1", d => self.xScale(d.x1))
+        .attr("y1", d => self.yScale(d.y1))
+        .attr("x2", d => self.xScale(d.x2))
+        .attr("y2", d => self.yScale(d.y2))
+        .attr("stroke", "#BCBCBC")
+        .attr("stroke-width", 0.5);
+
+      let node = self.svg
+        .append("g")
+        .attr("class", "nodes")
+        // .attr("width", width)
+        // .attr("height", height)
+        .selectAll("g")
+        .data(self.nodesData)
+        .enter()
+        .append("g");
+
+      let circles = node
+        .append("circle")
+        .attr("cx", d => self.xScale(d.x))
+        .attr("cy", d => self.yScale(d.y))
+        .attr("r", 2)
+        .attr("fill", function(d) {
+          return "#1DBDD2";
+        });
+    }
+  }
+};
 </script>
+
 <style lang="less" scoped>
+svg {
+  width: 1000px;
+  height: 700px;
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  margin-left: -600px;
+  margin-top: -350px;
+}
+
+// .links line {
+//   fill: black;
+//   stroke: rgb(27, 27, 27);
+//   stroke-opacity: 0.6;
+//   stroke-width: 1.5px;
+// }
+
+.nodes circle {
+  stroke: #fff;
+  stroke-width: 1.5px;
+}
+
 
 </style>

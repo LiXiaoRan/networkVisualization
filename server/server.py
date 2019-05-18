@@ -327,6 +327,72 @@ class getData2(tornado.web.RequestHandler):
         LocalGraph.rangeend = LocalGraph.linuxtimestamp(timeRange[1])
 
 
+class getAnomalyLayoutData(tornado.web.RequestHandler):
+    # 读取异常数据并且计算布局
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
+        links = []
+        nodes = []
+        temp_nodes = []
+        nodes_id = []
+        tmp_links = []
+
+        data = NetworkData.getAnomalyData("event2")
+
+        for row in data:
+            source = row['trans_node_global_no']
+            target = row['recv_node_golbal_no']
+
+             # 空值处理
+            if(source != None and target != None):
+                link = {'source': source, 'target': target}
+                temp_nodes.append({'id': source})
+                temp_nodes.append({'id': target})
+                links.append(link)
+            else:
+                if source == None:
+                    temp_nodes.append({'id': target})
+                if target == None:
+                    temp_nodes.append({'id': source})
+
+        # 节点去重
+        for item in temp_nodes:
+            if item['id'] not in nodes_id:
+                nodes_id.append(item['id'])
+                nodes.append(item)
+            else:
+                index = nodes_id.index(item['id'])
+                del nodes[index]
+                del nodes_id[index]
+                nodes.append(item)
+                nodes_id.append(item['id'])
+
+        # # 边处理
+        # for link in links:
+        #     key = {
+        #         'source': link['source'],
+        #         'target': link['target'],
+        #         'flow': 0,
+        #         'times': 0,
+        #     }
+        #     if key not in tmp_links:
+        #         tmp_links.append(key)
+        # for item in tmp_links:
+        #     for link in links:
+        #         if link['source'] == item['source'] and link['target'] == item['target']:
+        #             item['flow'] = item['flow']+link['flow']
+        #             item['times'] = item['times'] + 1
+        # links = tmp_links
+        result = {'nodes': nodes, 'links': links}
+        result = igraphLayout.cal_back_layout_data(result, 'kk')
+        evt=json.dumps(result)
+        self.write(evt)
+
+
 class getTimeLineJson(tornado.web.RequestHandler):
     # 从预先计算好的json文件中，获取timeline全局流量
     def get(self):
@@ -362,6 +428,7 @@ if __name__ == "__main__":
             (r'/getFlow', getFlow),
             (r'/getData2', getData2),
             (r'/get-timeLine-json', getTimeLineJson),
+            (r'/get-anomaly-layout-data', getAnomalyLayoutData),
             (r'/(.*)', tornado.web.StaticFileHandler, {
                 'path': client_file_root_path,
                 'default_filename': 'index.html'

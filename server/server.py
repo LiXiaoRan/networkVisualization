@@ -347,7 +347,7 @@ class getAnomalyLayoutData(tornado.web.RequestHandler):
             source = row['trans_node_global_no']
             target = row['recv_node_golbal_no']
 
-             # 空值处理
+            # 空值处理
             if(source != None and target != None):
                 link = {'source': source, 'target': target}
                 temp_nodes.append({'id': source})
@@ -387,10 +387,31 @@ class getAnomalyLayoutData(tornado.web.RequestHandler):
         #             item['flow'] = item['flow']+link['flow']
         #             item['times'] = item['times'] + 1
         # links = tmp_links
-        result = {'nodes': nodes, 'links': links}
-        result = igraphLayout.cal_back_layout_data(result, 'kk')
-        evt=json.dumps(result)
+        global AnomalyLayoutDataResult
+        AnomalyLayoutDataResult = {'nodes': nodes, 'links': links}
+        AnomalyLayoutDataResult = igraphLayout.cal_back_layout_data(
+            AnomalyLayoutDataResult, 'kk')
+        evt = json.dumps(AnomalyLayoutDataResult)
         self.write(evt)
+
+
+class detectAnomalyOnFlow(tornado.web.RequestHandler):
+    # 异常检测代码
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
+        # params = self.get_argument('params')
+        # params = json.loads(params)
+        # print(params)
+        # AnomalyLayoutDataResult = params['AnomalyLayoutDataResult']
+        print('异常检测代码')
+        global AnomalyLayoutDataResult # 由于前端传输局过来经常失败所以这里采用了全局变量
+        print(AnomalyLayoutDataResult)
+        self.write('ok')
+    pass
 
 
 class getTimeLineJson(tornado.web.RequestHandler):
@@ -428,6 +449,7 @@ if __name__ == "__main__":
             (r'/getFlow', getFlow),
             (r'/getData2', getData2),
             (r'/get-timeLine-json', getTimeLineJson),
+            (r'/detect-anomaly-onflow', detectAnomalyOnFlow),
             (r'/get-anomaly-layout-data', getAnomalyLayoutData),
             (r'/(.*)', tornado.web.StaticFileHandler, {
                 'path': client_file_root_path,

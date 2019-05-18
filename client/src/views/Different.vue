@@ -1,5 +1,6 @@
 <template>
   <div id="Different">
+    <button v-on:click="deteceAnomaly">点击显示异常情况</button>
     <svg id="view-svg"></svg>
   </div>
 </template>
@@ -31,7 +32,7 @@ export default {
     drawGraph(result) {
       let self = this;
       self.layoutData = result;
-      console.info("different回调函数被调用了");
+      // console.info("different回调函数被调用了");
 
       self.svg = d3.select("#view-svg");
       let width = parseFloat(self.svg.style("width"));
@@ -88,10 +89,24 @@ export default {
         .append("circle")
         .attr("cx", d => self.xScale(d.x))
         .attr("cy", d => self.yScale(d.y))
+        .attr("id", d => d.id)
         .attr("r", 2)
         .attr("fill", function(d) {
           return "#1DBDD2";
         });
+    },
+    deteceAnomaly() {
+      // 检测异常链接
+      console.log("检测异常链接函数");
+      // let paramsObj = {AnomalyLayoutDataResult:{'nodes':this.nodesData,'links':this.linksData}};
+      // let paramsObj = {AnomalyLayoutDataResult:this.layoutData};
+      let paramsObj={};
+      let Url = "detect-anomaly-onflow";
+      CommunicateWithServer("get", paramsObj, Url, this.highLiteAnomaly);
+    },
+    highLiteAnomaly(result) {
+      // 高亮异常节点
+      console.log(result);
     }
   }
 };
@@ -115,10 +130,12 @@ svg {
 //   stroke-width: 1.5px;
 // }
 
+button {
+  margin: 10px;
+}
+
 .nodes circle {
   stroke: #fff;
   stroke-width: 1.5px;
 }
-
-
 </style>

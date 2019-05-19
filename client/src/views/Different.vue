@@ -1,6 +1,8 @@
 <template>
   <div id="Different">
     <button v-on:click="deteceAnomaly">点击显示异常情况</button>
+    <button v-on:click="detectSimilarity">结构详细节点检测</button>
+
     <svg id="view-svg"></svg>
   </div>
 </template>
@@ -14,7 +16,8 @@ export default {
       linksData: [],
       nodesData: [],
       xScale: null,
-      yScale: null
+      yScale: null,
+      currentNode: {} //当前单选节点
     };
   },
   mounted() {
@@ -93,6 +96,12 @@ export default {
         .attr("r", 2)
         .attr("fill", function(d) {
           return "#1DBDD2";
+        })
+        .on("click", function(d) {
+          d3.select("#" + self.currentNode.id).attr("fill", "#1DBDD2");
+          self.currentNode = d;
+          d3.select("#" + self.currentNode.id).attr("fill", "#000");
+          console.log(d.id);
         });
     },
     deteceAnomaly() {
@@ -100,7 +109,7 @@ export default {
       console.log("检测异常链接函数");
       // let paramsObj = {AnomalyLayoutDataResult:{'nodes':this.nodesData,'links':this.linksData}};
       // let paramsObj = {AnomalyLayoutDataResult:this.layoutData};
-      let paramsObj={};
+      let paramsObj = {};
       let Url = "detect-anomaly-onflow";
       CommunicateWithServer("get", paramsObj, Url, this.highLiteAnomaly);
     },
@@ -108,12 +117,39 @@ export default {
       // 高亮异常节点
       console.log(result);
       // 先把所有节点变成默认颜色
-      d3.selectAll("circle").attr("fill", "#1DBDD2")
+      d3.selectAll("circle").attr("fill", "#1DBDD2");
       // 给异常节点设置为金色
-      result.forEach(function (d) {
-        d3.select('#'+d.id).attr("fill","#FFD700")
-      })
-
+      result.forEach(function(d) {
+        d3.select("#" + d.id).attr("fill", "#FFD700");
+      });
+    },
+    detectSimilarity() {
+      //相似性检测
+      let self = this;
+      if (self.currentNode != null) {
+        let Url = "detect-similarity";
+        let paramsObj = { nodeId: self.currentNode.id };
+        CommunicateWithServer(
+          "get",
+          paramsObj,
+          Url,
+          self.highLiteSimilarityNode
+        );
+      } else {
+        alert("请选中一个节点");
+      }
+    },
+    highLiteSimilarityNode(result) {
+      //先把所有节点变成默认颜色,除当前选中节点外
+      d3.selectAll("circle").attr("fill", function(d) {
+        if (d.id != self.currentNode.id) {
+          return "#1DBDD2";
+        }
+      });
+      // 高亮相似性节点为红色
+      result.forEach(function(d) {
+        d3.select("#" + d.id).attr("fill", "#FF0000");
+      });
     }
   }
 };
@@ -129,7 +165,6 @@ svg {
   margin-left: -600px;
   margin-top: -350px;
 }
-
 
 button {
   margin: 10px;

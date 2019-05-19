@@ -468,6 +468,15 @@ class detectAnomalyOnFlow(tornado.web.RequestHandler):
         self.write(evt)
     pass
 
+class detectSimilarity(tornado.web.RequestHandler):
+    # 相似性检测
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
+    pass
 
 class getTimeLineJson(tornado.web.RequestHandler):
     # 从预先计算好的json文件中，获取timeline全局流量
@@ -505,6 +514,7 @@ if __name__ == "__main__":
             (r'/getData2', getData2),
             (r'/get-timeLine-json', getTimeLineJson),
             (r'/detect-anomaly-onflow', detectAnomalyOnFlow),
+            (r'/detect-similarity',detectSimilarity),
             (r'/get-anomaly-layout-data', getAnomalyLayoutData),
             (r'/(.*)', tornado.web.StaticFileHandler, {
                 'path': client_file_root_path,

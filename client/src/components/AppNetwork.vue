@@ -16,7 +16,7 @@
             <button class="func-btn">多层结构</button>
           </router-link>
           <router-link to="/accompany">
-            <button class="func-btn">伴随关系</button>
+            <button class="func-btn" id="accompany">伴随关系</button>
           </router-link>
         </div>
       </div>
@@ -309,6 +309,11 @@
           nodeTypeFun(this.selectedNode, value);
         }
       });
+      
+      //跳转伴随关系页面
+      $("#accompany").click(function () {
+         window.open("../../accompany.html");
+      })
 
       // 控制级别
       let controlLevel = this.folder.add(this.obj, '控制级别').min(1).max(5).step(1).listen();

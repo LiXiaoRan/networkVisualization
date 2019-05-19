@@ -351,8 +351,6 @@ class getAnomalyLayoutData(tornado.web.RequestHandler):
             if(source != None and target != None):
                 link = {'source': source, 'target': target, 'flow':flow}
 
-                # temp_nodes.append({'id': source})
-                # temp_nodes.append({'id': target})
                 links.append(link)
                 
                 if target not in nodes_id:
@@ -410,31 +408,7 @@ class getAnomalyLayoutData(tornado.web.RequestHandler):
                         nodes_id.append(source)
                         nodes.append(temp)
 
-        # nodes_id=[]
-        # # 节点去重
-        # for item in temp_nodes:
-        #     if item['id'] not in nodes_id:
-        #         nodes_id.append(item['id'])
-        #         nodes.append(item)
-        #     else:
-        #         index = nodes_id.index(item['id'])
-        #         del nodes[index]
-        #         del nodes_id[index]
-        #         nodes.append(item)
-        #         nodes_id.append(item['id'])
 
-        # #计算节点flow
-        # for node in nodes:
-        #     flow_in = 0
-        #     flow_out = 0
-        #     for link in links:
-        #         if node['id'] == link['source']:
-        #             flow_out = flow_out + link['flow']
-        #         if node['id'] == link['target']:
-        #             flow_in = flow_in + link['flow']
-        #     node['flow_in'] = flow_in
-        #     node['flow_out'] = flow_out
-        #     node['flow'] = flow_in + flow_out
 
         # 边处理
         for link in links:
@@ -468,16 +442,13 @@ class detectAnomalyOnFlow(tornado.web.RequestHandler):
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
         self.set_header("Access-Control-Allow-Methods",
                         "PUT,POST,GET,DELETE,OPTIONS")
-        # params = self.get_argument('params')
-        # params = json.loads(params)
-        # print(params)
-        # AnomalyLayoutDataResult = params['AnomalyLayoutDataResult']
+
         print('异常检测代码')
         nodes=[]
         links=[]
         AnomalyNodes=[]
         global AnomalyLayoutDataResult # 由于前端传输局过来经常失败所以这里采用了全局变量
-        # print(AnomalyLayoutDataResult['nodes'])
+
         nodes=AnomalyLayoutDataResult['nodes'];
         links=AnomalyLayoutDataResult['links'];
         
@@ -492,8 +463,7 @@ class detectAnomalyOnFlow(tornado.web.RequestHandler):
                     flow_in=flow_in+link['flow']
             if (flow_in+flow_out) !=sumFlow:
                 AnomalyNodes.append({'id':node['id'],'flow_difference':sumFlow-(flow_in+flow_out),'node':node})
-        # print(AnomalyNodes)
-        # print(len(AnomalyNodes))
+
         evt = json.dumps(AnomalyNodes)
         self.write(evt)
     pass

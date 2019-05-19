@@ -107,6 +107,13 @@ export default {
     highLiteAnomaly(result) {
       // 高亮异常节点
       console.log(result);
+      // 先把所有节点变成默认颜色
+      d3.selectAll("circle").attr("fill", "#1DBDD2")
+      // 给异常节点设置为金色
+      result.forEach(function (d) {
+        d3.select('#'+d.id).attr("fill","#FFD700")
+      })
+
     }
   }
 };
@@ -123,12 +130,6 @@ svg {
   margin-top: -350px;
 }
 
-// .links line {
-//   fill: black;
-//   stroke: rgb(27, 27, 27);
-//   stroke-opacity: 0.6;
-//   stroke-width: 1.5px;
-// }
 
 button {
   margin: 10px;

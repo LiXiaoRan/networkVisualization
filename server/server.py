@@ -513,9 +513,11 @@ class detectSimilarity(tornado.web.RequestHandler):
         for node in nodes:
             cs=similarityTools.cosine_similarity(currentNode['attr_num_list'],node['attr_num_list'])
             js=similarityTools.jaccardSimilarity(currentNode['attr_culster_list'],node['attr_culster_list'])
-            nodesSimilarity.append({'id':node['id'],'Similarity':(cs+js)})
-            print(cs)
-        self.write('')
+            nodesSimilarity.append({'id':node['id'],'Similarity':(cs+js)[0]})
+        nodesSimilarity=sorted(nodesSimilarity,key=lambda x: x['Similarity'],reverse=True)
+        mostSimList=nodesSimilarity[0:10]
+        print(mostSimList)
+        self.write(json.dumps(mostSimList))
 
 
 class getTimeLineJson(tornado.web.RequestHandler):

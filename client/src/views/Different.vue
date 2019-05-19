@@ -142,12 +142,13 @@ export default {
       }
     },
     highLiteSimilarityNode(result) {
+      console.log("相似性节点的数据如下：");
+      console.log(result);
+      
       //先把所有节点变成默认颜色,除当前选中节点外
-      d3.selectAll("circle").attr("fill", function(d) {
-        if (d.id != self.currentNode.id) {
-          return "#1DBDD2";
-        }
-      });
+      d3.selectAll("circle").attr("fill","#1DBDD2");
+      d3.select("#" + this.currentNode.id).attr("fill", "#000");
+
       // 高亮相似性节点为红色
       result.forEach(function(d) {
         d3.select("#" + d.id).attr("fill", "#FF0000");

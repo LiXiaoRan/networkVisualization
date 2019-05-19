@@ -13,14 +13,14 @@ from datetime import datetime, timedelta
 # conn = pymysql.connect(host='192.168.10.9', db='transit_network', user = 'transitnet', password = 'pkuvistransit', cursorclass=pymysql.cursors.DictCursor)
 # conn = pymysql.connect(host='127.0.0.1', db='transit_network', user='root', password='584007',
 #                        cursorclass=pymysql.cursors.DictCursor)
-conn = pymysql.connect(
-    host='127.0.0.1',
-    db='transit_network',
-    user='root',
-    password='Corner',
-    cursorclass=pymysql.cursors.DictCursor)
-# conn = pymysql.connect(host='127.0.0.1', db='transit_network', user='root', password='123456',
-#                         cursorclass=pymysql.cursors.DictCursor)
+# conn = pymysql.connect(
+#     host='127.0.0.1',
+#     db='transit_network',
+#     user='root',
+#     password='Corner',
+#     cursorclass=pymysql.cursors.DictCursor)
+conn = pymysql.connect(host='127.0.0.1', db='transit_network', user='root', password='123456',
+                        cursorclass=pymysql.cursors.DictCursor)
 
 tablename = 'EVENT'
 
@@ -66,6 +66,15 @@ class NetworkData:
             cursor.execute(sql, [begin, end])
             data = cursor.fetchall()
         return data
+
+    def getAnomalyData(self,tablename):
+        # 获取异常数据库的数据
+        featchSql="SELECT * FROM "+tablename;
+        with conn.cursor() as cursor:
+            cursor.execute(featchSql);
+            data = cursor.fetchall();
+        return data
+        
 
 
 def timeConvert(tstr):

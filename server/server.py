@@ -476,7 +476,34 @@ class detectSimilarity(tornado.web.RequestHandler):
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
         self.set_header("Access-Control-Allow-Methods",
                         "PUT,POST,GET,DELETE,OPTIONS")
-    pass
+        nodes=[]
+        params = json.loads(self.get_argument('params'))
+        nodeId=params['nodeId'] #获取前端单选的节点
+        global AnomalyLayoutDataResult
+        nodes=AnomalyLayoutDataResult['nodes'];
+        currentNode={}
+        for node in nodes:
+            if node['id']==nodeId:
+                currentNode=node
+        
+        # currentNode=nodes[]
+        print(currentNode)
+        self.write([])
+
+    def cosSimilarity(arr1,arr2):
+        vector1 = np.array([arr1])
+        vector2 = np.array([arr2])
+        op7=np.dot(vector1,vector2)/(np.linalg.norm(vector1)*(np.linalg.norm(vector2)))
+        return op7
+    
+    def jaccardSimilarity(arr1,arr2):
+        
+        v1=np.array([arr1])
+        v2=np.array([arr2])
+        matv=np.array([v1,v2])
+        # print(matv)
+        ds=dist.pdist(matv,'jaccard')
+        return ds;
 
 class getTimeLineJson(tornado.web.RequestHandler):
     # 从预先计算好的json文件中，获取timeline全局流量

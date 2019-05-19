@@ -98,7 +98,9 @@ export default {
           return "#1DBDD2";
         })
         .on("click", function(d) {
-          d3.select("#" + self.currentNode.id).attr("fill", "#1DBDD2");
+          if(self.currentNode.id!=null){
+            d3.select("#" + self.currentNode.id).attr("fill", "#1DBDD2");
+          }
           self.currentNode = d;
           d3.select("#" + self.currentNode.id).attr("fill", "#000");
           console.log(d.id);
@@ -136,7 +138,7 @@ export default {
           self.highLiteSimilarityNode
         );
       } else {
-        alert("请选中一个节点");
+        alert('请选择一个节点');
       }
     },
     highLiteSimilarityNode(result) {

@@ -473,9 +473,29 @@ class detectAnomalyOnFlow(tornado.web.RequestHandler):
         # print(params)
         # AnomalyLayoutDataResult = params['AnomalyLayoutDataResult']
         print('异常检测代码')
+        nodes=[]
+        links=[]
+        AnomalyNodes=[]
         global AnomalyLayoutDataResult # 由于前端传输局过来经常失败所以这里采用了全局变量
-        print(AnomalyLayoutDataResult)
-        self.write('ok')
+        # print(AnomalyLayoutDataResult['nodes'])
+        nodes=AnomalyLayoutDataResult['nodes'];
+        links=AnomalyLayoutDataResult['links'];
+        
+        for node in nodes:
+            sumFlow=node['flow']
+            flow_out=0
+            flow_in=0
+            for link in links:
+                if link['source']==node['id']:
+                    flow_out=flow_out+link['flow']
+                if link['target']==node['id']:
+                    flow_in=flow_in+link['flow']
+            if (flow_in+flow_out) !=sumFlow:
+                AnomalyNodes.append({'id':node['id'],'flow_difference':sumFlow-(flow_in+flow_out),'node':node})
+        # print(AnomalyNodes)
+        # print(len(AnomalyNodes))
+        evt = json.dumps(AnomalyNodes)
+        self.write(evt)
     pass
 
 

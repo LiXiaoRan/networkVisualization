@@ -346,47 +346,112 @@ class getAnomalyLayoutData(tornado.web.RequestHandler):
         for row in data:
             source = row['trans_node_global_no']
             target = row['recv_node_golbal_no']
-
+            flow = row['flow']
             # 空值处理
             if(source != None and target != None):
-                link = {'source': source, 'target': target}
-                temp_nodes.append({'id': source})
-                temp_nodes.append({'id': target})
+                link = {'source': source, 'target': target, 'flow':flow}
+
+                # temp_nodes.append({'id': source})
+                # temp_nodes.append({'id': target})
                 links.append(link)
+                
+                if target not in nodes_id:
+                        nodes_id.append(target)
+                        nodes.append({'id': target,'flow':flow,'flow_in':flow,'flow_out':0})
+                else:
+                    index = nodes_id.index(target)
+                    temp=nodes[index]
+                    temp['flow_in']=temp['flow_in']+flow
+                    temp['flow']=temp['flow']+temp['flow_in']
+                    del nodes_id[index]
+                    del nodes[index]
+                    nodes_id.append(target)
+                    nodes.append(temp)
+
+                if source not in nodes_id:
+                        nodes_id.append(source)
+                        nodes.append({'id': source,'flow':flow,'flow_in':0,'flow_out':flow})
+                else:
+                    index = nodes_id.index(source)
+                    temp=nodes[index]
+                    temp['flow_out']=temp['flow_out']+flow
+                    temp['flow']=temp['flow']+temp['flow_out']
+                    del nodes_id[index]
+                    del nodes[index]
+                    nodes_id.append(source)
+                    nodes.append(temp)
             else:
                 if source == None:
-                    temp_nodes.append({'id': target})
+                    # temp_nodes.append({'id': target})
+                    if target not in nodes_id:
+                        nodes_id.append(target)
+                        nodes.append({'id': target,'flow':flow,'flow_in':flow,'flow_out':0})
+                    else:
+                        index = nodes_id.index(target)
+                        temp=nodes[index]
+                        temp['flow_in']=temp['flow_in']+flow
+                        temp['flow']=temp['flow']+temp['flow_in']
+                        del nodes_id[index]
+                        del nodes[index]
+                        nodes_id.append(target)
+                        nodes.append(temp)
+
                 if target == None:
-                    temp_nodes.append({'id': source})
+                    if source not in nodes_id:
+                        nodes_id.append(source)
+                        nodes.append({'id': source,'flow':flow,'flow_in':0,'flow_out':flow})
+                    else:
+                        index = nodes_id.index(source)
+                        temp=nodes[index]
+                        temp['flow_out']=temp['flow_out']+flow
+                        temp['flow']=temp['flow']+temp['flow_out']
+                        del nodes_id[index]
+                        del nodes[index]
+                        nodes_id.append(source)
+                        nodes.append(temp)
 
-        # 节点去重
-        for item in temp_nodes:
-            if item['id'] not in nodes_id:
-                nodes_id.append(item['id'])
-                nodes.append(item)
-            else:
-                index = nodes_id.index(item['id'])
-                del nodes[index]
-                del nodes_id[index]
-                nodes.append(item)
-                nodes_id.append(item['id'])
+        # nodes_id=[]
+        # # 节点去重
+        # for item in temp_nodes:
+        #     if item['id'] not in nodes_id:
+        #         nodes_id.append(item['id'])
+        #         nodes.append(item)
+        #     else:
+        #         index = nodes_id.index(item['id'])
+        #         del nodes[index]
+        #         del nodes_id[index]
+        #         nodes.append(item)
+        #         nodes_id.append(item['id'])
 
-        # # 边处理
-        # for link in links:
-        #     key = {
-        #         'source': link['source'],
-        #         'target': link['target'],
-        #         'flow': 0,
-        #         'times': 0,
-        #     }
-        #     if key not in tmp_links:
-        #         tmp_links.append(key)
-        # for item in tmp_links:
+        # #计算节点flow
+        # for node in nodes:
+        #     flow_in = 0
+        #     flow_out = 0
         #     for link in links:
-        #         if link['source'] == item['source'] and link['target'] == item['target']:
-        #             item['flow'] = item['flow']+link['flow']
-        #             item['times'] = item['times'] + 1
-        # links = tmp_links
+        #         if node['id'] == link['source']:
+        #             flow_out = flow_out + link['flow']
+        #         if node['id'] == link['target']:
+        #             flow_in = flow_in + link['flow']
+        #     node['flow_in'] = flow_in
+        #     node['flow_out'] = flow_out
+        #     node['flow'] = flow_in + flow_out
+
+        # 边处理
+        for link in links:
+            key = {
+                'source': link['source'],
+                'target': link['target'],
+                'flow': 0,
+                'times': 0,
+            }
+            if key not in tmp_links:
+                tmp_links.append(key)
+        for item in tmp_links:
+            for link in links:
+                if link['source'] == item['source'] and link['target'] == item['target']:
+                    item['flow'] = item['flow']+link['flow']
+                    item['times'] = item['times'] + 1
+        links = tmp_links
         global AnomalyLayoutDataResult
         AnomalyLayoutDataResult = {'nodes': nodes, 'links': links}
         AnomalyLayoutDataResult = igraphLayout.cal_back_layout_data(

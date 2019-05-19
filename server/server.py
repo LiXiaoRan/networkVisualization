@@ -347,6 +347,22 @@ class getAnomalyLayoutData(tornado.web.RequestHandler):
             source = row['trans_node_global_no']
             target = row['recv_node_golbal_no']
             flow = row['flow']
+            recv_num_list=[]
+            recv_culster_list=[]
+            trans_num_list=[]
+            trans_culster_list=[]
+            
+            for n in range(1,31):
+                recv_num_list.append(row['recv_num_'+str(n)])
+            for n in range(1,21):
+                recv_culster_list.append(row['recv_cluster_'+str(n)])
+            
+            for n in range(1,31):
+                trans_num_list.append(row['trans_num_'+str(n)])
+            for n in range(1,21):
+                trans_culster_list.append(row['trans_cluster_'+str(n)])
+
+
             # 空值处理
             if(source != None and target != None):
                 link = {'source': source, 'target': target, 'flow':flow}
@@ -355,7 +371,7 @@ class getAnomalyLayoutData(tornado.web.RequestHandler):
                 
                 if target not in nodes_id:
                         nodes_id.append(target)
-                        nodes.append({'id': target,'flow':flow,'flow_in':flow,'flow_out':0})
+                        nodes.append({'id': target,'flow':flow,'flow_in':flow,'flow_out':0,'attr_num_list':recv_num_list,'attr_culster_list':recv_culster_list})
                 else:
                     index = nodes_id.index(target)
                     temp=nodes[index]
@@ -368,7 +384,7 @@ class getAnomalyLayoutData(tornado.web.RequestHandler):
 
                 if source not in nodes_id:
                         nodes_id.append(source)
-                        nodes.append({'id': source,'flow':flow,'flow_in':0,'flow_out':flow})
+                        nodes.append({'id': source,'flow':flow,'flow_in':0,'flow_out':flow,'attr_num_list':trans_num_list,'attr_culster_list':trans_culster_list})
                 else:
                     index = nodes_id.index(source)
                     temp=nodes[index]
@@ -383,7 +399,7 @@ class getAnomalyLayoutData(tornado.web.RequestHandler):
                     # temp_nodes.append({'id': target})
                     if target not in nodes_id:
                         nodes_id.append(target)
-                        nodes.append({'id': target,'flow':flow,'flow_in':flow,'flow_out':0})
+                        nodes.append({'id': target,'flow':flow,'flow_in':flow,'flow_out':0,'attr_num_list':recv_num_list,'attr_culster_list':recv_culster_list})
                     else:
                         index = nodes_id.index(target)
                         temp=nodes[index]
@@ -397,7 +413,9 @@ class getAnomalyLayoutData(tornado.web.RequestHandler):
                 if target == None:
                     if source not in nodes_id:
                         nodes_id.append(source)
-                        nodes.append({'id': source,'flow':flow,'flow_in':0,'flow_out':flow})
+                        # nodes.append({'id': source,'flow':flow,'flow_in':0,'flow_out':flow})
+                        nodes.append({'id': source,'flow':flow,'flow_in':0,'flow_out':flow,'attr_num_list':trans_num_list,'attr_culster_list':trans_culster_list})
+
                     else:
                         index = nodes_id.index(source)
                         temp=nodes[index]

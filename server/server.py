@@ -21,6 +21,7 @@ import numpy as np
 import math
 import codecs
 import copy
+import similarityTools
 
 define("port", default=22333, type=int, help="run on the given port")
 client_file_root_path = os.path.join(os.path.split(__file__)[0], '../')
@@ -355,13 +356,15 @@ class getAnomalyLayoutData(tornado.web.RequestHandler):
             for n in range(1,31):
                 recv_num_list.append(row['recv_num_'+str(n)])
             for n in range(1,21):
-                recv_culster_list.append(row['recv_cluster_'+str(n)])
+                # recv_culster_list.append(row['recv_cluster_'+str(n)])
+                recv_culster_list.append(similarityTools.strtoASCII(row['recv_cluster_'+str(n)]))
             
             for n in range(1,31):
                 trans_num_list.append(row['trans_num_'+str(n)])
             for n in range(1,21):
-                trans_culster_list.append(row['trans_cluster_'+str(n)])
-
+                # trans_culster_list.append(row['trans_cluster_'+str(n)])
+                trans_culster_list.append(similarityTools.strtoASCII(row['trans_cluster_'+str(n)]))
+                
 
             # 空值处理
             if(source != None and target != None):
@@ -495,33 +498,25 @@ class detectSimilarity(tornado.web.RequestHandler):
         self.set_header("Access-Control-Allow-Methods",
                         "PUT,POST,GET,DELETE,OPTIONS")
         nodes=[]
+        nodesSimilarity=[]
         params = json.loads(self.get_argument('params'))
         nodeId=params['nodeId'] #获取前端单选的节点
         global AnomalyLayoutDataResult
         nodes=AnomalyLayoutDataResult['nodes'];
         currentNode={}
+        #找出当前被选中的节点的数据
         for node in nodes:
             if node['id']==nodeId:
                 currentNode=node
         
-        # currentNode=nodes[]
-        print(currentNode)
-        self.write([])
+        # 计算相似性
+        for node in nodes:
+            cs=similarityTools.cosine_similarity(currentNode['attr_num_list'],node['attr_num_list'])
+            js=similarityTools.jaccardSimilarity(currentNode['attr_culster_list'],node['attr_culster_list'])
+            nodesSimilarity.append({'id':node['id'],'Similarity':(cs+js)})
+            print(cs)
+        self.write('')
 
-    def cosSimilarity(arr1,arr2):
-        vector1 = np.array([arr1])
-        vector2 = np.array([arr2])
-        op7=np.dot(vector1,vector2)/(np.linalg.norm(vector1)*(np.linalg.norm(vector2)))
-        return op7
-    
-    def jaccardSimilarity(arr1,arr2):
-        
-        v1=np.array([arr1])
-        v2=np.array([arr2])
-        matv=np.array([v1,v2])
-        # print(matv)
-        ds=dist.pdist(matv,'jaccard')
-        return ds;
 
 class getTimeLineJson(tornado.web.RequestHandler):
     # 从预先计算好的json文件中，获取timeline全局流量

@@ -1,0 +1,154 @@
+@bg-color: #222;
+@color-text: rgba(255, 255, 255, 0.8);
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+  background-color: @bg-color;
+  color: @color-text;
+  font-family: 'Microsoft YaHei', Arial, sans-serif;
+}
+
+#main {
+  width: 100%;
+  height: 100%;
+  left: 0;
+  top: 0;
+  position: absolute;
+  background: #282c37;
+  overflow-x: auto;
+  overflow-y: hidden;
+  // margin: 0 auto;
+
+  #left_accompany {
+    position: absolute;
+    height: calc(70% - 1px);
+    width: calc(65% - 6px);
+    left: 5px;
+    top: 5px;
+    background: #303243;
+  }
+  #right_detail {
+    position: absolute;
+    height: calc(70% - 1px);
+    width: calc(35% + 5px);
+    left: calc(65% - 5.5px);
+    top: 5px;
+    background: #303243;
+  }
+  #bottom_timeline {
+    position: absolute;
+    height: calc(30% - 1px);
+    width: calc(100% - 0.75px);
+    left: 5px;
+    top: calc(65% + 5px);
+    background: #303243;
+  }
+}
+
+/*时间轴的详细格式*/
+#bottom_timeline .selection{
+  fill:none;
+  rx: 5px;ry: 5px;
+  stroke:#ada63c;
+  stroke-width:2px;
+}
+#bottom_timeline .axis path,.axis line {
+  fill: none;
+  stroke: none;
+}
+
+#bottom_timeline .axis text {
+  fill: #959595;
+  font-family: Microsoft YaHei;
+  font-size: 9px;
+}
+.times text {
+  font-family: Microsoft YaHei;
+  font-size: 9px;
+}
+#bottom_timeline .axis line,.axis path {
+  fill: none;
+  stroke: #959595;
+  opacity:0.5;
+  stroke-width:0.5px;
+}
+#bottom_timeline .axis_tick text { fill:none;}
+#bottom_timeline .axis_tick line,.axis_tick path {
+  fill: none;
+  stroke: #959595;
+  opacity:0.5;
+  stroke-width:0.5px;
+}
+#bottom_timeline .brush .overlay {
+  fill: none;
+  stroke: #959595;
+  opacity:0.5;
+  stroke-width:0.5px;
+}
+.timeline_path{
+  fill:#2b516c;
+}
+.handle--lower{
+  fill:#ada63c;
+}
+.upper_timerange{
+  fill:none;
+  stroke:#ada63c;
+  stroke-width:2px;
+  stroke-dasharray:14;
+  stroke-linecap:round;
+  rx:2px;ry:2px;
+}
+.peakRect rect{
+  fill:none;
+  stroke:#ada63c;
+  stroke-width:1px;
+  stroke-dasharray:14;
+  stroke-linecap:round;
+  rx:2px;ry:2px;
+}
+#bottom_timeline .upper_timerange_t{
+  fill:none;
+  stroke:#ada63c;
+  stroke-width:2px;
+}
+#bottom_timeline .timeline_path_stroke{
+  fill:none;
+  stroke:#1e8faa;
+  stroke-width:3px;
+  stroke-linecap:round;
+}
+#bottom_timeline .overlay {
+  fill: white !important;
+  stroke: #959595 !important;
+  stroke-width:0.5px !important;
+  stroke-opacity:0.5 !important;
+  fill-opacity:0 !important;
+}
+#title svg{
+   position: absolute;
+   left: 50%;
+   top: 30%;
+  s-transform: translate(-50%,-50%);
+   -moz-transform: translate(-50%,-50%);
+    -o-transform: translate(-50%,-50%);
+    transform: translate(-50%,-50%);
+}
+#title text {
+  fill: #959595;
+  font-family: Microsoft YaHei;
+  font-size: 12px;
+}
+#detail svg{
+  position: absolute;
+  top: 40%;
+  left: 5%;
+
+}
+
+#detail text{
+  fill: #959595;
+  font-family: Microsoft YaHei;
+}

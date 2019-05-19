@@ -21,6 +21,7 @@ import numpy as np
 import math
 import codecs
 import copy
+import similarityTools
 
 define("port", default=22333, type=int, help="run on the given port")
 client_file_root_path = os.path.join(os.path.split(__file__)[0], '../')
@@ -120,16 +121,17 @@ class getLayoutData(tornado.web.RequestHandler):
                 key = {
                     'source': link['source'],
                     'target': link['target'],
-                    'flow': 0
+                    'flow': 0,
+                    'times': 0,
                 }
                 if key not in tmp_links:
                     tmp_links.append(key)
 
             for item in tmp_links:
                 for link in links:
-                    if link['source'] == item['source'] and link[
-                            'target'] == item['target']:
+                    if link['source'] == item['source'] and link['target'] == item['target']:
                         item['flow'] = item['flow'] + link['flow']
+                        item['times'] = item['times'] + 1
             links = tmp_links
 
             end = time.clock()
@@ -326,6 +328,196 @@ class getData2(tornado.web.RequestHandler):
         LocalGraph.rangeend = LocalGraph.linuxtimestamp(timeRange[1])
 
 
+class getAnomalyLayoutData(tornado.web.RequestHandler):
+    # 读取异常数据并且计算布局
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
+        links = []
+        nodes = []
+        temp_nodes = []
+        nodes_id = []
+        tmp_links = []
+
+        data = NetworkData.getAnomalyData("event2")
+
+        for row in data:
+            source = row['trans_node_global_no']
+            target = row['recv_node_golbal_no']
+            flow = row['flow']
+            recv_num_list=[]
+            recv_culster_list=[]
+            trans_num_list=[]
+            trans_culster_list=[]
+            
+            for n in range(1,31):
+                recv_num_list.append(row['recv_num_'+str(n)])
+            for n in range(1,21):
+                # recv_culster_list.append(row['recv_cluster_'+str(n)])
+                recv_culster_list.append(similarityTools.strtoASCII(row['recv_cluster_'+str(n)]))
+            
+            for n in range(1,31):
+                trans_num_list.append(row['trans_num_'+str(n)])
+            for n in range(1,21):
+                # trans_culster_list.append(row['trans_cluster_'+str(n)])
+                trans_culster_list.append(similarityTools.strtoASCII(row['trans_cluster_'+str(n)]))
+                
+
+            # 空值处理
+            if(source != None and target != None):
+                link = {'source': source, 'target': target, 'flow':flow}
+
+                links.append(link)
+                
+                if target not in nodes_id:
+                        nodes_id.append(target)
+                        nodes.append({'id': target,'flow':flow,'flow_in':flow,'flow_out':0,'attr_num_list':recv_num_list,'attr_culster_list':recv_culster_list})
+                else:
+                    index = nodes_id.index(target)
+                    temp=nodes[index]
+                    temp['flow_in']=temp['flow_in']+flow
+                    temp['flow']=temp['flow']+temp['flow_in']
+                    del nodes_id[index]
+                    del nodes[index]
+                    nodes_id.append(target)
+                    nodes.append(temp)
+
+                if source not in nodes_id:
+                        nodes_id.append(source)
+                        nodes.append({'id': source,'flow':flow,'flow_in':0,'flow_out':flow,'attr_num_list':trans_num_list,'attr_culster_list':trans_culster_list})
+                else:
+                    index = nodes_id.index(source)
+                    temp=nodes[index]
+                    temp['flow_out']=temp['flow_out']+flow
+                    temp['flow']=temp['flow']+temp['flow_out']
+                    del nodes_id[index]
+                    del nodes[index]
+                    nodes_id.append(source)
+                    nodes.append(temp)
+            else:
+                if source == None:
+                    # temp_nodes.append({'id': target})
+                    if target not in nodes_id:
+                        nodes_id.append(target)
+                        nodes.append({'id': target,'flow':flow,'flow_in':flow,'flow_out':0,'attr_num_list':recv_num_list,'attr_culster_list':recv_culster_list})
+                    else:
+                        index = nodes_id.index(target)
+                        temp=nodes[index]
+                        temp['flow_in']=temp['flow_in']+flow
+                        temp['flow']=temp['flow']+temp['flow_in']
+                        del nodes_id[index]
+                        del nodes[index]
+                        nodes_id.append(target)
+                        nodes.append(temp)
+
+                if target == None:
+                    if source not in nodes_id:
+                        nodes_id.append(source)
+                        # nodes.append({'id': source,'flow':flow,'flow_in':0,'flow_out':flow})
+                        nodes.append({'id': source,'flow':flow,'flow_in':0,'flow_out':flow,'attr_num_list':trans_num_list,'attr_culster_list':trans_culster_list})
+
+                    else:
+                        index = nodes_id.index(source)
+                        temp=nodes[index]
+                        temp['flow_out']=temp['flow_out']+flow
+                        temp['flow']=temp['flow']+temp['flow_out']
+                        del nodes_id[index]
+                        del nodes[index]
+                        nodes_id.append(source)
+                        nodes.append(temp)
+
+
+
+        # 边处理
+        for link in links:
+            key = {
+                'source': link['source'],
+                'target': link['target'],
+                'flow': 0,
+                'times': 0,
+            }
+            if key not in tmp_links:
+                tmp_links.append(key)
+        for item in tmp_links:
+            for link in links:
+                if link['source'] == item['source'] and link['target'] == item['target']:
+                    item['flow'] = item['flow']+link['flow']
+                    item['times'] = item['times'] + 1
+        links = tmp_links
+        global AnomalyLayoutDataResult
+        AnomalyLayoutDataResult = {'nodes': nodes, 'links': links}
+        AnomalyLayoutDataResult = igraphLayout.cal_back_layout_data(
+            AnomalyLayoutDataResult, 'kk')
+        evt = json.dumps(AnomalyLayoutDataResult)
+        self.write(evt)
+
+
+class detectAnomalyOnFlow(tornado.web.RequestHandler):
+    # 异常检测代码
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
+
+        print('异常检测代码')
+        nodes=[]
+        links=[]
+        AnomalyNodes=[]
+        global AnomalyLayoutDataResult # 由于前端传输局过来经常失败所以这里采用了全局变量
+
+        nodes=AnomalyLayoutDataResult['nodes'];
+        links=AnomalyLayoutDataResult['links'];
+        
+        for node in nodes:
+            sumFlow=node['flow']
+            flow_out=0
+            flow_in=0
+            for link in links:
+                if link['source']==node['id']:
+                    flow_out=flow_out+link['flow']
+                if link['target']==node['id']:
+                    flow_in=flow_in+link['flow']
+            if (flow_in+flow_out) !=sumFlow:
+                AnomalyNodes.append({'id':node['id'],'flow_difference':sumFlow-(flow_in+flow_out),'node':node})
+
+        evt = json.dumps(AnomalyNodes)
+        self.write(evt)
+    pass
+
+class detectSimilarity(tornado.web.RequestHandler):
+    # 相似性检测
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
+        nodes=[]
+        nodesSimilarity=[]
+        params = json.loads(self.get_argument('params'))
+        nodeId=params['nodeId'] #获取前端单选的节点
+        global AnomalyLayoutDataResult
+        nodes=AnomalyLayoutDataResult['nodes'];
+        currentNode={}
+        #找出当前被选中的节点的数据
+        for node in nodes:
+            if node['id']==nodeId:
+                currentNode=node
+        
+        # 计算相似性
+        for node in nodes:
+            cs=similarityTools.cosine_similarity(currentNode['attr_num_list'],node['attr_num_list'])
+            js=similarityTools.jaccardSimilarity(currentNode['attr_culster_list'],node['attr_culster_list'])
+            nodesSimilarity.append({'id':node['id'],'Similarity':(cs+js)})
+            print(cs)
+        self.write('')
+
+
 class getTimeLineJson(tornado.web.RequestHandler):
     # 从预先计算好的json文件中，获取timeline全局流量
     def get(self):
@@ -361,6 +553,9 @@ if __name__ == "__main__":
             (r'/getFlow', getFlow),
             (r'/getData2', getData2),
             (r'/get-timeLine-json', getTimeLineJson),
+            (r'/detect-anomaly-onflow', detectAnomalyOnFlow),
+            (r'/detect-similarity',detectSimilarity),
+            (r'/get-anomaly-layout-data', getAnomalyLayoutData),
             (r'/(.*)', tornado.web.StaticFileHandler, {
                 'path': client_file_root_path,
                 'default_filename': 'index.html'

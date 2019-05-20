@@ -309,12 +309,6 @@
           nodeTypeFun(this.selectedNode, value);
         }
       });
-      
-      //跳转伴随关系页面
-      $("#accompany").click(function () {
-         window.open("../../accompany.html");
-      })
-
       // 控制级别
       let controlLevel = this.folder.add(this.obj, '控制级别').min(1).max(5).step(1).listen();
       let controlLevelFun = function (item, value) {

@@ -57,7 +57,7 @@ let draw_svg = d3.select("#" + drawId).append("svg")
   .attr("viewBox", [-draw_width / 2, -draw_height / 2, draw_width, draw_height]);
 
 
-d3.csv("../data/accompany.csv").then(function (nodeData) {
+d3.csv("../../data/accompany.csv").then(function (nodeData) {
     nodeArray = [].concat(nodeData);
     drawTimeLine();
 })
@@ -65,7 +65,7 @@ d3.csv("../data/accompany.csv").then(function (nodeData) {
 
 
 function drawTimeLine(){
-    d3.json("../data/tsconfig.json") .then(function (timeLine) {
+    d3.json("../../data/tsconfig.json") .then(function (timeLine) {
         drawLowerTimeLine(timeLine.data);
     })
 }

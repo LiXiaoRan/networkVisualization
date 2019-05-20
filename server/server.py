@@ -22,6 +22,7 @@ import math
 import codecs
 import copy
 import similarityTools
+import csv
 
 define("port", default=22333, type=int, help="run on the given port")
 client_file_root_path = os.path.join(os.path.split(__file__)[0], '../')
@@ -537,6 +538,72 @@ class getTimeLineJson(tornado.web.RequestHandler):
         evt = json.dumps(load_dict)
         self.write(evt)
 
+class getAccompanyJson(tornado.web.RequestHandler):
+    # 从预先计算好的json文件中，获取timeline全局流量
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
+        params = json.loads(self.get_argument('params'))
+        print('params', params)
+        filePath = '../data/tsconfig.json'
+        with codecs.open(filePath, 'r', 'utf-8') as load_f:
+            load_dict = json.load(load_f)
+        evt = json.dumps(load_dict)
+        self.write(evt)
+
+class getAccompanyData(tornado.web.RequestHandler):
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
+        params = json.loads(self.get_argument('params'))
+        print('params', params)
+        timeRange = json.loads(params['data'])
+        print('timeRange', timeRange)
+        start = time.clock()
+        nowSelectedData = NetworkData.getTimeRangeData(timeRange[0],
+                                                       timeRange[1])
+        end = time.clock()
+        diff_time = end - start
+        print("spend time for get timeline data: " + str(diff_time))
+        evt_unpacked = {'message': 'timeRangeData', 'data': nowSelectedData}
+        evt = json.dumps(evt_unpacked)
+        self.write(evt)
+
+
+class getAccompanyCSV(tornado.web.RequestHandler):
+    # 从预先计算好的json文件中，获取timeline全局流量
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
+        params = json.loads(self.get_argument('params'))
+        print('params', params)
+        filePath = '../data/accompany.csv'
+        result = {'data':[]}
+        count = 0
+        with open(filePath, 'r', encoding="utf-8") as csvfile:
+            reader = csv.reader(csvfile)
+            for i in reader:
+                if (count != 0):
+                    item = {};
+                    item['id'] = i[0]
+                    item['event_begintime'] = i[1]
+                    item['event_endtime'] = i[2]
+                    item['recv_node_golbal_no'] = i[3]
+                    item['trans_node_global_no'] = i[4]
+                    result['data'].append(item)
+                count = 1
+        evt = json.dumps(result)
+        self.write(evt)
+
 
 if __name__ == "__main__":
     tornado.options.parse_command_line()
@@ -559,6 +626,8 @@ if __name__ == "__main__":
             (r'/detect-anomaly-onflow', detectAnomalyOnFlow),
             (r'/detect-similarity',detectSimilarity),
             (r'/get-anomaly-layout-data', getAnomalyLayoutData),
+            (r'/get-accompany-json', getAccompanyJson),
+            (r'/get-accompany-csv', getAccompanyCSV),
             (r'/(.*)', tornado.web.StaticFileHandler, {
                 'path': client_file_root_path,
                 'default_filename': 'index.html'

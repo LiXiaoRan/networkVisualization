@@ -1,9 +1,12 @@
 <template>
   <div id="Different">
-    <button v-on:click="deteceAnomaly">点击显示异常情况</button>
-    <button v-on:click="detectSimilarity">结构详细节点检测</button>
-
-    <svg id="view-svg"></svg>
+    <div id="btnd">
+      <button v-on:click="deteceAnomaly">点击显示异常情况</button>
+      <button v-on:click="detectSimilarity">结构详细节点检测</button>
+    </div>
+    <div class="svg-div">
+      <svg id="view-svg"></svg>
+    </div>
   </div>
 </template>
 <script>
@@ -98,13 +101,23 @@ export default {
           return "#1DBDD2";
         })
         .on("click", function(d) {
-          if(self.currentNode.id!=null){
+          if (self.currentNode.id != null) {
             d3.select("#" + self.currentNode.id).attr("fill", "#1DBDD2");
           }
           self.currentNode = d;
           d3.select("#" + self.currentNode.id).attr("fill", "#000");
           console.log(d.id);
         });
+
+      d3.select("#view-svg").call(
+        d3
+          .zoom()
+          .scaleExtent([1, 8])
+          .on("zoom", zoomed)
+      );
+      function zoomed() {
+        self.svg.attr("transform", d3.event.transform);
+      }
     },
     deteceAnomaly() {
       // 检测异常链接
@@ -138,18 +151,16 @@ export default {
           self.highLiteSimilarityNode
         );
       } else {
-        alert('请选择一个节点');
+        alert("请选择一个节点");
       }
     },
     highLiteSimilarityNode(result) {
-
       console.log("相似性节点的数据如下：");
       console.log(result);
-      
-      //先把所有节点变成默认颜色,除当前选中节点外
-      d3.selectAll("circle").attr("fill","#1DBDD2");
-      d3.select("#" + this.currentNode.id).attr("fill", "#000");
 
+      //先把所有节点变成默认颜色,除当前选中节点外
+      d3.selectAll("circle").attr("fill", "#1DBDD2");
+      d3.select("#" + this.currentNode.id).attr("fill", "#000");
 
       // 高亮相似性节点为红色
       result.forEach(function(d) {
@@ -162,19 +173,30 @@ export default {
 
 <style lang="less" scoped>
 svg {
+  width: 100%;
+  height: 100%;
+  // position: fixed;
+  // top: 50%;
+  // left: 50%;
+  // margin-left: -600px;
+  // margin-top: -350px;
+}
+
+.svg-div {
   width: 1000px;
   height: 700px;
-  position: fixed;
-  top: 50%;
-  left: 50%;
-  margin-left: -600px;
-  margin-top: -350px;
+  overflow:hidden;
+  margin-left: 20px;
+
 }
 
 button {
   margin: 10px;
 }
 
+#btnd {
+  z-index: 10;
+}
 .nodes circle {
   stroke: #fff;
   stroke-width: 1.5px;

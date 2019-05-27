@@ -17,10 +17,15 @@ def cosine_similarity(x, y, norm=False):
 
 
 def jaccardSimilarity(arr1,arr2):
+    arr_list1=[]
+    arr_list2=[]
+    for arr in arr1:
+        arr_list1.append(strtoASCII(arr))
+    for arr in arr2:
+        arr_list2.append(strtoASCII(arr))
     
-
-    v1=np.array(arr1)
-    v2=np.array(arr2)
+    v1=np.array(arr_list1)
+    v2=np.array(arr_list2)
     matv=np.array([v1,v2])
     ds=dist.pdist(matv,'jaccard')
     return ds;

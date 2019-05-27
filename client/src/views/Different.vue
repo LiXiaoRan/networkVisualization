@@ -4,6 +4,10 @@
       <button v-on:click="deteceAnomaly">点击显示异常情况</button>
       <button v-on:click="detectSimilarity">结构详细节点检测</button>
     </div>
+    <div id="attr-compare-div">
+      <div id="attr-curr" class="compare-div-inner"></div>
+      <div id="attr-compare"  class="compare-div-inner"></div>
+    </div>
     <div class="svg-div">
       <svg id="view-svg"></svg>
     </div>
@@ -55,13 +59,15 @@ export default {
       self.xScale = d3
         .scaleLinear()
         .domain(d3.extent(self.nodesData, d => d.x))
-        .range([screenWidth / 2 - width / 2, screenWidth / 2]);
+        .range([0, 600]);
+        // .range([screenWidth / 2 - width / 2, screenWidth / 2]);
       // .range([screenWidth / 2 - width / 2, screenWidth / 2 + width / 2]);
 
       self.yScale = d3
         .scaleLinear()
         .domain(d3.extent(self.nodesData, d => d.y))
-        .range([screenHeight / 2 - height / 2, screenHeight / 2]);
+        .range([0, 600]);
+        // .range([screenHeight / 2 - height / 2, screenHeight / 2]);/
       // .range([screenHeight / 2 - height / 2, screenHeight / 2 + height / 2]);
 
       console.log(self.nodesData);
@@ -183,11 +189,31 @@ svg {
 }
 
 .svg-div {
-  width: 1000px;
-  height: 700px;
+  width: 800px;
+  height: 800px;
   overflow:hidden;
   margin-left: 20px;
+  // margin-left: 400px;
+  display: inline-block;
+}
 
+#attr-compare-div{
+  display: inline-block;
+  width: 400px;
+  height: 800px;
+  margin-left: 10px;
+  background-color: aquamarine;
+  padding-top: 5px;
+  padding-bottom: 5px;
+}
+
+.compare-div-inner{
+  display: inline-block;
+  padding: 5px;
+  background-color: #fff;
+  margin-left: 5px;
+  width: 50%-2px;
+  height: 100%;
 }
 
 button {

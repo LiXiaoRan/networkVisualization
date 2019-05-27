@@ -5,6 +5,7 @@ import Different from '../views/Different';
 import Compare from '../views/Compare';
 import Multilayer from '../views/Multilayer';
 import Accompany from '../views/Accompany';
+import NetworkAnalysis from '../views/NetworkAnalysis';
 
 Vue.use(Router);
 
@@ -15,6 +16,11 @@ export default new Router({
       path: '/',
       name: 'System',
       component: System
+    },
+    {
+      path: '/networkAnalysis',
+      name: 'NetworkAnalysis',
+      component: NetworkAnalysis
     },
     {
       path: '/different',

@@ -17,6 +17,10 @@ from datetime import datetime, timedelta
 conn = pymysql.connect(host='127.0.0.1', db='transit_network', user='root', password='123456',
                        cursorclass=pymysql.cursors.DictCursor)
 
+# conn = pymysql.connect(host='127.0.0.1', db='transit_network', user='root', password='Corner', cursorclass=pymysql.cursors.DictCursor)
+# # conn = pymysql.connect(host='127.0.0.1', db='transit_network', user='root', password='123456',
+
+
 tablename = 'EVENT'
 
 
@@ -64,10 +68,10 @@ class NetworkData:
 
     def getAnomalyData(self,tablename):
         # 获取异常数据库的数据
-        featchSql="SELECT * FROM "+tablename;
+        featchSql="SELECT * FROM "+tablename
         with conn.cursor() as cursor:
-            cursor.execute(featchSql);
-            data = cursor.fetchall();
+            cursor.execute(featchSql)
+            data = cursor.fetchall()
         return data
         
 

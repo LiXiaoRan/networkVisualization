@@ -3,8 +3,16 @@ import scipy.spatial.distance as dist
 
 
 
-def cosine_similarity(x, y, norm=False):
+def cosine_similarity(x1, y1, norm=False):
     """ 计算两个向量x和y的余弦相似度 """
+    x=[]
+    y=[]
+
+    for arr in x1:
+        x.append(arr['value'])
+    for arr in y1:
+        y.append(arr['value'])
+
     assert len(x) == len(y), "len(x) != len(y)"
     zero_list = [0] * len(x)
     if x == zero_list or y == zero_list:
@@ -20,9 +28,9 @@ def jaccardSimilarity(arr1,arr2):
     arr_list1=[]
     arr_list2=[]
     for arr in arr1:
-        arr_list1.append(strtoASCII(arr))
+        arr_list1.append(strtoASCII(arr['value']))
     for arr in arr2:
-        arr_list2.append(strtoASCII(arr))
+        arr_list2.append(strtoASCII(arr['value']))
     
     v1=np.array(arr_list1)
     v2=np.array(arr_list2)

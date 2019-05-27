@@ -42,7 +42,6 @@ export default {
     drawGraph(result) {
       let self = this;
       self.layoutData = result;
-      // console.info("different回调函数被调用了");
 
       self.svg = d3.select("#view-svg");
       let width = parseFloat(self.svg.style("width"));
@@ -128,8 +127,6 @@ export default {
     deteceAnomaly() {
       // 检测异常链接
       console.log("检测异常链接函数");
-      // let paramsObj = {AnomalyLayoutDataResult:{'nodes':this.nodesData,'links':this.linksData}};
-      // let paramsObj = {AnomalyLayoutDataResult:this.layoutData};
       let paramsObj = {};
       let Url = "detect-anomaly-onflow";
       CommunicateWithServer("get", paramsObj, Url, this.highLiteAnomaly);
@@ -181,11 +178,7 @@ export default {
 svg {
   width: 100%;
   height: 100%;
-  // position: fixed;
-  // top: 50%;
-  // left: 50%;
-  // margin-left: -600px;
-  // margin-top: -350px;
+
 }
 
 .svg-div {
@@ -193,7 +186,6 @@ svg {
   height: 800px;
   overflow:hidden;
   margin-left: 20px;
-  // margin-left: 400px;
   display: inline-block;
 }
 

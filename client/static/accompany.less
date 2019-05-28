@@ -100,7 +100,45 @@
 
 }
 
-#detail text{
+#right_detail text{
   fill: #959595;
   font-family: Microsoft YaHei;
+}
+
+#selectTime {
+  position: absolute;
+  left: 5%;
+
+}
+#selectTime label{
+  color: #959595;
+  font-family: Microsoft YaHei;
+}
+/*下拉框样式*/
+select{
+  font-family: "微软雅黑";
+  margin:10px;
+  background: rgba(0,0,0,0);
+  width: 80px;
+  height: 30px;
+  font-size: 12px;
+  color: white;
+  text-align: center;
+  border: 1px #1a1a1a solid;
+  border-radius: 5px;
+}
+option{
+  color: black;
+  background: #A6E1EC;
+  line-height: 20px;
+}
+select:focus{
+  border: 2px #ddd solid;
+  box-shadow: 0 0 15px 1px #DDDDDD;
+}
+option:hover{
+  background: #EBCCD1;
+}
+#nodesLevel circle{
+  z-index: 1000;
 }

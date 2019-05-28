@@ -3,7 +3,16 @@
   <div id="left_accompany"></div>
   <div id="right_detail">
     <div id = "title"></div>
-    <div id = "detail"></div>
+    <div id = "detail">
+      <div id="selectTime" style="display: none">
+      <label for="time">选择时间粒度：</label>
+      <select id="time">
+        <option value ="10">10秒</option>
+        <option value ="30">30秒</option>
+        <option value="60">1分钟</option>
+      </select>
+      </div>
+    </div>
   </div>
   <div id="bottom_timeline"></div>
 </div>
@@ -15,13 +24,6 @@
     mounted() {
 
 
-      // CommunicateWithServer('get',{},'get-accompany-json',data => {
-      //    console.log(data);
-      // });
-      //
-      // CommunicateWithServer('get',{},'get-accompany-csv',data => {
-      //   console.log(data);
-      // });
       {
         var upperLineId = "bottom_timeline";
         var upper_width = $("#" + upperLineId).css("width");
@@ -68,7 +70,8 @@
         var nodeArray = [];
       }
 
-
+      let selectId = [];
+      let brushArray = [];
       let drawId = "left_accompany";
       let draw_width = $("#" + drawId).css("width");
       draw_width = parseFloat(draw_width.split("p")[0]);
@@ -87,10 +90,266 @@
       CommunicateWithServer('get',{},'get-accompany-csv',nodeData => {
 
         nodeArray = [].concat(nodeData.data)
+
         drawTimeLine();
+        $("#time").change(function () {
+          let timeSpan = +$("#time").val();
+
+          let detailData = detailRate(nodeArray, selectId[0], selectId[1], timeSpan);
+          drawDetailAccompany(detailData, timeSpan);
+        })
+
       });
 
 
+
+      //用于绘制二部图
+      function drawBipartiteGraph(nodeData, nodes) {
+        d3.select("#right_detail").selectAll("svg").remove();
+        $("#selectTime").hide();
+        let linkLayer = [], networkLayer = [], appLayer = [];
+       // let nodesArray = [].concat(nodes);
+         nodeData.forEach(function (item, index) {
+
+           if(item.netLevel >= 100 && item.netLevel < 200){
+             linkLayer.push(item.source);
+             linkLayer.push(item.target);
+           }else if(item.netLevel >= 200 && item.netLevel < 300){
+             if(index <= 3){
+               linkLayer.push(item.source);
+               linkLayer.push(item.target);
+             }
+
+             if(index >= nodeData.length -4){
+               appLayer.push(item.source);
+               appLayer.push(item.target);
+             }
+             networkLayer.push(item.source);
+             networkLayer.push(item.target);
+           }else {
+             appLayer.push(item.source);
+             appLayer.push(item.target);
+           }
+         })
+        linkLayer = delectRepeat(linkLayer);
+        networkLayer = delectRepeat(networkLayer);
+        appLayer = delectRepeat(appLayer);
+
+        let linkNodes = [], networkNodes = [], appNodes = [];
+        let links = [];
+        nodeData.forEach(d => {
+          if(linkLayer.includes(d.source) == true && networkLayer.includes(d.target) == true && networkNodes.length < 5){
+            if (networkNodes.includes(d.source) == false && linkNodes.includes(d.target) == false) {
+              linkNodes.push(d.source);
+              networkNodes.push(d.target);
+              links.push(d);
+            }
+
+          } else if(linkLayer.includes(d.target) == true && networkLayer.includes(d.source) == true && networkNodes.length < 5){
+
+            if (networkNodes.includes(d.target) == false && linkNodes.includes(d.source) == false) {
+              linkNodes.push(d.target);
+              networkNodes.push(d.source);
+              links.push(d);
+            }
+
+          }
+
+          if(appLayer.includes(d.source) == true && networkLayer.includes(d.target) == true && networkNodes.length < 5){
+
+            if (networkNodes.includes(d.source) == false && appNodes.includes(d.target) == false) {
+              appNodes.push(d.source);
+              networkNodes.push(d.target);
+              links.push(d);
+            }
+          } else if(appLayer.includes(d.target) == true && networkLayer.includes(d.source) == true && networkNodes.length < 5){
+
+            if (networkNodes.includes(d.target) == false && appNodes.includes(d.source) == false) {
+              appNodes.push(d.target);
+              networkNodes.push(d.source);
+              links.push(d);
+            }
+
+          }
+
+        })
+
+        linkNodes = delectRepeat(linkNodes);
+        networkNodes = delectRepeat(networkNodes);
+        appNodes = delectRepeat(appNodes);
+        console.log(linkNodes, networkNodes, appNodes, links);
+
+
+       // d3.select("#left_accompany").selectAll("svg").remove()
+
+        let nodesWidth = $("#right_detail").css("width")
+        nodesWidth = +nodesWidth.split("px")[0];
+
+        let nodesHeight = $("#right_detail").css("height");
+        nodesHeight = +nodesHeight.split("px")[0];
+
+        d3.select("#nodesLevel").remove()
+        let layer_svg = d3.select("#right_detail").append("svg")
+          .attr("id", "nodesLevel")
+          .attr("width", nodesWidth)
+          .attr("height", nodesHeight);
+
+       let maxLength =  Math.max(linkNodes.length, networkNodes.length, appNodes.length);
+       let number = 1;
+       let  rectArray = [];
+
+        let drawLink_g = layer_svg.append("g");
+        let links_g = layer_svg.append("g");
+        let network_g = layer_svg.append("g");
+        let app_g = layer_svg.append("g");
+        let rect_g = layer_svg.append("g");
+
+       if(linkNodes.length != 0){
+
+         let item = {length : linkNodes.length, color: "#20b2aa"}
+         rectArray.push(item)
+         number++;
+       }
+       if(networkNodes.length != 0){
+         let item = {length : networkNodes.length, color: "#517fdb"}
+         rectArray.push(item)
+         number++;
+       }
+       if(appNodes.length != 0){
+         let item = {length : appNodes.length, color: "#2bab36"}
+         rectArray.push(item)
+         number++;
+       }
+
+       let heightSpace =  nodesHeight/ (maxLength + 1) - 9;
+        let space = nodesWidth/number - 10;
+        if(linkNodes.length != 0){
+          links_g
+            .append("text")
+            .text("链路层")
+            .attr("x", space - 20)
+            .attr("y", 100  - 35)
+
+        }
+        if(networkNodes.length != 0){
+          network_g
+            .append("text")
+            .text("网络层")
+            .attr("x", space*2 - 20)
+            .attr("y", 100  - 35)
+        }
+        if(appNodes.length != 0){
+          app_g
+            .append("text")
+            .text("应用层")
+            .attr("x", space*3 - 20)
+            .attr("y", 100  - 35)
+        }
+
+        let position = {};
+
+       links_g
+          .selectAll("circle")
+          .data(linkNodes)
+          .enter()
+          .append("circle")
+          .attr("id", d => d)
+          .attr("r", 9)
+          .attr("fill", '#20b2aa')
+         .attr("cx", d => {
+           position[d] = {x: 0, y: 0};
+           position[d].x = space;
+           return space
+         } )
+         .attr("cy", (d, i) => {
+           position[d].y = 100 + heightSpace*i;
+           return 100 + heightSpace*i;
+         })
+          .append("title")
+          .text(d => d);
+
+
+
+
+        network_g
+          .selectAll("circle")
+          .data(networkNodes)
+          .enter()
+          .append("circle")
+          .attr("id", d => d)
+          .attr("r", 9)
+          .attr("fill", '#517fdb')
+          .attr("cx", d => {
+            position[d] = {x: 0, y: 0};
+            position[d].x = space*2;
+            return space*2
+          } )
+          .attr("cy", (d, i) => {
+            position[d].y = 100 + heightSpace*i;
+            return 100 + heightSpace*i;
+          })
+          .append("title")
+          .text(d => d);
+
+
+
+
+        app_g
+          .selectAll("circle")
+          .data(appNodes)
+          .enter()
+          .append("circle")
+          .attr("id", d => d)
+          .attr("r", 9)
+          .attr("fill", '#2bab36')
+          .attr("cx", d => {
+            position[d] = {x: 0, y: 0};
+            position[d].x = space*3;
+            return space*3
+          } )
+          .attr("cy", (d, i) => {
+            position[d].y = 100 + heightSpace*i;
+            return 100 + heightSpace*i;
+          })
+          .append("title")
+          .text(d => d);
+
+        drawLink_g
+          .selectAll("line")
+          .data(links)
+          .enter()
+          .append("line")
+          .attr("stroke-width", 3)
+          .attr("stroke", "#999")
+          .attr("z-index", 1)
+          .attr("x1", d => position[d.source].x)
+          .attr("y1", d => position[d.source].y)
+          .attr("x2", d => position[d.target].x)
+          .attr("y2", d => position[d.target].y);
+
+
+        rect_g
+          .selectAll("rect")
+          .data(rectArray)
+          .enter()
+          .append("rect")
+          .attr("width", 30)
+          .attr("height", d => 40 + heightSpace* (d.length - 1) )
+          .attr("x", (d, i) => space * (i + 1) - 15)
+          .attr("y", 100 - 20)
+          .attr("fill", "none")
+          .attr("stroke", d => d.color)
+          .attr("stroke-width", 2)
+          .attr("stroke-dasharray", '5,5')
+          .attr("rx", 20)
+          .attr("ry", 20)
+
+      }
+
+      function delectRepeat(array) {
+        let set = new Set(array);
+        return [...set]
+      }
 
       function drawTimeLine(){
         CommunicateWithServer('get',{},'get-accompany-json',timeLine => {
@@ -177,13 +436,15 @@
           let brush_startTime = date2str(lowertimebrushed[0]);
           let brush_endTime = date2str(lowertimebrushed[1]);
           let spaceTime = Math.round(lowertimebrushed[1] - lowertimebrushed[0])/1000/60;
-          console.log(nodeArray)
+        //  console.log(nodeArray)
           let selectArray = selectNode(nodeArray, brush_startTime, brush_endTime);
           let accompanyNodes = cooutAccompanyNodes(selectArray);
           let accompanyEdges = cooutAccompanyEades(selectArray, spaceTime);
           let accompanyRateArray = accompanyRate(accompanyNodes, accompanyEdges);
           accompanyRateArray =  accompanyRateArray.filter(d => d.rate >= 50);
 
+          brushArray = [].concat(accompanyRateArray);
+         // console.log(accompanyRateArray);
           let links = accompanyRateArray.map(d => Object.create(d));
           let linksToNodes = [];
 
@@ -203,7 +464,11 @@
           })
           nodes = nodes.map(d => Object.create(d));
 
-          console.log(links, nodes)
+          //绘制二部图
+
+          drawBipartiteGraph(brushArray, nodesCopy)
+
+          //console.log(links, nodes)
           //绘制力导向图
 
           d3.select("#left_accompany").selectAll('g').remove();
@@ -267,13 +532,16 @@
                 //判断选择的两节点是否相连
                 if(isLink.includes(d.id)){
 
+                  let timeSpan = +$("#time").val();
+                  selectId = [];
+                  $("#selectTime").show()
                   d3.select("#right_detail").selectAll("svg").remove();
                   drawTitle(clickNodes[0], d.id);
+                  selectId.push(clickNodes[0]);
+                  selectId.push(d.id);
+                  let detailData = detailRate(nodeArray, clickNodes[0], d.id, timeSpan);
 
-                  let detailData = detailRate(nodeArray, clickNodes[0], d.id);
-                  console.log(detailData);
-
-                  drawDetailAccompany(detailData)
+                  drawDetailAccompany(detailData, timeSpan)
 
                 }else {
                   alert("两节点间不存在共现率，请重新选择!")
@@ -318,6 +586,10 @@
 
       }
 
+      // //找出各层级之间的节点分别有多少
+      // function brushLayer(selectArray, accompanyRateArray) {
+      //
+      // }
       function drawTitle(source, target) {
         let titleWidth = 400, titleHeight = 200;
         let svg_title =  d3.select("#title").append("svg")
@@ -363,22 +635,27 @@
           .attr("y", titleHeight/2 - 30)
       }
 
-      function drawDetailAccompany(detailData) {
-
+      function drawDetailAccompany(detailData, timeSpan = 10) {
+        $("#selectTime").show();
+        d3.select("#detailRect").remove();
+        let columnScale = d3.scaleOrdinal().domain([10, 30, 60]).range([6, 2, 1]);
         let detailWidth = $("#right_detail").css("width")
         detailWidth = +detailWidth.split("px")[0];
+        let column = columnScale(timeSpan);
+
         let cellSize = 0;
         if(detailWidth*0.9 > 21.5 * 30){
           cellSize = 21;
         }else{
           cellSize = Math.floor(detailWidth*0.9/31);
         }
-
+        //console.log(detailData)
         let startTime = detailData[0].date;
         let endTime = detailData[detailData.length -1].date;
         let color = d3.scaleSequential(d3.interpolatePiYG).domain([-1, 1])
         let svg = d3.select("#detail").append("svg")
           .attr("height", 280)
+          .attr("id", "detailRect")
           .style("font", "10px sans-serif")
           .style("width", "90%");
 
@@ -392,7 +669,7 @@
 
         g.append("text")
           .attr("x", cellSize * 31)
-          .attr("y", cellSize * 8)
+          .attr("y", cellSize * (column + 2))
           .attr("font-weight", "bold")
           .attr("text-anchor", "end")
           .text(newdatestr(date2str(endTime)));
@@ -404,8 +681,8 @@
           .append("rect")
           .attr("width", cellSize - 1)
           .attr("height", cellSize - 1)
-          .attr("x", d => (Math.floor((d.date - startTime)/10/1000/6) + 1) * cellSize + 0.5)
-          .attr("y", d => ((d.date - startTime)/10/1000 %6 + 1) * cellSize + 0.5)
+          .attr("x", d => (Math.floor((d.date - startTime)/timeSpan/1000/column) + 1) * cellSize + 0.5)
+          .attr("y", d => ((d.date - startTime)/timeSpan/1000 %column + 1) * cellSize + 0.5)
           .attr("fill", d => {
             if(d.value === 0){
               return color(0.3)
@@ -470,7 +747,7 @@
             let edge = item.split('-')
             let source = edge[0];
             let target = edge[1];
-            accompanyEadesDict[item] = {source: source, target: target, number: 1}
+            accompanyEadesDict[item] = {source: source, target: target, number: 1, netLevel: d.net_level}
           }else{
             accompanyEadesDict[item].number++;
           }
@@ -503,7 +780,7 @@
       }
 
 //用于绘制详细共现关系的日历图，返回的数据结构为{date;时间, value:值2 }
-      function detailRate(allData, source, target) {
+      function detailRate(allData, source, target, timeGran = 10) {
         let startTime = "20160715155200000000"
         let detailRateArray = [];
         let minuteData = {};
@@ -511,7 +788,7 @@
 
         allData.forEach(d => {
           let date = new Date(newdatestr(d.event_endtime));
-          let time = Math.floor((date - startDate)/10/1000);//间隔时间（10秒）
+          let time = Math.floor((date - startDate)/timeGran/1000);//间隔时间（10秒）
           if(!minuteData[time]){
             minuteData[time] = [];
             minuteData[time].push(d);
@@ -519,7 +796,9 @@
             minuteData[time].push(d);
           }
         })
-        for (let i = 1; i <= 180; i++){
+
+        let number = 30*60/timeGran;
+        for (let i = 1; i <= number; i++){
           if(!minuteData[i - 1]){
             minuteData[i - 1] = [];
           }
@@ -528,10 +807,10 @@
           if(Object.keys(minute).length != 0){
             rate = minute.rate;
           }
-          let nowDate = startDate.getTime() + (i - 1)*10*1000;
+          let nowDate = startDate.getTime() + (i - 1)*timeGran*1000;
           nowDate = new Date(nowDate);
           let item = {"date": nowDate, "value": rate};
-          console.log(item)
+          //console.log(item)
           detailRateArray.push(item);
         }
 

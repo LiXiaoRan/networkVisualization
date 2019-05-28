@@ -599,6 +599,7 @@ class getAccompanyCSV(tornado.web.RequestHandler):
                     item['event_endtime'] = i[2]
                     item['recv_node_golbal_no'] = i[3]
                     item['trans_node_global_no'] = i[4]
+                    item['net_level'] = i[5]
                     result['data'].append(item)
                 count = 1
         evt = json.dumps(result)

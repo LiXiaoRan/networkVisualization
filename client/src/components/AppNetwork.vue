@@ -6,17 +6,8 @@
         <svg class='view-svg'></svg>
         <div id="lay-container"></div>
         <div id="func-switch">
-          <router-link target = "_blank" to="/different">
-            <button class="func-btn">异常检测</button>
-          </router-link>
-          <router-link target = "_blank" to="/compare">
-            <button class="func-btn">对比分析</button>
-          </router-link>
-          <router-link target = "_blank" to="/multilayer">
-            <button class="func-btn">多层结构</button>
-          </router-link>
-          <router-link target = "_blank" to="/accompany">
-            <button class="func-btn" id="accompany">伴随关系</button>
+          <router-link target="_blank" to="/networkAnalysis">
+            <button class="func-btn">高级网络特性分析</button>
           </router-link>
         </div>
       </div>
@@ -390,10 +381,15 @@
         }
       },
       showFrame() {
+        let self = this;
         this.frameShow = !this.frameShow;
         if (this.frameShow) {
+          this.allNodesG.selectAll('image').on('click', null).on('mouseover', null).on('mouseout', null);//去除事件响应
           this.allLinksG.attr('display', 'none');
           this.allNodesG.attr('display', 'none');
+          //以次数表示边的宽度
+          this.linkScale.domain(d3.extent(this.layoutData.links, d => d.times));
+          this.allLinksG.attr('stroke-width', d => this.linkScale(d.times));
           //显示前百分之十
           let num = Math.floor(this.layoutData.links.length * 0.1);
           for (let i = 0; i < num; i++) {
@@ -402,6 +398,94 @@
             d3.select('#node_' + this.layoutData.links[i].target).attr('display', 'block');
           }
         } else {
+          //还原操作
+          this.linkScale.domain(d3.extent(this.layoutData.links, d => d.flow));
+          this.allLinksG.attr('stroke-width', d => this.linkScale(d.flow));
+          this.allNodesG.selectAll('image')
+            .on('click', function (d) {
+              self.folder.open();
+              if (d3.event.ctrlKey) {
+                //清除单选信息
+                self.selectedNode = null;
+                if (self.nowClickNode !== null) {
+                  self.nowClickNode.attr('xlink:href', (l) => self.nodesImgList[l.nodeType]).classed('clicked', false);
+                  self.nowClickNode = null;
+                }
+                // 多选
+                let index = self.selectedNodes.findIndex(item => item.id === d.id);
+                if (index !== -1) {
+                  self.selectedNodes.splice(index, 1);
+                  d3.select(this).attr('xlink:href', self.nodesImgList[d.nodeType]).classed('clicked', false);
+                } else {
+                  self.selectedNodes.push(d);
+                  d3.select(this).attr('xlink:href', self.nodeClickList[d.nodeType]).classed('clicked', true);
+                }
+                self.selectedFlag = true;
+              } else {
+                self.selectedNodes.forEach(item => {
+                  d3.select('#node_' + item.id + ' image').attr('xlink:href', self.nodesImgList[item.nodeType]).classed('clicked', false);
+                });
+                self.selectedNodes = [];
+                self.selectedNode = d;
+                if (self.nowClickNode === null) {
+                  self.nowClickNode = d3.select(this);
+                } else {
+                  self.nowClickNode.attr('xlink:href', (l) => self.nodesImgList[l.nodeType]).classed('clicked', false);
+                  self.nowClickNode = d3.select(this);
+                }
+                d3.select(this).attr('xlink:href', self.nodeClickList[d.nodeType]).classed('clicked', true);
+                self.selectedFlag = false;
+              }
+              self.updated(d);
+
+              if (self.selectedFlag) {
+                let tmpNodes = [];
+                for (let m = 0; m < self.selectedNodes.length; m++) {
+                  tmpNodes.push(self.selectedNodes[m]['id']);
+                }
+                self.$store.state.nodesSelected = tmpNodes;
+              } else {
+                self.$store.state.nodesSelected = [self.selectedNode['id']];
+              }
+            })
+            .on('mouseover', function (d) {
+              d3.select(this).attr('xlink:href', () => self.nodeSelectedList[d.nodeType]);
+              self.layoutData.links.forEach((t, i) => {
+                if (t.source === d.id) {
+                  d3.select('#link_' + i).attr('display', 'block').select('line').attr('stroke', '#00FFFF');
+                  d3.select('#node_' + t.target + ' image').attr('xlink:href', () => {
+                    let connect = self.layoutData.nodes.find(item => (item.id === t.target));
+                    return self.nodeSelectedList[connect.nodeType];
+                  });
+                } else if (t.target === d.id) {
+                  d3.select('#link_' + i).attr('display', 'block').select('line').attr('stroke', '#00FFFF');
+                  d3.select('#node_' + t.source + ' image').attr('xlink:href', () => {
+                    let connect = self.layoutData.nodes.find(item => (item.id === t.source));
+                    return self.nodeSelectedList[connect.nodeType];
+                  });
+                }
+              });
+            })
+            .on('mouseout', function (d) {
+              d3.select(this).attr('xlink:href', self.nodesImgList[d.nodeType]);
+              self.layoutData.links.forEach((t, i) => {
+                if (t.source === d.id) {
+                  d3.select('#link_' + i).attr('display', self.linkAllShow ? 'block' : 'none').select('line').attr('stroke', '#999999');
+                  d3.select('#node_' + t.target + ' image').attr('xlink:href', () => {
+                    let connect = self.layoutData.nodes.find(item => (item.id === t.target));
+                    return self.nodesImgList[connect.nodeType];
+                  });
+                } else if (t.target === d.id) {
+                  d3.select('#link_' + i).attr('display', self.linkAllShow ? 'block' : 'none').select('line').attr('stroke', '#999999');
+                  d3.select('#node_' + t.source + ' image').attr('xlink:href', () => {
+                    let connect = self.layoutData.nodes.find(item => (item.id === t.source));
+                    return self.nodesImgList[connect.nodeType];
+                  });
+                }
+              });
+              if (d3.select(this).classed('clicked'))
+                d3.select(this).attr('xlink:href', () => self.nodeClickList[d.nodeType]).classed('clicked', true);
+            });
           this.allLinksG.attr('display', 'block');
           this.allNodesG.attr('display', 'block');
         }

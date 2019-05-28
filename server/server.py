@@ -355,16 +355,17 @@ class getAnomalyLayoutData(tornado.web.RequestHandler):
             trans_culster_list=[]
             
             for n in range(1,31):
-                recv_num_list.append(row['recv_num_'+str(n)])
+                recv_num_list.append({'key':'recv_num_'+str(n),'value':row['recv_num_'+str(n)]})
             for n in range(1,21):
                 # recv_culster_list.append(row['recv_cluster_'+str(n)])
-                recv_culster_list.append(similarityTools.strtoASCII(row['recv_cluster_'+str(n)]))
+                recv_culster_list.append({'key': 'recv_cluster_'+str(n) , 'value':row['recv_cluster_'+str(n)]})
+                
             
             for n in range(1,31):
-                trans_num_list.append(row['trans_num_'+str(n)])
+                # trans_num_list.append(row['trans_num_'+str(n)])
+                trans_num_list.append({'key':'trans_num_'+str(n),'value':row['trans_num_'+str(n)]})
             for n in range(1,21):
-                # trans_culster_list.append(row['trans_cluster_'+str(n)])
-                trans_culster_list.append(similarityTools.strtoASCII(row['trans_cluster_'+str(n)]))
+                trans_culster_list.append({'key':'trans_cluster_'+str(n),'value': row['trans_cluster_'+str(n)]})
                 
 
             # 空值处理

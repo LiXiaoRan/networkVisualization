@@ -264,23 +264,28 @@ export default {
      */
     dataProcess() {
       let self = this;
-      let tempNumList = [];
 
       if (self.minMaxList.length == 0) {
         for (let i = 0; i < 30; i++) {
           self.allNumAttrList.push(new Array());
         }
-        console.log(self.allNumAttrList);
+
         self.nodesData.forEach((node, index) => {
-
           for (let j = 0; j < node.attr_num_list.length; j++) {
-
-              self.allNumAttrList[j].push(node.attr_num_list[j].value)
-            }
-
+            self.allNumAttrList[j].push(node.attr_num_list[j].value);
+          }
         });
 
         console.log(self.allNumAttrList);
+
+        self.allNumAttrList.forEach(element => {
+          try {
+            self.minMaxList.push(d3.extent(element));
+          } catch (e) {
+            console.log(e);
+          }
+        });
+        console.log(self.minMaxList);
       }
     }
   }

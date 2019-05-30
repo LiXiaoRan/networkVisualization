@@ -6,6 +6,7 @@ import Compare from '../views/Compare';
 import Multilayer from '../views/Multilayer';
 import Accompany from '../views/Accompany';
 import NetworkAnalysis from '../views/NetworkAnalysis';
+import BipartiteGraph from '../views/BipartiteGraph'
 
 Vue.use(Router);
 
@@ -41,6 +42,11 @@ export default new Router({
       path: '/multilayer',
       name: 'multilayer',
       component: Multilayer
+    },
+    {
+      path: '/bipartiteGraph',
+      name: 'bipartiteGraph',
+      component: BipartiteGraph
     }
   ]
 });

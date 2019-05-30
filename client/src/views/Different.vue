@@ -142,6 +142,8 @@ export default {
      * 绘制左侧对比信息坐标轴
      */
     drawInfoSvgAxis() {
+      let width=380;
+      let height=770;
       self.infoSvg = d3
         .select("#attr-compare-div")
         .append("svg")
@@ -151,12 +153,19 @@ export default {
       let xScale = d3
         .scaleBand()
         .domain(["当前节点", "对比节点"])
-        .range([20, 380]);
+        .range([20, width]);
       let xAxis = self.infoSvg
         .append("g")
         .attr("class", "xAixs")
-        .attr("transform", "translate(0, 770)")
+        .attr("transform", "translate(0, "+height+")")
         .call(d3.axisBottom(xScale));
+      let yNumNameList=[]
+      for (let index = 1; index <= 30; index++) {
+        yNumNameList.push('num'+index)  
+      }
+      console.log(yNumNameList);
+      let yScale=d3.scaleBand().domain(yNumNameList).range([0,height]);
+      let yAxis=self.infoSvg.append('g').attr("class", "yAixs").attr("transform", "translate("+width*0.5+",0)").call(d3.axisLeft(yScale));
       // let yScale=d3.scaleBand().domain()
     },
     /**
@@ -314,14 +323,6 @@ export default {
 
         console.log(self.minMaxList);
 
-        //存储属性名字到list中
-        self.nodesData[0].attr_num_list.forEach(element => {
-          try {
-            console.log(element.key);
-          } catch (e) {
-            console.log(e);
-          }
-        });
       }
     }
   }

@@ -6,7 +6,7 @@
     </div>
     <div id="attr-compare-div">
       <div id="attr-curr" class="compare-div-inner"></div>
-      <div id="attr-compare"  class="compare-div-inner"></div>
+      <div id="attr-compare" class="compare-div-inner"></div>
     </div>
     <div class="svg-div">
       <svg id="view-svg"></svg>
@@ -24,7 +24,11 @@ export default {
       nodesData: [],
       xScale: null,
       yScale: null,
-      currentNode: {} //当前单选节点
+      currentNode: {}, //当前单选节点
+      similarityDetc: false,
+      minMaxList: [],
+      allNumAttrList: [],
+      allCulsterAttrList: []
     };
   },
   mounted() {
@@ -59,14 +63,14 @@ export default {
         .scaleLinear()
         .domain(d3.extent(self.nodesData, d => d.x))
         .range([0, 600]);
-        // .range([screenWidth / 2 - width / 2, screenWidth / 2]);
+      // .range([screenWidth / 2 - width / 2, screenWidth / 2]);
       // .range([screenWidth / 2 - width / 2, screenWidth / 2 + width / 2]);
 
       self.yScale = d3
         .scaleLinear()
         .domain(d3.extent(self.nodesData, d => d.y))
         .range([0, 600]);
-        // .range([screenHeight / 2 - height / 2, screenHeight / 2]);/
+      // .range([screenHeight / 2 - height / 2, screenHeight / 2]);/
       // .range([screenHeight / 2 - height / 2, screenHeight / 2 + height / 2]);
 
       console.log(self.nodesData);
@@ -106,12 +110,19 @@ export default {
           return "#1DBDD2";
         })
         .on("click", function(d) {
-          if (self.currentNode.id != null) {
-            d3.select("#" + self.currentNode.id).attr("fill", "#1DBDD2");
+          if (!self.similarityDetc) {
+            if (self.currentNode.id != null) {
+              d3.select("#" + self.currentNode.id).attr("fill", "#1DBDD2");
+            }
+            self.currentNode = d;
+            d3.select("#" + self.currentNode.id).attr("fill", "#000");
+            console.log(d);
+
+            // self.drawLeftInfo(d);
+          } else {
+            //绘制右侧信息面板
+            self.drawRightInfo(d);
           }
-          self.currentNode = d;
-          d3.select("#" + self.currentNode.id).attr("fill", "#000");
-          console.log(d.id);
         });
 
       d3.select("#view-svg").call(
@@ -123,15 +134,78 @@ export default {
       function zoomed() {
         self.svg.attr("transform", d3.event.transform);
       }
+      self.dataProcess();
     },
+
+    /**
+     *绘制左侧信息面板
+     */
+    drawLeftInfo(node) {
+      console.log(node.id);
+      if (!d3.select(".barChartSvgLeft").empty()) {
+        d3.select(".barChartSvgLeft").remove();
+      }
+      let barChartSvgLeft = d3
+        .select("#attr-curr")
+        .append("svg")
+        .attr("class", "barChartSvgLeft")
+        .attr("width", "180px")
+        .attr("height", "785px");
+      let barChartG = barChartSvgLeft.append("g");
+      let keyList = [];
+      let valueList = [];
+      for (let index = 0; index < node.attr_num_list.length; index++) {
+        keyList.push(node.attr_num_list[index].key);
+        valueList.push(node.attr_num_list[index].value);
+      }
+      let yScale = d3
+        .scaleBand()
+        .domain(keyList)
+        .rangeRound([785, 0]);
+      console.log(yScale.bandwidth());
+      let xScale = d3
+        .scaleLinear()
+        .domain(valueList)
+        .range([0, 180]);
+
+      barChartG
+        .selectAll(".bar")
+        .data(node.attr_num_list)
+        .enter()
+        .append("rect")
+        .attr("x", 0)
+        .attr("y", function(d) {
+          return yScale(d.key);
+        })
+        .attr("height", yScale.bandwidth())
+        .attr("width", function(d) {
+          console.log("d.value= " + d.value);
+          console.log("xScale(d.value)= " + xScale(d.value));
+          return xScale(d.value);
+        })
+        .attr("fill", "#ff0");
+    },
+    /**
+     * 绘制右侧信息面板
+     */
+    drawRightInfo(node) {
+      console.log(node.attr_culster_list);
+    },
+
+    /**
+     * 检测异常链接
+     */
     deteceAnomaly() {
-      // 检测异常链接
       console.log("检测异常链接函数");
       let paramsObj = {};
       let Url = "detect-anomaly-onflow";
       CommunicateWithServer("get", paramsObj, Url, this.highLiteAnomaly);
     },
+
     highLiteAnomaly(result) {
+      let self = this;
+      self.similarityDetc = false;
+      // self.currentNode={};
       // 高亮异常节点
       console.log(result);
       // 先把所有节点变成默认颜色
@@ -141,9 +215,12 @@ export default {
         d3.select("#" + d.id).attr("fill", "#FFD700");
       });
     },
+    /**
+     * 相似性检测
+     */
     detectSimilarity() {
-      //相似性检测
       let self = this;
+      self.similarityDetc = true;
       if (self.currentNode != null) {
         let Url = "detect-similarity";
         let paramsObj = { nodeId: self.currentNode.id };
@@ -169,37 +246,72 @@ export default {
       result.forEach(function(d) {
         d3.select("#" + d.id).attr("fill", "#FF0000");
       });
+    },
+    /**
+     * 绘制信息图
+     */
+    drawInfoBarChart(node) {
+      if (d3.select("#attr-curr")) {
+        d3.select("#attr-curr").remove();
+      }
+      let barChart_g = d3
+        .select("#attr-curr")
+        .append("g")
+        .classed(".barChart_g");
+    },
+    /**
+     * 数据处理
+     */
+    dataProcess() {
+      let self = this;
+      let tempNumList = [];
+
+      if (self.minMaxList.length == 0) {
+        for (let i = 0; i < 30; i++) {
+          self.allNumAttrList.push(new Array());
+        }
+        console.log(self.allNumAttrList);
+        self.nodesData.forEach((node, index) => {
+
+          for (let j = 0; j < node.attr_num_list.length; j++) {
+
+              self.allNumAttrList[j].push(node.attr_num_list[j].value)
+            }
+
+        });
+
+        console.log(self.allNumAttrList);
+      }
     }
   }
 };
 </script>
 
 <style lang="less" scoped>
-svg {
+#view-svg {
   width: 100%;
   height: 100%;
-
 }
 
 .svg-div {
   width: 800px;
   height: 800px;
-  overflow:hidden;
+  overflow: hidden;
   margin-left: 20px;
   display: inline-block;
 }
 
-#attr-compare-div{
+#attr-compare-div {
   display: inline-block;
   width: 400px;
   height: 800px;
   margin-left: 10px;
-  background-color: aquamarine;
+  background-color: dimgray;
   padding-top: 5px;
   padding-bottom: 5px;
 }
 
-.compare-div-inner{
+.compare-div-inner {
   display: inline-block;
   padding: 5px;
   background-color: #fff;
@@ -218,5 +330,8 @@ button {
 .nodes circle {
   stroke: #fff;
   stroke-width: 1.5px;
+}
+
+.barChartSvgLeft {
 }
 </style>

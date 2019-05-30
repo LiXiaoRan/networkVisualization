@@ -2,12 +2,9 @@
   <div id="Different">
     <div id="btnd">
       <button v-on:click="deteceAnomaly">点击显示异常情况</button>
-      <button v-on:click="detectSimilarity">结构详细节点检测</button>
+      <button v-on:click="detectSimilarity">结构相似节点检测</button>
     </div>
-    <div id="attr-compare-div">
-      <div id="attr-curr" class="compare-div-inner"></div>
-      <div id="attr-compare" class="compare-div-inner"></div>
-    </div>
+    <div id="attr-compare-div"></div>
     <div class="svg-div">
       <svg id="view-svg"></svg>
     </div>
@@ -28,7 +25,10 @@ export default {
       similarityDetc: false,
       minMaxList: [],
       allNumAttrList: [],
-      allCulsterAttrList: []
+      allCulsterAttrList: [],
+      numAttrNameList: [],
+      culsterAttrList: [],
+      infoSvg: null
     };
   },
   mounted() {
@@ -118,7 +118,7 @@ export default {
             d3.select("#" + self.currentNode.id).attr("fill", "#000");
             console.log(d);
 
-            // self.drawLeftInfo(d);
+            self.drawLeftInfo(d);
           } else {
             //绘制右侧信息面板
             self.drawRightInfo(d);
@@ -135,55 +135,78 @@ export default {
         self.svg.attr("transform", d3.event.transform);
       }
       self.dataProcess();
+      self.drawInfoSvgAxis();
     },
 
+    /**
+     * 绘制左侧对比信息坐标轴
+     */
+    drawInfoSvgAxis() {
+      self.infoSvg = d3
+        .select("#attr-compare-div")
+        .append("svg")
+        .attr("class", "infosvg")
+        .attr("width", "400px")
+        .attr("height", "790px");
+      let xScale = d3
+        .scaleBand()
+        .domain(["当前节点", "对比节点"])
+        .range([20, 380]);
+      let xAxis = self.infoSvg
+        .append("g")
+        .attr("class", "xAixs")
+        .attr("transform", "translate(0, 770)")
+        .call(d3.axisBottom(xScale));
+      // let yScale=d3.scaleBand().domain()
+    },
     /**
      *绘制左侧信息面板
      */
     drawLeftInfo(node) {
       console.log(node.id);
-      if (!d3.select(".barChartSvgLeft").empty()) {
-        d3.select(".barChartSvgLeft").remove();
-      }
-      let barChartSvgLeft = d3
-        .select("#attr-curr")
-        .append("svg")
-        .attr("class", "barChartSvgLeft")
-        .attr("width", "180px")
-        .attr("height", "785px");
-      let barChartG = barChartSvgLeft.append("g");
-      let keyList = [];
-      let valueList = [];
-      for (let index = 0; index < node.attr_num_list.length; index++) {
-        keyList.push(node.attr_num_list[index].key);
-        valueList.push(node.attr_num_list[index].value);
-      }
-      let yScale = d3
-        .scaleBand()
-        .domain(keyList)
-        .rangeRound([785, 0]);
-      console.log(yScale.bandwidth());
-      let xScale = d3
-        .scaleLinear()
-        .domain(valueList)
-        .range([0, 180]);
 
-      barChartG
-        .selectAll(".bar")
-        .data(node.attr_num_list)
-        .enter()
-        .append("rect")
-        .attr("x", 0)
-        .attr("y", function(d) {
-          return yScale(d.key);
-        })
-        .attr("height", yScale.bandwidth())
-        .attr("width", function(d) {
-          console.log("d.value= " + d.value);
-          console.log("xScale(d.value)= " + xScale(d.value));
-          return xScale(d.value);
-        })
-        .attr("fill", "#ff0");
+      // if (!d3.select(".barChartSvgLeft").empty()) {
+      //   d3.select(".barChartSvgLeft").remove();
+      // }
+      // let barChartSvgLeft = d3
+      //   .select("#attr-curr")
+      //   .append("svg")
+      //   .attr("class", "barChartSvgLeft")
+      //   .attr("width", "180px")
+      //   .attr("height", "785px");
+      // let barChartG = barChartSvgLeft.append("g");
+      // let keyList = [];
+      // let valueList = [];
+      // for (let index = 0; index < node.attr_num_list.length; index++) {
+      //   keyList.push(node.attr_num_list[index].key);
+      //   valueList.push(node.attr_num_list[index].value);
+      // }
+      // let yScale = d3
+      //   .scaleBand()
+      //   .domain(keyList)
+      //   .rangeRound([785, 0]);
+      // console.log(yScale.bandwidth());
+      // let xScale = d3
+      //   .scaleLinear()
+      //   .domain(valueList)
+      //   .range([0, 180]);
+
+      // barChartG
+      //   .selectAll(".bar")
+      //   .data(node.attr_num_list)
+      //   .enter()
+      //   .append("rect")
+      //   .attr("x", 0)
+      //   .attr("y", function(d) {
+      //     return yScale(d.key);
+      //   })
+      //   .attr("height", yScale.bandwidth())
+      //   .attr("width", function(d) {
+      //     console.log("d.value= " + d.value);
+      //     console.log("xScale(d.value)= " + xScale(d.value));
+      //     return xScale(d.value);
+      //   })
+      //   .attr("fill", "#ff0");
     },
     /**
      * 绘制右侧信息面板
@@ -220,8 +243,8 @@ export default {
      */
     detectSimilarity() {
       let self = this;
-      self.similarityDetc = true;
-      if (self.currentNode != null) {
+      if (!self.isEmpty(self.currentNode)) {
+        self.similarityDetc = true;
         let Url = "detect-similarity";
         let paramsObj = { nodeId: self.currentNode.id };
         CommunicateWithServer(
@@ -259,6 +282,9 @@ export default {
         .append("g")
         .classed(".barChart_g");
     },
+    isEmpty(value) {
+      return Object.keys(value).length === 0;
+    },
     /**
      * 数据处理
      */
@@ -269,7 +295,7 @@ export default {
         for (let i = 0; i < 30; i++) {
           self.allNumAttrList.push(new Array());
         }
-
+        //获取30个类别的数值属性，存入30个匿名数组中，然后存入总的list中
         self.nodesData.forEach((node, index) => {
           for (let j = 0; j < node.attr_num_list.length; j++) {
             self.allNumAttrList[j].push(node.attr_num_list[j].value);
@@ -277,7 +303,7 @@ export default {
         });
 
         console.log(self.allNumAttrList);
-
+        //求所有类别数值属性的最大最小值
         self.allNumAttrList.forEach(element => {
           try {
             self.minMaxList.push(d3.extent(element));
@@ -285,7 +311,17 @@ export default {
             console.log(e);
           }
         });
+
         console.log(self.minMaxList);
+
+        //存储属性名字到list中
+        self.nodesData[0].attr_num_list.forEach(element => {
+          try {
+            console.log(element.key);
+          } catch (e) {
+            console.log(e);
+          }
+        });
       }
     }
   }
@@ -311,7 +347,7 @@ export default {
   width: 400px;
   height: 800px;
   margin-left: 10px;
-  background-color: dimgray;
+  background-color: #fff;
   padding-top: 5px;
   padding-bottom: 5px;
 }

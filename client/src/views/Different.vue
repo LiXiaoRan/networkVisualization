@@ -22,13 +22,18 @@ export default {
       xScale: null,
       yScale: null,
       currentNode: {}, //当前单选节点
-      similarityDetc: false,
-      minMaxList: [],
-      allNumAttrList: [],
-      allCulsterAttrList: [],
-      numAttrNameList: [],
+      similarityDetc: false, //是否开启对比模式
+      minMaxList: [],//所有数值类属性的最大值最小值 [min,max]
+      allNumAttrList: [], //存储所有30个类别的数值类属性，有30个list
+      allCulsterAttrList: [], //存储所有20个类别的枚举类属性，有20个list
+      numAttrNameList: [], //存储属性名字列表，用来绘制坐标轴Y轴
       culsterAttrList: [],
-      infoSvg: null
+      infoSvg: null, //信息对比的svg
+      yScaleBandWidth:0, //每一个bar 的高度
+      infoSvgXScaleList:[],//每一个类数值类信息的横向比例尺，有30个
+      InfoSvgHeight:770,//对比区域svg高度
+      InfoSvgWidth:380,//对比区域svg宽度
+      yScale:0//需要多次重绘y轴，所以要保存
     };
   },
   mounted() {
@@ -118,7 +123,11 @@ export default {
             d3.select("#" + self.currentNode.id).attr("fill", "#000");
             console.log(d);
 
-            self.drawLeftInfo(d);
+            try {
+                self.drawLeftInfo(d);
+            } catch (e) {
+            console.log(e);
+            }
           } else {
             //绘制右侧信息面板
             self.drawRightInfo(d);
@@ -139,11 +148,10 @@ export default {
     },
 
     /**
-     * 绘制左侧对比信息坐标轴
+     * 绘制对比信息坐标轴
      */
     drawInfoSvgAxis() {
-      let width=380;
-      let height=770;
+      let self = this;
       self.infoSvg = d3
         .select("#attr-compare-div")
         .append("svg")
@@ -153,69 +161,54 @@ export default {
       let xScale = d3
         .scaleBand()
         .domain(["当前节点", "对比节点"])
-        .range([20, width]);
+        .range([20, self.InfoSvgWidth]);
       let xAxis = self.infoSvg
         .append("g")
         .attr("class", "xAixs")
-        .attr("transform", "translate(0, "+height+")")
+        .attr("transform", "translate(0, "+self.InfoSvgHeight+")")
         .call(d3.axisBottom(xScale));
       let yNumNameList=[]
       for (let index = 1; index <= 30; index++) {
         yNumNameList.push('num'+index)  
       }
       console.log(yNumNameList);
-      let yScale=d3.scaleBand().domain(yNumNameList).range([0,height]);
-      let yAxis=self.infoSvg.append('g').attr("class", "yAixs").attr("transform", "translate("+width*0.5+",0)").call(d3.axisLeft(yScale));
-      // let yScale=d3.scaleBand().domain()
+      self.yScale=d3.scaleBand().domain(yNumNameList).range([0,self.InfoSvgHeight]);
+      let yAxis=self.infoSvg.append('g').attr("class", "yAixs").attr("transform", "translate("+self.InfoSvgWidth*0.5+",0)").call(d3.axisLeft(self.yScale));
+      self.yScaleBandWidth=self.yScale.bandwidth()
+      for (let index = 0; index < self.minMaxList.length; index++) {
+        self.infoSvgXScaleList.push(d3.scaleLinear().domain(self.minMaxList[index]).range([0,0.5*self.InfoSvgWidth]))
+      }
     },
     /**
      *绘制左侧信息面板
      */
     drawLeftInfo(node) {
+      let self=this;
       console.log(node.id);
 
-      // if (!d3.select(".barChartSvgLeft").empty()) {
-      //   d3.select(".barChartSvgLeft").remove();
-      // }
-      // let barChartSvgLeft = d3
-      //   .select("#attr-curr")
-      //   .append("svg")
-      //   .attr("class", "barChartSvgLeft")
-      //   .attr("width", "180px")
-      //   .attr("height", "785px");
-      // let barChartG = barChartSvgLeft.append("g");
-      // let keyList = [];
-      // let valueList = [];
-      // for (let index = 0; index < node.attr_num_list.length; index++) {
-      //   keyList.push(node.attr_num_list[index].key);
-      //   valueList.push(node.attr_num_list[index].value);
-      // }
-      // let yScale = d3
-      //   .scaleBand()
-      //   .domain(keyList)
-      //   .rangeRound([785, 0]);
-      // console.log(yScale.bandwidth());
-      // let xScale = d3
-      //   .scaleLinear()
-      //   .domain(valueList)
-      //   .range([0, 180]);
+      if (!d3.select(".barChartSvgLeft").empty()) {
+        d3.select(".barChartSvgLeft").remove();
+      }
+      let barChartSvgLeft = d3
+        .select(".infosvg")
+        .append("g")
+        .attr("class", "barChartSvgLeft")
 
-      // barChartG
-      //   .selectAll(".bar")
-      //   .data(node.attr_num_list)
-      //   .enter()
-      //   .append("rect")
-      //   .attr("x", 0)
-      //   .attr("y", function(d) {
-      //     return yScale(d.key);
-      //   })
-      //   .attr("height", yScale.bandwidth())
-      //   .attr("width", function(d) {
-      //     console.log("d.value= " + d.value);
-      //     console.log("xScale(d.value)= " + xScale(d.value));
-      //     return xScale(d.value);
-      //   })
-      //   .attr("fill", "#ff0");
+      barChartSvgLeft.selectAll('.bar_left').data(node.attr_num_list).enter().append('rect').attr('x',function (d,i) {
+        return 0.5*self.InfoSvgWidth-self.infoSvgXScaleList[i](d.value);
+      }).attr('y',function (d,i) {
+        return i*self.yScaleBandWidth;
+      }).attr('width',function (d,i) {
+        return self.infoSvgXScaleList[i](d.value)
+      }).attr('height',function (d,i) {
+        return self.yScaleBandWidth-2;
+      }).attr('fill','steelblue')
+
+      if(!d3.selectAll(".yAixs").empty()){
+        d3.selectAll(".yAixs").remove();
+      }
+      let yAxis=self.infoSvg.append('g').attr("class", "yAixs").attr("transform", "translate("+self.InfoSvgWidth*0.5+",0)").call(d3.axisLeft(self.yScale));
+      
     },
     /**
      * 绘制右侧信息面板

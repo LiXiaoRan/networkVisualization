@@ -173,6 +173,10 @@ export default {
       for (let index = 1; index <= 30; index++) {
         yNumNameList.push('num'+index)  
       }
+      for (let index = 1; index <= 20; index++) {
+        yNumNameList.push('culster'+index)
+        
+      }
       console.log(yNumNameList);
       self.yScale=d3.scaleBand().domain(yNumNameList).range([0,self.InfoSvgHeight]);
       let yAxis=self.infoSvg.append('g').attr("class", "yAixs").attr("transform", "translate("+self.InfoSvgWidth*0.5+",0)").call(d3.axisLeft(self.yScale));
@@ -291,7 +295,9 @@ export default {
       let Url = "detect-anomaly-onflow";
       CommunicateWithServer("get", paramsObj, Url, this.highLiteAnomaly);
     },
-
+    /**
+     * 高亮异常节点
+     */
     highLiteAnomaly(result) {
       let self = this;
       self.similarityDetc = false;
@@ -324,6 +330,9 @@ export default {
         alert("请选择一个节点");
       }
     },
+    /**
+     * 高亮top10相似性节点
+     */
     highLiteSimilarityNode(result) {
       console.log("相似性节点的数据如下：");
       console.log(result);

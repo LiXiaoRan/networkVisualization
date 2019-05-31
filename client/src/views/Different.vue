@@ -39,7 +39,11 @@ export default {
   },
   mounted() {
     let self = this;
-    self.colorScale=d3.scaleOrdinal(d3['schemeCategory20'])
+    // self.colorScale=d3.scaleOrdinal(d3.schemeCategory10)
+    self.colorScale=d3.scaleOrdinal().range(["#2578B2", "#AFC7E7", "#FD7D26", "#FEBA7D", "#32A034", 
+    "#9ADF8E", "#D4212E","#FD9798","#9367BB","#C4B0D4","#8B554C","#C39C95","#E176C1","#F6B5D1","#7F7F7F",
+    "#C7C7C7","#BCBD34","#DBDB91","#28BECD","#A0DAE4","#FFFF9F"])
+
     self.getGraphData();
   },
   methods: {
@@ -212,17 +216,25 @@ export default {
         return 0.5*self.InfoSvgWidth-self.infoSvgXScaleList[i](d.value);
         }
         else{
-          
+          return 0;
         }
       }).attr('y',function (d,i) {
         return i*self.yScaleBandWidth;
       }).attr('width',function (d,i) {
         if(i<=29)
         return self.infoSvgXScaleList[i](d.value)
+        else
+          return self.InfoSvgWidth/2;
       }).attr('height',function (d,i) {
-        if(i<=29)
         return self.yScaleBandWidth-2;
-      }).attr('fill','steelblue')
+      }).attr('fill',function (d,i) {
+        if(i<=29)
+        return 'steelblue'
+        else{
+          console.log(self.colorScale(d.value));
+          return self.colorScale(d.value)
+        }
+      })
 
       
 
@@ -241,6 +253,8 @@ export default {
         // console.log("x is "+0.5*self.InfoSvgWidth-self.infoSvgXScaleList[i](d.value));
         if(i<=29)
         return 0.5*self.InfoSvgWidth-self.infoSvgXScaleList[i](d.value);
+        else
+        return 0;
       }).attr("y",function (d,i) {
         // console.log("y is "+(i*self.yScaleBandWidth-self.yScaleBandWidth/2));
         return (i*self.yScaleBandWidth+self.yScaleBandWidth/2+4);
@@ -269,16 +283,24 @@ export default {
       //绘制条形图
       let bar=barChartSvgRight.selectAll('.bar_right').data(currAllData).enter().append('rect')
       bar.attr('x',function (d,i) {
-        if(i<=29)
+        // if(i<=29)
         return 0.5*self.InfoSvgWidth;
       }).attr('y',function (d,i) {
         return i*self.yScaleBandWidth;
       }).attr('width',function (d,i) {
         if(i<=29)
         return self.infoSvgXScaleList[i](d.value)
+        else
+          return 0.5*self.InfoSvgWidth;
       }).attr('height',function (d,i) {
         return self.yScaleBandWidth-2;
-      }).attr('fill','steelblue')
+      }).attr('fill',function (d,i) {
+        if (i<=29) {
+          return 'steelblue';
+        } else {
+          return self.colorScale(d.value);
+        }
+      })
 
       
 
@@ -297,6 +319,8 @@ export default {
         // console.log("x is "+0.5*self.InfoSvgWidth+self.infoSvgXScaleList[i](d.value));
         if(i<=29)
         return 0.5*self.InfoSvgWidth+self.infoSvgXScaleList[i](d.value)-this.getBBox().width;
+        else
+        return self.InfoSvgWidth-this.getBBox().width;
       }).attr("y",function (d,i) {
         // console.log("y is "+(i*self.yScaleBandWidth-self.yScaleBandWidth/2));
         return (i*self.yScaleBandWidth+self.yScaleBandWidth/2+4);

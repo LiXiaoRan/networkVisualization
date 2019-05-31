@@ -98,8 +98,6 @@ export default {
       let node = self.svg
         .append("g")
         .attr("class", "nodes")
-        // .attr("width", width)
-        // .attr("height", height)
         .selectAll("g")
         .data(self.nodesData)
         .enter()
@@ -130,7 +128,11 @@ export default {
             }
           } else {
             //绘制右侧信息面板
-            self.drawRightInfo(d);
+            try {
+                self.drawRightInfo(d);
+            } catch (e) {
+            console.log(e);
+            }
           }
         });
 
@@ -194,7 +196,9 @@ export default {
         .append("g")
         .attr("class", "barChartSvgLeft")
 
-      barChartSvgLeft.selectAll('.bar_left').data(node.attr_num_list).enter().append('rect').attr('x',function (d,i) {
+      //绘制条形图
+      let bar=barChartSvgLeft.selectAll('.bar_left').data(node.attr_num_list).enter().append('rect')
+      bar.attr('x',function (d,i) {
         return 0.5*self.InfoSvgWidth-self.infoSvgXScaleList[i](d.value);
       }).attr('y',function (d,i) {
         return i*self.yScaleBandWidth;
@@ -204,17 +208,36 @@ export default {
         return self.yScaleBandWidth-2;
       }).attr('fill','steelblue')
 
+      
+
       if(!d3.selectAll(".yAixs").empty()){
         d3.selectAll(".yAixs").remove();
       }
+      //需要重新绘制Y轴，这样就不会被条形图遮挡
       let yAxis=self.infoSvg.append('g').attr("class", "yAixs").attr("transform", "translate("+self.InfoSvgWidth*0.5+",0)").call(d3.axisLeft(self.yScale));
       
+      //设置条形图文字
+      barChartSvgLeft.selectAll(".bar-text").data(node.attr_num_list).enter()
+      .append("text").text(function (d) {
+        return d.value;
+      })
+      .attr("x",function (d,i) {
+        console.log("x is "+0.5*self.InfoSvgWidth-self.infoSvgXScaleList[i](d.value));
+        return 0.5*self.InfoSvgWidth-self.infoSvgXScaleList[i](d.value);
+      }).attr("y",function (d,i) {
+        console.log("y is "+(i*self.yScaleBandWidth-self.yScaleBandWidth/2));
+        return (i*self.yScaleBandWidth+self.yScaleBandWidth/2+4);
+      }).attr("fill","white")
+
     },
     /**
      * 绘制右侧信息面板
      */
     drawRightInfo(node) {
-      console.log(node.attr_culster_list);
+      console.log("绘制右侧信息板");
+      let self=this;
+
+
     },
 
     /**

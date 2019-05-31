@@ -33,11 +33,13 @@ export default {
       infoSvgXScaleList:[],//每一个类数值类信息的横向比例尺，有30个
       InfoSvgHeight:770,//对比区域svg高度
       InfoSvgWidth:380,//对比区域svg宽度
-      yScale:0//需要多次重绘y轴，所以要保存
+      yScale:0,//需要多次重绘y轴，所以要保存
+      colorScale:null//20个d3颜色列表颜色
     };
   },
   mounted() {
     let self = this;
+    self.colorScale=d3.scaleOrdinal(d3['schemeCategory20'])
     self.getGraphData();
   },
   methods: {
@@ -199,16 +201,26 @@ export default {
         .select(".infosvg")
         .append("g")
         .attr("class", "barChartSvgLeft")
+      let currAllData=[]
+      currAllData.push(...node.attr_num_list)
+      currAllData.push(...node.attr_culster_list)
 
       //绘制条形图
-      let bar=barChartSvgLeft.selectAll('.bar_left').data(node.attr_num_list).enter().append('rect')
+      let bar=barChartSvgLeft.selectAll('.bar_left').data(currAllData).enter().append('rect')
       bar.attr('x',function (d,i) {
+        if(i<=29){
         return 0.5*self.InfoSvgWidth-self.infoSvgXScaleList[i](d.value);
+        }
+        else{
+          
+        }
       }).attr('y',function (d,i) {
         return i*self.yScaleBandWidth;
       }).attr('width',function (d,i) {
+        if(i<=29)
         return self.infoSvgXScaleList[i](d.value)
       }).attr('height',function (d,i) {
+        if(i<=29)
         return self.yScaleBandWidth-2;
       }).attr('fill','steelblue')
 
@@ -221,12 +233,13 @@ export default {
       let yAxis=self.infoSvg.append('g').attr("class", "yAixs").attr("transform", "translate("+self.InfoSvgWidth*0.5+",0)").call(d3.axisLeft(self.yScale));
       
       //设置条形图文字
-      barChartSvgLeft.selectAll(".bar-text").data(node.attr_num_list).enter()
+      barChartSvgLeft.selectAll(".bar-text").data(currAllData).enter()
       .append("text").text(function (d) {
         return d.value;
       })
       .attr("x",function (d,i) {
         // console.log("x is "+0.5*self.InfoSvgWidth-self.infoSvgXScaleList[i](d.value));
+        if(i<=29)
         return 0.5*self.InfoSvgWidth-self.infoSvgXScaleList[i](d.value);
       }).attr("y",function (d,i) {
         // console.log("y is "+(i*self.yScaleBandWidth-self.yScaleBandWidth/2));
@@ -249,13 +262,19 @@ export default {
         .append("g")
         .attr("class", "barChartSvgRight")
 
+      let currAllData=[]
+      currAllData.push(...node.attr_num_list)
+      currAllData.push(...node.attr_culster_list)
+
       //绘制条形图
-      let bar=barChartSvgRight.selectAll('.bar_right').data(node.attr_num_list).enter().append('rect')
+      let bar=barChartSvgRight.selectAll('.bar_right').data(currAllData).enter().append('rect')
       bar.attr('x',function (d,i) {
+        if(i<=29)
         return 0.5*self.InfoSvgWidth;
       }).attr('y',function (d,i) {
         return i*self.yScaleBandWidth;
       }).attr('width',function (d,i) {
+        if(i<=29)
         return self.infoSvgXScaleList[i](d.value)
       }).attr('height',function (d,i) {
         return self.yScaleBandWidth-2;
@@ -270,12 +289,13 @@ export default {
       let yAxis=self.infoSvg.append('g').attr("class", "yAixs").attr("transform", "translate("+self.InfoSvgWidth*0.5+",0)").call(d3.axisLeft(self.yScale));
       
       //设置条形图文字
-      barChartSvgRight.selectAll(".bar-text").data(node.attr_num_list).enter()
+      barChartSvgRight.selectAll(".bar-text").data(currAllData).enter()
       .append("text").text(function (d) {
         return d.value;
       })
       .attr("x",function (d,i) {
         // console.log("x is "+0.5*self.InfoSvgWidth+self.infoSvgXScaleList[i](d.value));
+        if(i<=29)
         return 0.5*self.InfoSvgWidth+self.infoSvgXScaleList[i](d.value)-this.getBBox().width;
       }).attr("y",function (d,i) {
         // console.log("y is "+(i*self.yScaleBandWidth-self.yScaleBandWidth/2));

@@ -3,10 +3,15 @@
     <div id="btnd">
       <button v-on:click="deteceAnomaly">点击显示异常情况</button>
       <button v-on:click="detectSimilarity">结构相似节点检测</button>
+      <button v-on:click="fixState=!fixState">手动补边</button>
+      <button v-on:click="finishFix">完成补边</button>
     </div>
     <div id="attr-compare-div"></div>
     <div class="svg-div">
       <svg id="view-svg"></svg>
+    </div>
+    <div id="notice_div">
+        <p id="notice_text" v-show="fixState" >已经开启了手动补边模式 <br/></p>
     </div>
   </div>
 </template>
@@ -19,10 +24,16 @@ export default {
       layoutData: {},
       linksData: [],
       nodesData: [],
-      xScale: null,
-      yScale: null,
+      xScale: null,//绘制布局的x比例尺
+      
+      yScale: null,//绘制布局y轴的比例尺,
+      yAxisScale: null,//绘制坐标轴y轴的比例尺,需要多次重绘y轴，所以要保存
+
       currentNode: {}, //当前单选节点
+
       similarityDetc: false, //是否开启对比模式
+      fixState:false, //是否处于补边状态
+
       minMaxList: [],//所有数值类属性的最大值最小值 [min,max]
       allNumAttrList: [], //存储所有30个类别的数值类属性，有30个list
       allCulsterAttrList: [], //存储所有20个类别的枚举类属性，有20个list
@@ -33,8 +44,12 @@ export default {
       infoSvgXScaleList:[],//每一个类数值类信息的横向比例尺，有30个
       InfoSvgHeight:770,//对比区域svg高度
       InfoSvgWidth:380,//对比区域svg宽度
-      yScale:0,//需要多次重绘y轴，所以要保存
-      colorScale:null//20个d3颜色列表颜色
+      // yScale:0,//需要多次重绘y轴，所以要保存
+      colorScale:null,//20个d3颜色列表颜色
+
+      firstNode:null, //补边状态点击的第一个节点
+      secondNode:null, //补边状态点击的第二个节点
+      
     };
   },
   mounted() {
@@ -94,6 +109,7 @@ export default {
         .data(self.linksData)
         .enter()
         .append("line")
+        .attr("class","abclink")
         .attr("x1", d => self.xScale(d.x1))
         .attr("y1", d => self.yScale(d.y1))
         .attr("x2", d => self.xScale(d.x2))
@@ -119,6 +135,9 @@ export default {
           return "#1DBDD2";
         })
         .on("click", function(d) {
+          if(!self.fixState){
+            //如果没有开启补边模式
+            console.log('没有开启补边模式');
           if (!self.similarityDetc) {
             if (self.currentNode.id != null) {
               d3.select("#" + self.currentNode.id).attr("fill", "#1DBDD2");
@@ -128,7 +147,9 @@ export default {
             console.log(d);
 
             try {
+                 
                 self.drawLeftInfo(d);
+                
             } catch (e) {
             console.log(e);
             }
@@ -136,9 +157,37 @@ export default {
             //绘制右侧信息面板
             try {
                 self.drawRightInfo(d);
+
             } catch (e) {
             console.log(e);
             }
+          }
+
+          }else{
+            //开启了补边模式
+            console.log("处于补边状态");
+            let str="已经开启了手动补边模式";
+            let source=self.firstNode?self.firstNode.id:"null";
+            let target=self.secondNode?self.secondNode.id:"null";
+            str=str+"<br\> source: "+source+" <br\>taregt: "+target;
+            let ptext=document.getElementById("notice_text");
+            ptext.innerHTML=str
+
+            if(self.firstNode!=null && self.secondNode!=null){
+              if(self.firstNode.id==self.secondNode.id){
+                self.secondNode=null;
+              }else{
+                self.firstNode=d;
+              }
+                
+            }
+            if (self.firstNode==null) {
+              self.firstNode=d;
+            }else{
+              self.secondNode=d;
+            }
+            
+            
           }
         });
 
@@ -184,9 +233,9 @@ export default {
         
       }
       console.log(yNumNameList);
-      self.yScale=d3.scaleBand().domain(yNumNameList).range([0,self.InfoSvgHeight]);
-      let yAxis=self.infoSvg.append('g').attr("class", "yAixs").attr("transform", "translate("+self.InfoSvgWidth*0.5+",0)").call(d3.axisLeft(self.yScale));
-      self.yScaleBandWidth=self.yScale.bandwidth()
+      self.yAxisScale=d3.scaleBand().domain(yNumNameList).range([0,self.InfoSvgHeight]);
+      let yAxis=self.infoSvg.append('g').attr("class", "yAixs").attr("transform", "translate("+self.InfoSvgWidth*0.5+",0)").call(d3.axisLeft(self.yAxisScale));
+      self.yScaleBandWidth=self.yAxisScale.bandwidth()
       for (let index = 0; index < self.minMaxList.length; index++) {
         self.infoSvgXScaleList.push(d3.scaleLinear().domain(self.minMaxList[index]).range([0,0.5*self.InfoSvgWidth]))
       }
@@ -231,7 +280,7 @@ export default {
         if(i<=29)
         return 'steelblue'
         else{
-          console.log(self.colorScale(d.value));
+          // console.log(self.colorScale(d.value));
           return self.colorScale(d.value)
         }
       })
@@ -242,7 +291,7 @@ export default {
         d3.selectAll(".yAixs").remove();
       }
       //需要重新绘制Y轴，这样就不会被条形图遮挡
-      let yAxis=self.infoSvg.append('g').attr("class", "yAixs").attr("transform", "translate("+self.InfoSvgWidth*0.5+",0)").call(d3.axisLeft(self.yScale));
+      let yAxis=self.infoSvg.append('g').attr("class", "yAixs").attr("transform", "translate("+self.InfoSvgWidth*0.5+",0)").call(d3.axisLeft(self.yAxisScale));
       
       //设置条形图文字
       barChartSvgLeft.selectAll(".bar-text").data(currAllData).enter()
@@ -308,7 +357,7 @@ export default {
         d3.selectAll(".yAixs").remove();
       }
       //需要重新绘制Y轴，这样就不会被条形图遮挡
-      let yAxis=self.infoSvg.append('g').attr("class", "yAixs").attr("transform", "translate("+self.InfoSvgWidth*0.5+",0)").call(d3.axisLeft(self.yScale));
+      let yAxis=self.infoSvg.append('g').attr("class", "yAixs").attr("transform", "translate("+self.InfoSvgWidth*0.5+",0)").call(d3.axisLeft(self.yAxisScale));
       
       //设置条形图文字
       barChartSvgRight.selectAll(".bar-text").data(currAllData).enter()
@@ -334,6 +383,12 @@ export default {
      * 检测异常链接
      */
     deteceAnomaly() {
+      let self=this;
+      //清空补边状态
+      self.fixState=false;
+      self.firstNode=null;
+      self.secondNode=null;
+
       console.log("检测异常链接函数");
       let paramsObj = {};
       let Url = "detect-anomaly-onflow";
@@ -435,8 +490,86 @@ export default {
         console.log(self.minMaxList);
 
       }
+    },
+    /**
+     * 手动补边
+     */
+    fixEdge() {
+      let self=this;
+      self.fixState=true;
+      
+      // self.linksData.push({
+      //   flow:100,
+      //   source:'',
+      //   target:'',
+      //   times:'3',
+      //   x1:1,
+      //   x2:2,
+      //   y1:1,
+      //   y2:2
+      // })
+    },
+    /**
+     * 完成补边
+     */
+    finishFix(){
+      let self=this;
+      if (self.fixState) {
+        if (self.firstNode==null || self.secondNode==null) {
+        alert("请至少选择两个节点")
+      }else{
+        console.log(self.firstNode,self.secondNode);
+        let newLink={
+          x1:self.firstNode.x,
+          x2:self.secondNode.x,
+          y1:self.firstNode.y,
+          y2:self.secondNode.y,
+          flow:(self.secondNode.flow+self.firstNode.flow)/2,
+          source:self.firstNode.id,
+          target:self.secondNode.id,
+          times:1
+        }
+        console.log("新添加的边的属性：",newLink);
+        self.linksData.push(newLink);
+        // if(!d3.select(".links").empty()){
+        //   d3.select(".links").remove;
+        // }
+
+        // d3.select("#view-svg")
+        // .append("g")
+        // .attr("class", "links")
+        d3.select(".links")
+        // .selectAll("line")
+        // .data(self.linksData)
+        // .enter()
+        .append("line")
+        .attr("x1",self.xScale(newLink.x1))
+        .attr("y1",self.yScale(newLink.y1))
+        .attr("x2",self.xScale(newLink.x2))
+        .attr("y2",self.yScale(newLink.y2))
+        .attr("class","abclink newline")
+        .attr("stroke", "#BCBCBC")
+        .attr("stroke-width", 0.5)
+        
+        console.log("补边完成之后：");
+        //清空目前选择的效果
+        self.firstNode=null;
+        self.secondNode=null;
+        console.log(d3.selectAll(".links"));
+        console.log(self.linksData);
+
+      }
+
+
+      } else {
+        alert("请在\"手动补边\"模式下操作")
+      }
+      
     }
-  }
+  },
+  watch: {
+    
+  },
 };
 </script>
 
@@ -471,6 +604,25 @@ export default {
   margin-left: 5px;
   width: 50%-2px;
   height: 100%;
+}
+
+#notice_div {
+  display: inline-block;
+  width: 400px;
+  height: 800px;
+  padding: 1%;
+  border:1px dashed gray;
+  border-radius: 20px;
+  position:absolute
+}
+
+#notice_text {
+  // width: 100%;
+  // height: 100%;
+  display: inline-block;
+  position:absolute;
+  left: 29%;
+  top: 50%-5
 }
 
 button {

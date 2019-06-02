@@ -13,6 +13,33 @@
     <div id="notice_div">
         <p id="notice_text" v-show="fixState" >已经开启了手动补边模式 <br/></p>
     </div>
+    <div id="table-div" class="table-responsive">
+      <table class="table table-hover">
+  <thead>
+    <tr>
+      <th scope="col">#</th>
+      <th scope="col">id</th>
+      <th scope="col">flow</th>
+      <th scope="col">flow_in</th>
+      <th scope="col" >flow_out</th>
+      <th scope="col"v-for="n in 30">num_{{n}}</th>
+      <th scope="col"v-for="n in 20">cluster_{{n}}</th>
+
+    </tr>
+  </thead>
+  <tbody>
+    <tr v-for="(item,index) in simNodesDataList">
+      <th scope="row">{{index}}</th>
+      <td>{{item.id}}</td>
+      <td>{{item.flow}}</td>
+      <td>{{item.flow_in}}</td>
+      <td>{{item.flow_out}}</td>
+      <td v-for="attr_num in item.attr_num_list">{{attr_num.value}}</td>
+      <td v-for="attr_cluster in item.attr_culster_list">{{attr_cluster.value}}</td>
+    </tr>
+  </tbody>
+</table>
+    </div>  
   </div>
 </template>
 <script>
@@ -24,6 +51,8 @@ export default {
       layoutData: {},
       linksData: [],
       nodesData: [],
+      simNodesDataList:[],
+
       xScale: null,//绘制布局的x比例尺
       
       yScale: null,//绘制布局y轴的比例尺,
@@ -50,6 +79,8 @@ export default {
       firstNode:null, //补边状态点击的第一个节点
       secondNode:null, //补边状态点击的第二个节点
       
+
+
     };
   },
   mounted() {
@@ -166,12 +197,7 @@ export default {
           }else{
             //开启了补边模式
             console.log("处于补边状态");
-            let str="已经开启了手动补边模式";
-            let source=self.firstNode?self.firstNode.id:"null";
-            let target=self.secondNode?self.secondNode.id:"null";
-            str=str+"<br\> source: "+source+" <br\>taregt: "+target;
-            let ptext=document.getElementById("notice_text");
-            ptext.innerHTML=str
+            
 
             if(self.firstNode!=null && self.secondNode!=null){
               if(self.firstNode.id==self.secondNode.id){
@@ -187,7 +213,28 @@ export default {
               self.secondNode=d;
             }
             
-            
+
+            let str="已经开启了手动补边模式";
+            let source=self.firstNode?self.firstNode.id:"null";
+            let target=self.secondNode?self.secondNode.id:"null";
+            str=str+"<br\> source: "+source+" <br\>taregt: "+target;
+            let ptext=document.getElementById("notice_text");
+            ptext.innerHTML=str
+
+            //设置补边状态下的选中节点高亮
+            // d3.selectAll("circle").attr("fill", function (d) {
+            //   if (d.id!=self.currentNode.id) {
+                
+            //   }
+            // });
+
+            // if (self.firstNode!=null) {
+            //   d3.select("#"+self.firstNode.id).attr("fill","#9267B9");
+            // }
+            // if (self.secondNode!=null) {
+            //   d3.select("#"+self.secondNode.id).attr("fill","#9267B9");
+            // }
+
           }
         });
 
@@ -433,6 +480,10 @@ export default {
      * 高亮top10相似性节点
      */
     highLiteSimilarityNode(result) {
+      let self=this;
+      let tempList=[]
+      self.simNodesDataList=[]  
+      // let resultIdList=[]
       console.log("相似性节点的数据如下：");
       console.log(result);
 
@@ -443,7 +494,17 @@ export default {
       // 高亮相似性节点为红色
       result.forEach(function(d) {
         d3.select("#" + d.id).attr("fill", "#FF0000");
+        // resultIdList.push(d.id)
       });
+
+      self.nodesData.forEach(node=>{
+        result.forEach(function (d) {
+          if (d.id==node.id) {
+            self.simNodesDataList.push(node);
+          }
+        })
+      })
+      console.log("self.simNodesDataList is ",self.simNodesDataList);
     },
     /**
      * 绘制信息图
@@ -611,6 +672,7 @@ export default {
   width: 400px;
   height: 800px;
   padding: 1%;
+  margin-left: 20px;
   border:1px dashed gray;
   border-radius: 20px;
   position:absolute
@@ -623,6 +685,13 @@ export default {
   position:absolute;
   left: 29%;
   top: 50%-5
+}
+
+
+#table-div{
+  margin-top: 50px;
+  width: 100%;
+  height: auto;
 }
 
 button {

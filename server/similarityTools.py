@@ -36,7 +36,7 @@ def jaccardSimilarity(arr1,arr2):
     v2=np.array(arr_list2)
     matv=np.array([v1,v2])
     ds=dist.pdist(matv,'jaccard')
-    return ds;
+    return 1-ds;
 
 
 

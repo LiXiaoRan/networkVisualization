@@ -543,8 +543,8 @@ export default {
 
       // 高亮相似性节点为红色
       result.forEach(function(d) {
-        if(d.id!=self.currentNode.id){
-        d3.select("#" + d.id).attr("fill", "#FF0000");
+        if (d.id != self.currentNode.id) {
+          d3.select("#" + d.id).attr("fill", "#FF0000");
         }
         // resultIdList.push(d.id)
       });

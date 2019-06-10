@@ -551,7 +551,7 @@ export default {
 
       self.nodesData.forEach(node => {
         result.forEach(function(d) {
-          if (d.id == node.id) {
+          if (d.id == node.id && d.id!=self.currentNode.id ) {
             self.simNodesDataList.push(node);
           }
         });

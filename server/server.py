@@ -517,7 +517,7 @@ class detectSimilarity(tornado.web.RequestHandler):
             js=similarityTools.jaccardSimilarity(currentNode['attr_culster_list'],node['attr_culster_list'])
             nodesSimilarity.append({'id':node['id'],'Similarity':(cs+js)[0]})
         nodesSimilarity=sorted(nodesSimilarity,key=lambda x: x['Similarity'],reverse=True)
-        mostSimList=nodesSimilarity[0:10]
+        mostSimList=nodesSimilarity[0:11]
         print(mostSimList)
         self.write(json.dumps(mostSimList))
 

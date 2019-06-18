@@ -607,6 +607,164 @@ class getAccompanyCSV(tornado.web.RequestHandler):
         self.write(evt)
 
 
+class getMultilayerData(tornado.web.RequestHandler):
+    # 读取分层数据并计算布局
+    def get(self):
+        print("进入get")
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
+        params = self.get_argument('params')
+        params = json.loads(params)
+        layoutType = params['layout_type']
+        networkLevel = int(params['network_level'])
+        data = []
+
+        startLevel = networkLevel * 100
+        endLevel = startLevel + 100
+
+        getMultiData = NetworkData.getAnomalyData("event4")
+        for item in getMultiData:
+            if startLevel <= int(item['net_level']) < endLevel:
+                data.append(item)
+        if len(data):
+            links = []
+            temp_nodes = []
+            nodes = []
+            nodes_id = []
+            for row in data:
+                source = row['trans_node_global_no']
+                target = row['recv_node_golbal_no']
+                link = {'source': source, 'target': target}
+                temp_nodes.append({
+                    'id': source
+                })
+                temp_nodes.append({
+                    'id': target
+                })
+                links.append(link)
+            for item in temp_nodes:
+                if item['id'] not in nodes_id:
+                    nodes_id.append(item['id'])
+                    nodes.append(item)
+                else:
+                    index = nodes_id.index(item['id'])
+                    del nodes[index]
+                    del nodes_id[index]
+                    nodes.append(item)
+                    nodes_id.append(item['id'])
+
+            tmp_links = []
+            for link in links:
+                key = {
+                    'source': link['source'],
+                    'target': link['target']
+                }
+                if key not in tmp_links:
+                    tmp_links.append(key)
+
+            myindex = 0
+            for item in tmp_links:
+                for link in links:
+                    if link['source'] == item['source'] and link['target'] == item['target']:
+                        item['id'] = myindex
+                        myindex = myindex + 1
+            links = tmp_links
+
+            result = {'nodes': nodes, 'links': links}
+            result = igraphLayout.cal_back_layout_data(result, layoutType)
+            self.write(result)
+        else:
+            result = {'nodes': [], 'links': []}
+            self.write(result)
+
+
+class getLink(tornado.web.RequestHandler):
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
+        params = self.get_argument('params')
+        params = json.loads(params)
+        common = params['common']
+        networkLevel = int(params['network_level'])
+
+        data = []
+
+        startLevel = networkLevel * 100
+        endLevel = startLevel + 100
+
+        getMultiData = NetworkData.getAnomalyData("event4")
+        for item in getMultiData:
+            if startLevel <= int(item['net_level']) < endLevel:
+                data.append(item)
+        if len(data):
+            links = []
+            temp_nodes = []
+            nodes = []
+            nodes_id = []
+            for row in data:
+                source = row['trans_node_global_no']
+                target = row['recv_node_golbal_no']
+                link = {'source': source, 'target': target}
+                temp_nodes.append({
+                    'id': source
+                })
+                temp_nodes.append({
+                    'id': target
+                })
+                links.append(link)
+            for item in temp_nodes:
+                if item['id'] not in nodes_id:
+                    nodes_id.append(item['id'])
+                    nodes.append(item)
+                else:
+                    index = nodes_id.index(item['id'])
+                    del nodes[index]
+                    del nodes_id[index]
+                    nodes.append(item)
+                    nodes_id.append(item['id'])
+
+            tmp_links = []
+            for link in links:
+                key = {
+                    'source': link['source'],
+                    'target': link['target']
+                }
+                if key not in tmp_links:
+                    tmp_links.append(key)
+
+            myindex = 0
+            for item in tmp_links:
+                for link in links:
+                    if link['source'] == item['source'] and link['target'] == item['target']:
+                        item['id'] = myindex
+                        myindex = myindex + 1
+            links = tmp_links
+
+            result = {'nodes': nodes, 'links': links, 'level': networkLevel}
+            G = nx.Graph()
+            for source in result['links']:
+                G.add_edge(source['target'], source['source'], id=source['id'])
+            shortPath = {'node': [], 'link': []}  # 返回最短路径的节点和边
+            path = dict(nx.all_pairs_shortest_path(G))
+            short_path_name = path[common[0]][common[1]]
+            shortPath['node'] = short_path_name
+            pairs = []
+            for (index, item) in enumerate(short_path_name):
+                if index == len(short_path_name) - 1:
+                    break
+                pairs.append(G.edges[short_path_name[index], short_path_name[index + 1]]['id'])
+            for (index, item) in enumerate(pairs):
+                pairs[index] = str(networkLevel) + '_' + str(item)
+            shortPath['link'] = pairs
+            self.write(shortPath)
+
+
 if __name__ == "__main__":
     tornado.options.parse_command_line()
     print(
@@ -630,6 +788,8 @@ if __name__ == "__main__":
             (r'/get-anomaly-layout-data', getAnomalyLayoutData),
             (r'/get-accompany-json', getAccompanyJson),
             (r'/get-accompany-csv', getAccompanyCSV),
+            (r'/get-multi-layer-data', getMultilayerData),
+            (r'/getLink', getLink),
             (r'/(.*)', tornado.web.StaticFileHandler, {
                 'path': client_file_root_path,
                 'default_filename': 'index.html'

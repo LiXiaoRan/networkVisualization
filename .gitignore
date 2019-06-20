@@ -5,3 +5,4 @@ index.html
 *.pyc
 data/
 .idea
+node_modules

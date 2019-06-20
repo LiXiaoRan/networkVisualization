@@ -354,12 +354,36 @@
         let Url = 'get-layout-data';
         CommunicateWithServer('get', paramsObj, Url, this.drawGraph);
       },
+	  drawDimGraph() {
+        let paramsObj = {
+          layout_type: 'sugiyama',
+          network_level: this.nowLevel
+        };
+        let Url = 'get-layout-data';
+        CommunicateWithServer('get', paramsObj, Url, (d)=>{
+			//console.log(d);
+			this.$store.state.init_dim2 = Math.random();
+			this.$store.state.timeupdated = Math.random();
+		});
+      },
       changeLevel(item) {
         this.levelList.forEach(obj => obj.isChecked = false);
         item.isChecked = true;
         this.nowLevel = item.value;
-        this.drawSwitchGraph();
-
+		//console.log(item);
+		for(var i=0; i<this.layoutList.length; i++){
+			if(this.layoutList[i].selected){
+				if(this.layoutList[i].name=='降维'){
+					d3.select('#dim2-panel').style('display', 'block');
+					this.drawDimGraph();
+				}else{
+					d3.select('#dim2-panel').style('display', 'none');
+					this.nowLayoutType = this.layoutList[i].value;
+					this.drawSwitchGraph();
+				}
+				break;
+			}
+		}
       },
       switchLayout(item) {
         this.layoutList.forEach(obj => obj.selected = false);

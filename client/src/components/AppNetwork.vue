@@ -11,6 +11,9 @@
           </router-link>
         </div>
       </div>
+      <div id="largeContainer" style="position: absolute;width: 100%;height: 92%" v-if="changeShow">
+        <LargerGraph></LargerGraph>
+      </div>
     </div>
     <div id="legend-index">
       <app-title v-bind:icon="icon" v-bind:msgs="legendMsgs"></app-title>
@@ -117,6 +120,7 @@
 </template>
 <script>
   import AppTitle from './AppTitle.vue';
+  import LargerGraph from './largerGraph';
   import {mapGetters, mapActions} from 'vuex';
   import hostImg from '../assets/host.png';
   import switchImg from '../assets/switch.png';
@@ -155,9 +159,9 @@
           {name: '环形', value: 'circle', selected: false},
           {name: '尺度', value: 'mds', selected: false},
           {name: '网格', value: 'grid', selected: false},
-          {name: '大图', value: 'lgl', selected: false},
           {name: '递归', value: 'drl', selected: false},
-          {name: '层次', value: 'sugiyama', selected: false}],
+          {name: '层次', value: 'sugiyama', selected: false},
+          {name: '大图', value: 'lgl', selected: false}],
         nodesImgList: [hostImg, switchImg, serverImg],
         nodeSelectedList: [hostSelectedImg, switchSelectedImg, serverSelectedImg],
         nodeClickList: [hostClickImg, switchClickImg, serverClickImg],
@@ -172,11 +176,13 @@
         selectedNode: null, // 选择单个节点
         selectedNodes: [], // 选择多个节点
         selectedFlag: false,
-        disappearNodes: []
+        disappearNodes: [],
+        changeShow: false
       };
     },
     components: {
-      AppTitle
+      AppTitle,
+      LargerGraph
     },
     mounted() {
       let self = this;
@@ -358,6 +364,11 @@
       switchLayout(item) {
         this.layoutList.forEach(obj => obj.selected = false);
         item.selected = true;
+        if (item.name == '大图') {
+          this.changeShow = !this.changeShow;
+          return;
+        }
+        this.changeShow = false;
         if (item.value === 'reduce') {
           d3.select('#dim2-panel').style('display', 'block');
           this.$store.state.init_dim2 = Math.random();

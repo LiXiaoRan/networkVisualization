@@ -354,36 +354,12 @@
         let Url = 'get-layout-data';
         CommunicateWithServer('get', paramsObj, Url, this.drawGraph);
       },
-	  drawDimGraph() {
-        let paramsObj = {
-          layout_type: 'sugiyama',
-          network_level: this.nowLevel
-        };
-        let Url = 'get-layout-data';
-        CommunicateWithServer('get', paramsObj, Url, (d)=>{
-			//console.log(d);
-			this.$store.state.init_dim2 = Math.random();
-			this.$store.state.timeupdated = Math.random();
-		});
-      },
       changeLevel(item) {
         this.levelList.forEach(obj => obj.isChecked = false);
         item.isChecked = true;
         this.nowLevel = item.value;
-		//console.log(item);
-		for(var i=0; i<this.layoutList.length; i++){
-			if(this.layoutList[i].selected){
-				if(this.layoutList[i].name=='降维'){
-					d3.select('#dim2-panel').style('display', 'block');
-					this.drawDimGraph();
-				}else{
-					d3.select('#dim2-panel').style('display', 'none');
-					this.nowLayoutType = this.layoutList[i].value;
-					this.drawSwitchGraph();
-				}
-				break;
-			}
-		}
+        this.drawSwitchGraph();
+
       },
       switchLayout(item) {
         this.layoutList.forEach(obj => obj.selected = false);
@@ -422,20 +398,49 @@
           this.allNodesG.selectAll('image').on('click', null).on('mouseover', null).on('mouseout', null);//去除事件响应
           this.allLinksG.attr('display', 'none');
           this.allNodesG.attr('display', 'none');
+
           //以次数表示边的宽度
           this.linkScale.domain(d3.extent(this.layoutData.links, d => d.times));
           this.allLinksG.attr('stroke-width', d => this.linkScale(d.times));
           //显示前百分之十
           let num = Math.floor(this.layoutData.links.length * 0.1);
+
+          let nodes = [], links = [];
+
           for (let i = 0; i < num; i++) {
             d3.select('#link_' + i).attr('display', 'block');
             d3.select('#node_' + this.layoutData.links[i].source).attr('display', 'block');
             d3.select('#node_' + this.layoutData.links[i].target).attr('display', 'block');
+            nodes.push({'id': i});
+            links.push({'source': this.layoutData.links[i].source, 'target': this.layoutData.links[i].target, 'id': i})
           }
+          let self = this;
+          this.allNodesG.selectAll('image').on('click', (d) => {
+            self.allLinksG.selectAll('line').attr('stroke', '#999');
+            let data = {'nodes': nodes, 'links': links}
+            let params = {
+              skeleton: data,
+              index: d.id
+            };
+            let formData1 = new URLSearchParams();
+            formData1.append("params", JSON.stringify(params));
+            self.$api.post("findsubgraph", formData1, data1 => {
+              let data = data1.data;
+              for (let item in data) {
+                for (let arr of data[item]) {
+                  d3.select('#link_' +arr).select('line').attr('stroke', '#fff');
+                }
+              }
+            }, error => {
+              console.log('fail');
+            })
+          });
+
         } else {
           //还原操作
           this.linkScale.domain(d3.extent(this.layoutData.links, d => d.flow));
           this.allLinksG.attr('stroke-width', d => this.linkScale(d.flow));
+          this.allLinksG.selectAll('line').attr('stroke', '#999');
           this.allNodesG.selectAll('image')
             .on('click', function (d) {
               self.folder.open();

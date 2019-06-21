@@ -20,9 +20,13 @@ import json
 import numpy as np
 import math
 import codecs
-import copy
 import similarityTools
 import csv
+import itertools
+import myutil
+from functools import partial
+from multiprocessing import Pool
+import copy
 
 define("port", default=22333, type=int, help="run on the given port")
 client_file_root_path = os.path.join(os.path.split(__file__)[0], '../')
@@ -349,52 +353,54 @@ class getAnomalyLayoutData(tornado.web.RequestHandler):
             source = row['trans_node_global_no']
             target = row['recv_node_golbal_no']
             flow = row['flow']
-            recv_num_list=[]
-            recv_culster_list=[]
-            trans_num_list=[]
-            trans_culster_list=[]
-            
-            for n in range(1,31):
-                recv_num_list.append({'key':'recv_num_'+str(n),'value':row['recv_num_'+str(n)]})
-            for n in range(1,21):
+            recv_num_list = []
+            recv_culster_list = []
+            trans_num_list = []
+            trans_culster_list = []
+
+            for n in range(1, 31):
+                recv_num_list.append({'key': 'recv_num_' + str(n), 'value': row['recv_num_' + str(n)]})
+            for n in range(1, 21):
                 # recv_culster_list.append(row['recv_cluster_'+str(n)])
-                recv_culster_list.append({'key': 'recv_cluster_'+str(n) , 'value':row['recv_cluster_'+str(n)]})
-                
-            
-            for n in range(1,31):
+                recv_culster_list.append({'key': 'recv_cluster_' + str(n), 'value': row['recv_cluster_' + str(n)]})
+
+            for n in range(1, 31):
                 # trans_num_list.append(row['trans_num_'+str(n)])
-                trans_num_list.append({'key':'trans_num_'+str(n),'value':row['trans_num_'+str(n)]})
-            for n in range(1,21):
-                trans_culster_list.append({'key':'trans_cluster_'+str(n),'value': row['trans_cluster_'+str(n)]})
-                
+                trans_num_list.append({'key': 'trans_num_' + str(n), 'value': row['trans_num_' + str(n)]})
+            for n in range(1, 21):
+                trans_culster_list.append({'key': 'trans_cluster_' + str(n), 'value': row['trans_cluster_' + str(n)]})
 
             # 空值处理
-            if(source != None and target != None):
-                link = {'source': source, 'target': target, 'flow':flow}
+            if (source != None and target != None):
+                link = {'source': source, 'target': target, 'flow': flow}
 
                 links.append(link)
-                
+
                 if target not in nodes_id:
-                        nodes_id.append(target)
-                        nodes.append({'id': target,'flow':flow,'flow_in':flow,'flow_out':0,'attr_num_list':recv_num_list,'attr_culster_list':recv_culster_list})
+                    nodes_id.append(target)
+                    nodes.append(
+                        {'id': target, 'flow': flow, 'flow_in': flow, 'flow_out': 0, 'attr_num_list': recv_num_list,
+                         'attr_culster_list': recv_culster_list})
                 else:
                     index = nodes_id.index(target)
-                    temp=nodes[index]
-                    temp['flow_in']=temp['flow_in']+flow
-                    temp['flow']=temp['flow']+temp['flow_in']
+                    temp = nodes[index]
+                    temp['flow_in'] = temp['flow_in'] + flow
+                    temp['flow'] = temp['flow'] + temp['flow_in']
                     del nodes_id[index]
                     del nodes[index]
                     nodes_id.append(target)
                     nodes.append(temp)
 
                 if source not in nodes_id:
-                        nodes_id.append(source)
-                        nodes.append({'id': source,'flow':flow,'flow_in':0,'flow_out':flow,'attr_num_list':trans_num_list,'attr_culster_list':trans_culster_list})
+                    nodes_id.append(source)
+                    nodes.append(
+                        {'id': source, 'flow': flow, 'flow_in': 0, 'flow_out': flow, 'attr_num_list': trans_num_list,
+                         'attr_culster_list': trans_culster_list})
                 else:
                     index = nodes_id.index(source)
-                    temp=nodes[index]
-                    temp['flow_out']=temp['flow_out']+flow
-                    temp['flow']=temp['flow']+temp['flow_out']
+                    temp = nodes[index]
+                    temp['flow_out'] = temp['flow_out'] + flow
+                    temp['flow'] = temp['flow'] + temp['flow_out']
                     del nodes_id[index]
                     del nodes[index]
                     nodes_id.append(source)
@@ -404,12 +410,14 @@ class getAnomalyLayoutData(tornado.web.RequestHandler):
                     # temp_nodes.append({'id': target})
                     if target not in nodes_id:
                         nodes_id.append(target)
-                        nodes.append({'id': target,'flow':flow,'flow_in':flow,'flow_out':0,'attr_num_list':recv_num_list,'attr_culster_list':recv_culster_list})
+                        nodes.append(
+                            {'id': target, 'flow': flow, 'flow_in': flow, 'flow_out': 0, 'attr_num_list': recv_num_list,
+                             'attr_culster_list': recv_culster_list})
                     else:
                         index = nodes_id.index(target)
-                        temp=nodes[index]
-                        temp['flow_in']=temp['flow_in']+flow
-                        temp['flow']=temp['flow']+temp['flow_in']
+                        temp = nodes[index]
+                        temp['flow_in'] = temp['flow_in'] + flow
+                        temp['flow'] = temp['flow'] + temp['flow_in']
                         del nodes_id[index]
                         del nodes[index]
                         nodes_id.append(target)
@@ -419,19 +427,18 @@ class getAnomalyLayoutData(tornado.web.RequestHandler):
                     if source not in nodes_id:
                         nodes_id.append(source)
                         # nodes.append({'id': source,'flow':flow,'flow_in':0,'flow_out':flow})
-                        nodes.append({'id': source,'flow':flow,'flow_in':0,'flow_out':flow,'attr_num_list':trans_num_list,'attr_culster_list':trans_culster_list})
+                        nodes.append({'id': source, 'flow': flow, 'flow_in': 0, 'flow_out': flow,
+                                      'attr_num_list': trans_num_list, 'attr_culster_list': trans_culster_list})
 
                     else:
                         index = nodes_id.index(source)
-                        temp=nodes[index]
-                        temp['flow_out']=temp['flow_out']+flow
-                        temp['flow']=temp['flow']+temp['flow_out']
+                        temp = nodes[index]
+                        temp['flow_out'] = temp['flow_out'] + flow
+                        temp['flow'] = temp['flow'] + temp['flow_out']
                         del nodes_id[index]
                         del nodes[index]
                         nodes_id.append(source)
                         nodes.append(temp)
-
-
 
         # 边处理
         for link in links:
@@ -446,7 +453,7 @@ class getAnomalyLayoutData(tornado.web.RequestHandler):
         for item in tmp_links:
             for link in links:
                 if link['source'] == item['source'] and link['target'] == item['target']:
-                    item['flow'] = item['flow']+link['flow']
+                    item['flow'] = item['flow'] + link['flow']
                     item['times'] = item['times'] + 1
         links = tmp_links
         global AnomalyLayoutDataResult
@@ -467,29 +474,31 @@ class detectAnomalyOnFlow(tornado.web.RequestHandler):
                         "PUT,POST,GET,DELETE,OPTIONS")
 
         print('异常检测代码')
-        nodes=[]
-        links=[]
-        AnomalyNodes=[]
-        global AnomalyLayoutDataResult # 由于前端传输局过来经常失败所以这里采用了全局变量
+        nodes = []
+        links = []
+        AnomalyNodes = []
+        global AnomalyLayoutDataResult  # 由于前端传输局过来经常失败所以这里采用了全局变量
 
-        nodes=AnomalyLayoutDataResult['nodes'];
-        links=AnomalyLayoutDataResult['links'];
-        
+        nodes = AnomalyLayoutDataResult['nodes'];
+        links = AnomalyLayoutDataResult['links'];
+
         for node in nodes:
-            sumFlow=node['flow']
-            flow_out=0
-            flow_in=0
+            sumFlow = node['flow']
+            flow_out = 0
+            flow_in = 0
             for link in links:
-                if link['source']==node['id']:
-                    flow_out=flow_out+link['flow']
-                if link['target']==node['id']:
-                    flow_in=flow_in+link['flow']
-            if (flow_in+flow_out) !=sumFlow:
-                AnomalyNodes.append({'id':node['id'],'flow_difference':sumFlow-(flow_in+flow_out),'node':node})
+                if link['source'] == node['id']:
+                    flow_out = flow_out + link['flow']
+                if link['target'] == node['id']:
+                    flow_in = flow_in + link['flow']
+            if (flow_in + flow_out) != sumFlow:
+                AnomalyNodes.append({'id': node['id'], 'flow_difference': sumFlow - (flow_in + flow_out), 'node': node})
 
         evt = json.dumps(AnomalyNodes)
         self.write(evt)
+
     pass
+
 
 class detectSimilarity(tornado.web.RequestHandler):
     # 相似性检测
@@ -499,28 +508,27 @@ class detectSimilarity(tornado.web.RequestHandler):
         self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
         self.set_header("Access-Control-Allow-Methods",
                         "PUT,POST,GET,DELETE,OPTIONS")
-        nodes=[]
-        nodesSimilarity=[]
+        nodes = []
+        nodesSimilarity = []
         params = json.loads(self.get_argument('params'))
-        nodeId=params['nodeId'] #获取前端单选的节点
+        nodeId = params['nodeId']  # 获取前端单选的节点
         global AnomalyLayoutDataResult
-        nodes=AnomalyLayoutDataResult['nodes'];
-        currentNode={}
-        #找出当前被选中的节点的数据
+        nodes = AnomalyLayoutDataResult['nodes'];
+        currentNode = {}
+        # 找出当前被选中的节点的数据
         for node in nodes:
-            if node['id']==nodeId:
-                currentNode=node
-        
+            if node['id'] == nodeId:
+                currentNode = node
+
         # 计算相似性
         for node in nodes:
-            cs=similarityTools.cosine_similarity(currentNode['attr_num_list'],node['attr_num_list'])
-            js=similarityTools.jaccardSimilarity(currentNode['attr_culster_list'],node['attr_culster_list'])
-            nodesSimilarity.append({'id':node['id'],'Similarity':(cs+js)[0]})
-        nodesSimilarity=sorted(nodesSimilarity,key=lambda x: x['Similarity'],reverse=True)
-        mostSimList=nodesSimilarity[0:11]
+            cs = similarityTools.cosine_similarity(currentNode['attr_num_list'], node['attr_num_list'])
+            js = similarityTools.jaccardSimilarity(currentNode['attr_culster_list'], node['attr_culster_list'])
+            nodesSimilarity.append({'id': node['id'], 'Similarity': (cs + js)[0]})
+        nodesSimilarity = sorted(nodesSimilarity, key=lambda x: x['Similarity'], reverse=True)
+        mostSimList = nodesSimilarity[0:10]
         print(mostSimList)
         self.write(json.dumps(mostSimList))
-
 
 
 class getTimeLineJson(tornado.web.RequestHandler):
@@ -539,6 +547,7 @@ class getTimeLineJson(tornado.web.RequestHandler):
         evt = json.dumps(load_dict)
         self.write(evt)
 
+
 class getAccompanyJson(tornado.web.RequestHandler):
     # 从预先计算好的json文件中，获取timeline全局流量
     def get(self):
@@ -554,6 +563,7 @@ class getAccompanyJson(tornado.web.RequestHandler):
             load_dict = json.load(load_f)
         evt = json.dumps(load_dict)
         self.write(evt)
+
 
 class getAccompanyData(tornado.web.RequestHandler):
     def get(self):
@@ -588,7 +598,7 @@ class getAccompanyCSV(tornado.web.RequestHandler):
         params = json.loads(self.get_argument('params'))
         print('params', params)
         filePath = '../data/accompany.csv'
-        result = {'data':[]}
+        result = {'data': []}
         count = 0
         with open(filePath, 'r', encoding="utf-8") as csvfile:
             reader = csv.reader(csvfile)
@@ -765,6 +775,49 @@ class getLink(tornado.web.RequestHandler):
             self.write(shortPath)
 
 
+class findsubgraph(tornado.web.RequestHandler):
+    def post(self):
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
+        params = self.get_argument('params')
+        params = json.loads(params)
+        skeleton_json = params['skeleton']  # json.loads变为对象
+        d = params['index']
+        G = nx.Graph()
+        for link in skeleton_json['links']:
+            G.add_edge(link['target'], link['source'], id=link['id'])
+        for c in sorted(nx.algorithms.components.connected_components(G)):
+            if d in nx.Graph(nx.subgraph(G, c)).nodes:
+                skeleton_sub = nx.subgraph(G, c)
+                break
+        edge_id_list = {}
+        index = 0
+        for c in sorted(nx.algorithms.components.connected_components(G)):
+            component_graph = nx.Graph(nx.subgraph(G, c))  # 深度拷贝
+            component_len_edges = myutil.find_number_of_edges(nx.subgraph(G, c))  # 数据图边数
+            sub_len_nodes = myutil.find_number_of_nodes(skeleton_sub)  # 查询图的节点数
+            sub_len_edges = myutil.find_number_of_edges(skeleton_sub)  # 查询图的边数
+
+            if sub_len_edges > component_len_edges:
+                continue
+            choose_list = component_graph.nodes
+
+            for i in itertools.combinations(choose_list, sub_len_nodes):
+                nodes = list(i)
+                subgraph = G.subgraph(nodes)
+                if nx.algorithms.isomorphism.is_isomorphic(subgraph, skeleton_sub):
+                    edge_id = []
+                    for item in list(subgraph.edges):
+                        edge_id.append(G[item[0]][item[1]]['id'])
+                    edge_id_list[index] = edge_id
+                    index = index + 1
+        result = {'data': edge_id_list}
+        self.write(result)
+
+
 if __name__ == "__main__":
     tornado.options.parse_command_line()
     print(
@@ -784,12 +837,13 @@ if __name__ == "__main__":
             (r'/getData2', getData2),
             (r'/get-timeLine-json', getTimeLineJson),
             (r'/detect-anomaly-onflow', detectAnomalyOnFlow),
-            (r'/detect-similarity',detectSimilarity),
+            (r'/detect-similarity', detectSimilarity),
             (r'/get-anomaly-layout-data', getAnomalyLayoutData),
             (r'/get-accompany-json', getAccompanyJson),
             (r'/get-accompany-csv', getAccompanyCSV),
             (r'/get-multi-layer-data', getMultilayerData),
             (r'/getLink', getLink),
+            (r'/findsubgraph', findsubgraph),
             (r'/(.*)', tornado.web.StaticFileHandler, {
                 'path': client_file_root_path,
                 'default_filename': 'index.html'

@@ -817,6 +817,302 @@ class findsubgraph(tornado.web.RequestHandler):
         result = {'data': edge_id_list}
         self.write(result)
 
+class getTopNodeData(tornado.web.RequestHandler):
+    # 前端传来选中节点ID以及时间范围，返回时间范围内与该节点最相似的top10
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
+
+        params = json.loads(self.get_argument('params'))
+        print('params', params)
+        timerange = params['timerange']
+        p_timerange = {}
+        for key in timerange:
+            p_timerange[key] = timerange[key][0: 4] + timerange[key][5: 7] + timerange[key][8: 10] + timerange[key][11: 13] + timerange[key][14: 16] + timerange[key][17: 19] + '000000'
+        id = params['id']
+
+        data = NetworkData.getTopData(p_timerange, id)
+        # print(data)
+
+        # 这里是节点属性数据
+        nodes_obj = {
+            data[0]['recv_node_golbal_no']: {
+                'attr_num_list': [],
+                'attr_cluster_list': []
+            }
+        }
+        for i in range(1, 31):
+            temp_obj = {
+                'key': 'num_' + str(i),
+                'value': data[0]['recv_num_' + str(i)]
+            }
+            nodes_obj[data[0]['recv_node_golbal_no']]['attr_num_list'].append(temp_obj)
+        for i in range(1, 21):
+            temp_obj = {
+                'key': 'cluster' + str(i),
+                'value': data[0]['recv_cluster_' + str(i)]
+            }
+            nodes_obj[data[0]['recv_node_golbal_no']]['attr_cluster_list'].append(temp_obj)
+
+        for item in data:
+            if item['recv_node_golbal_no'] not in nodes_obj:
+                nodes_obj[item['recv_node_golbal_no']] = {
+                    'attr_num_list': [],
+                    'attr_cluster_list': []
+                }
+                for i in range(1, 31):
+                    temp_obj = {
+                        'key': 'num_' + str(i),
+                        'value': item['recv_num_' + str(i)]
+                    }
+                    nodes_obj[item['recv_node_golbal_no']]['attr_num_list'].append(temp_obj)
+                for i in range(1, 21):
+                    temp_obj = {
+                        'key': 'cluster_' + str(i),
+                        'value': item['recv_cluster_' + str(i)]
+                    }
+                    nodes_obj[item['recv_node_golbal_no']]['attr_cluster_list'].append(temp_obj)
+            if item['trans_node_global_no'] not in nodes_obj:
+                nodes_obj[item['trans_node_global_no']] = {
+                    'attr_num_list': [],
+                    'attr_cluster_list': []
+                }
+                for i in range(1, 31):
+                    temp_obj = {
+                        'key': 'num_' + str(i),
+                        'value': item['trans_num_' + str(i)]
+                    }
+                    nodes_obj[item['trans_node_global_no']]['attr_num_list'].append(temp_obj)
+                for i in range(1, 21):
+                    temp_obj = {
+                        'key': 'cluster_' + str(i),
+                        'value': item['trans_cluster_' + str(i)]
+                    }
+                    nodes_obj[item['trans_node_global_no']]['attr_cluster_list'].append(temp_obj)
+
+        # 这里假设所选节点的属性缺失了
+        for i in range(0, 5):
+            nodes_obj[id]['attr_num_list'][i]['value'] = None
+            nodes_obj[id]['attr_cluster_list'][i]['value'] = None
+
+        # 这里是节点ID数据
+        nodes_id = []
+        for node_id in nodes_obj:
+            nodes_id.append(node_id)
+
+        nodesSimilarity = []
+
+        for node_id in nodes_id:
+            temp_attr_num_list1 = []
+            temp_attr_num_list2 = []
+            temp_attr_cluster_list1 = []
+            temp_attr_cluster_list2 = []
+            temp_k = 0
+            for i in range(0, 30):
+                if nodes_obj[id]['attr_num_list'][i]['value'] != None and nodes_obj[node_id]['attr_num_list'][i]['value'] == None:
+                    temp_k = 1
+                    break
+
+            if temp_k == 0:
+                for i in range(0, 30):
+                    if nodes_obj[id]['attr_num_list'][i]['value'] != None and nodes_obj[node_id]['attr_num_list'][i]['value'] != None:
+                        temp_attr_num_list1.append(nodes_obj[id]['attr_num_list'][i])
+                        temp_attr_num_list2.append(nodes_obj[node_id]['attr_num_list'][i])
+                cs = similarityTools.cosine_similarity(temp_attr_num_list1, temp_attr_num_list2)
+
+                for i in range(0, 20):
+                    if nodes_obj[id]['attr_cluster_list'][i]['value'] != None and nodes_obj[node_id]['attr_cluster_list'][
+                        i]['value'] != None:
+                        temp_attr_cluster_list1.append(nodes_obj[id]['attr_cluster_list'][i])
+                        temp_attr_cluster_list2.append(nodes_obj[node_id]['attr_cluster_list'][i])
+                js = similarityTools.jaccardSimilarity(temp_attr_cluster_list1, temp_attr_cluster_list2)[0]
+
+                nodesSimilarity.append({'id': node_id, 'Similarity': js + cs})
+            elif temp_k == 1:
+                nodesSimilarity.append({'id': node_id, 'Similarity': 0})
+
+        nodesSimilarity = sorted(nodesSimilarity, key=lambda x: x['Similarity'], reverse=True)
+        mostSimList = nodesSimilarity[1:11]  # 这里是top10
+
+        # 这里是top10的属性数据
+        mostSimList_attr = {}
+        for top in mostSimList:
+            mostSimList_attr[top['id']] = {}
+            for i in range(1, 31):
+                mostSimList_attr[top['id']]['num_' + str(i)] = nodes_obj[top['id']]['attr_num_list'][i - 1]
+            for i in range(1, 21):
+                mostSimList_attr[top['id']]['cluster_' + str(i)] = nodes_obj[top['id']]['attr_cluster_list'][i - 1]
+        selectNode_attr = {}
+        for i in range(1, 31):
+            selectNode_attr['num_' + str(i)] = nodes_obj[id]['attr_num_list'][i - 1]
+        for i in range(1, 21):
+            selectNode_attr['cluster_' + str(i)] = nodes_obj[id]['attr_cluster_list'][i - 1]
+
+        self.write(json.dumps([mostSimList, mostSimList_attr, selectNode_attr]))
+
+
+class getChartData(tornado.web.RequestHandler):
+    def get(self):
+        self.set_header('Access-Control-Allow-Origin',
+                        '*')  # 添加响应头，允许指定域名的跨域请求
+        self.set_header("Access-Control-Allow-Headers", "X-Requested-With")
+        self.set_header("Access-Control-Allow-Methods",
+                        "PUT,POST,GET,DELETE,OPTIONS")
+
+        params = json.loads(self.get_argument('params'))
+        print('params', params)
+        timerange = params['timerange']
+        p_timerange = {}
+        for key in timerange:
+            p_timerange[key] = timerange[key][0: 4] + timerange[key][5: 7] + timerange[key][8: 10] + timerange[key][11: 13] + timerange[key][14: 16] + timerange[key][17: 19] + '000000'
+        data_id = params['id']
+
+        data = NetworkData.getTopData(p_timerange, data_id)
+        # print(data)
+
+        # 这里是节点属性数据
+        nodes_obj = {}
+
+        for item in data:
+            if item['recv_node_golbal_no'] not in nodes_obj:
+                nodes_obj[item['recv_node_golbal_no']] = {
+                    'attr_num_list': [],
+                    'attr_cluster_list': []
+                }
+                for i in range(1, 31):
+                    temp_obj = {
+                        'key': 'num_' + str(i),
+                        'value': item['recv_num_' + str(i)]
+                    }
+                    nodes_obj[item['recv_node_golbal_no']]['attr_num_list'].append(temp_obj)
+                for i in range(1, 21):
+                    temp_obj = {
+                        'key': 'cluster_' + str(i),
+                        'value': item['recv_cluster_' + str(i)]
+                    }
+                    nodes_obj[item['recv_node_golbal_no']]['attr_cluster_list'].append(temp_obj)
+            if item['trans_node_global_no'] not in nodes_obj:
+                nodes_obj[item['trans_node_global_no']] = {
+                    'attr_num_list': [],
+                    'attr_cluster_list': []
+                }
+                for i in range(1, 31):
+                    temp_obj = {
+                        'key': 'num_' + str(i),
+                        'value': item['trans_num_' + str(i)]
+                    }
+                    nodes_obj[item['trans_node_global_no']]['attr_num_list'].append(temp_obj)
+                for i in range(1, 21):
+                    temp_obj = {
+                        'key': 'cluster_' + str(i),
+                        'value': item['trans_cluster_' + str(i)]
+                    }
+                    nodes_obj[item['trans_node_global_no']]['attr_cluster_list'].append(temp_obj)
+
+        # 这里假设所选节点的属性缺失了
+        for i in range(0, 5):
+            nodes_obj[data_id]['attr_num_list'][i]['value'] = None
+            nodes_obj[data_id]['attr_cluster_list'][i]['value'] = None
+
+        # 这里是节点ID数据
+        nodes_id = []
+        for node_id in nodes_obj:
+            nodes_id.append(node_id)
+
+        nodesSimilarity = []
+
+        for node_id in nodes_id:
+            temp_attr_num_list1 = []
+            temp_attr_num_list2 = []
+            temp_attr_cluster_list1 = []
+            temp_attr_cluster_list2 = []
+            temp_k = 0
+            for i in range(0, 30):
+                if nodes_obj[data_id]['attr_num_list'][i]['value'] != None and nodes_obj[node_id]['attr_num_list'][i][
+                    'value'] == None:
+                    temp_k = 1
+                    break
+
+            if temp_k == 0:
+                for i in range(0, 30):
+                    if nodes_obj[data_id]['attr_num_list'][i]['value'] != None and nodes_obj[node_id]['attr_num_list'][i][
+                        'value'] != None:
+                        temp_attr_num_list1.append(nodes_obj[data_id]['attr_num_list'][i])
+                        temp_attr_num_list2.append(nodes_obj[node_id]['attr_num_list'][i])
+                cs = similarityTools.cosine_similarity(temp_attr_num_list1, temp_attr_num_list2)
+
+                for i in range(0, 20):
+                    if nodes_obj[data_id]['attr_cluster_list'][i]['value'] != None and \
+                            nodes_obj[node_id]['attr_cluster_list'][
+                                i]['value'] != None:
+                        temp_attr_cluster_list1.append(nodes_obj[data_id]['attr_cluster_list'][i])
+                        temp_attr_cluster_list2.append(nodes_obj[node_id]['attr_cluster_list'][i])
+                js = similarityTools.jaccardSimilarity(temp_attr_cluster_list1, temp_attr_cluster_list2)[0]
+
+                nodesSimilarity.append({'id': node_id, 'Similarity': js + cs})
+            elif temp_k == 1:
+                nodesSimilarity.append({'id': node_id, 'Similarity': 0})
+
+        nodesSimilarity = sorted(nodesSimilarity, key=lambda x: x['Similarity'], reverse=True)
+
+        # 这里按时间（秒）取数据
+        c_data = {}
+        mostSimList2 = nodesSimilarity[0:11]
+        for item in mostSimList2:
+            c_data[item['id']] = []
+        # print(c_data)
+        for id in c_data:
+            now_time = time.mktime(time.strptime(timerange['start'], "%Y-%m-%d %H:%M:%S"))
+            for d in data:
+                dtime = d['event_begintime']
+                dtime = dtime[0: 4] + '-' + dtime[4: 6] + '-' + dtime[6: 8] + ' ' + dtime[8: 10] + ':' + dtime[10: 12] + ':' + dtime[12: 14]
+                dtime = time.mktime(time.strptime(dtime, "%Y-%m-%d %H:%M:%S"))
+                if now_time == dtime:
+                    if id == d['recv_node_golbal_no']:
+                        tempTime = now_time
+                        tempTimeData = {
+                            'time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(tempTime)),
+                            'attributes': {}
+                        }
+                        for i in range(1, 31):
+                            tempTimeData['attributes']['num_' + str(i)] = d['recv_num_' + str(i)]
+                        for i in range(1, 21):
+                            tempTimeData['attributes']['cluster_' + str(i)] = d['recv_cluster_' + str(i)]
+                        c_data[id].append(tempTimeData)
+                        now_time = now_time + 1
+                    elif id == d['trans_node_global_no']:
+                        tempTime = now_time
+                        tempTimeData = {
+                            'time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(tempTime)),
+                            'attributes': {}
+                        }
+                        for i in range(1, 31):
+                            tempTimeData['attributes']['num_' + str(i)] = d['trans_num_' + str(i)]
+                        for i in range(1, 21):
+                            tempTimeData['attributes']['cluster_' + str(i)] = d['trans_cluster_' + str(i)]
+                        c_data[id].append(tempTimeData)
+                        now_time = now_time + 1
+                elif now_time < dtime:
+                    tempTime = now_time
+                    tempTimeData = {
+                        'time': time.strftime("%Y-%m-%d %H:%M:%S", time.localtime(tempTime)),
+                        'attributes': {}
+                    }
+                    for i in range(1, 31):
+                        tempTimeData['attributes']['num_' + str(i)] = None
+                    for i in range(1, 21):
+                        tempTimeData['attributes']['cluster_' + str(i)] = None
+                    c_data[id].append(tempTimeData)
+                    now_time = now_time + 1
+
+        # print(c_data[id])
+        # print(id)
+
+        self.write(json.dumps(c_data))
+
 
 if __name__ == "__main__":
     tornado.options.parse_command_line()
@@ -844,6 +1140,8 @@ if __name__ == "__main__":
             (r'/get-multi-layer-data', getMultilayerData),
             (r'/getLink', getLink),
             (r'/findsubgraph', findsubgraph),
+            (r'/get-top-node-data', getTopNodeData),
+            (r'/get-chart-data', getChartData),
             (r'/(.*)', tornado.web.StaticFileHandler, {
                 'path': client_file_root_path,
                 'default_filename': 'index.html'

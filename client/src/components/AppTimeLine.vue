@@ -112,7 +112,8 @@
       Object.defineProperty(select_time, 'observe',{
         set:function(value){
           //需要触发的渲染函数可以写在这...
-          let tranformTime = {start: select_time.start, end: select_time.end }
+          let tranformTime = {start: select_time.start, end: select_time.end };
+          localStorage.setItem('timerange', JSON.stringify(tranformTime));
           self.$store.commit('modifySelectTime', tranformTime);
           self.$store.commit('modifySelectData', select_time.data);
         }

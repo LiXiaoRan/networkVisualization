@@ -625,6 +625,7 @@
           .attr('height', d => this.nodeScale(d.degree))
           .classed('clicked', false)
           .on('click', function (d) {
+            localStorage.setItem('selectid', d.id);
             self.folder.open();
             if (d3.event.ctrlKey) {
               //清除单选信息

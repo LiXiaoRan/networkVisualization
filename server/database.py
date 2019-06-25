@@ -73,6 +73,15 @@ class NetworkData:
             cursor.execute(featchSql)
             data = cursor.fetchall()
         return data
+    
+    def getTopData(self, timerange, id):
+        # 获取时间范围内的数据
+        sql = "select * from " + tablename + " where event_begintime >= %s and event_endtime < %s order by event_begintime"
+        data = ''
+        cursor = conn.cursor()
+        cursor.execute(sql, [timerange['start'], timerange['end']])
+        data = cursor.fetchall()
+        return data
         
 
 

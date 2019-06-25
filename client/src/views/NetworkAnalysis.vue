@@ -6,7 +6,7 @@
         <button class="analysis-btn">异常检测</button>
       </router-link>
       <router-link target="_blank" to="/compare">
-        <button class="analysis-btn">对比分析</button>
+        <button class="analysis-btn">属性判证</button>
       </router-link>
       <router-link target="_blank" to="/multilayer">
         <button class="analysis-btn">多层结构</button>

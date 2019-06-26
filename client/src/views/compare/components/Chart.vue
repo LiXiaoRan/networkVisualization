@@ -904,6 +904,9 @@ export default {
       	times.push(this.node1[i]['time'].slice(14));
       }
       
+      let times_re = times.concat();
+      times_re.reverse();
+      
       let datas = [];
       for(let k = 0; k < attributes.length; k++) {
       	for(let i = 0; i < times.length; i++) {
@@ -920,10 +923,10 @@ export default {
       	for(let i = 0; i < times.length; i++) {
       		let temp_data = this.node2[i]['attributes'][show_attribute];
       		if(temp_data == attributes[k]) {
-      			datas.push([k + attributes.length, i, 1]);
+      			datas.push([k + attributes.length, times.length - 1 - i, 1]);
       		}
       		else {
-      			datas.push([k + attributes.length, i, 0]);
+      			datas.push([k + attributes.length, times.length - 1 - i, 0]);
       		}
       	}
       }
@@ -945,7 +948,7 @@ export default {
               right: '51%',
               textAlign: 'center',
               textBaseline: 'middle',
-              top: (idx + 0.5) * 100 / attributes.length + '%',
+              top: (idx + 0.5) * 95 / attributes.length + '%',
               text: attribute
           });
           option.singleAxis.push({
@@ -953,8 +956,8 @@ export default {
               type: 'category',
               boundaryGap: false,
               data: times,
-              top: (idx * 100 / attributes.length + 5) + '%',
-              height: (100 / attributes.length - 11) + '%',
+              top: (idx * 95 / attributes.length + 5) + '%',
+              height: (95 / attributes.length - 7) + '%',
               //right: '50%',
               axisLabel: {
                   interval: 10
@@ -978,9 +981,9 @@ export default {
               right: '55%',
               type: 'category',
               boundaryGap: false,
-              data: times,
-              top: (idx * 100 / attributes.length + 5) + '%',
-              height: (100 / attributes.length - 11) + '%',
+              data: times_re,
+              top: (idx * 95 / attributes.length + 5) + '%',
+              height: (95 / attributes.length - 7) + '%',
               //right: '50%',
               axisLabel: {
                   interval: 10

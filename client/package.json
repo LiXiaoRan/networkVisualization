@@ -17,7 +17,7 @@
     "@fortawesome/vue-fontawesome": "^0.1.2",
     "axios": "^0.18.0",
     "css-loader": "^0.28.11",
-    "d3": "^5.7.0",
+    "d3": "^7.6.1",
     "dat": "^13.11.4",
     "dat.gui": "^0.7.3",
     "echarts": "^4.2.1",
